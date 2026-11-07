@@ -1,0 +1,27 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "천장 장식",
+  "tilewidth": 48,
+  "tileheight": 64,
+  "columns": 0,
+  "tilecount": 1,
+  "objectalignment": "topleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "CeilingDecoration",
+      "image": "images/chandelier.png",
+      "imagewidth": 48,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "쇠사슬 샹들리에"
+        }
+      ]
+    }
+  ]
+}
