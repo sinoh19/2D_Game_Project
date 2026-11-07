@@ -216,6 +216,8 @@ def load_map(map_path,base_layout,asset_root):
                         visual(gid,x,y,w,h,opacity=alpha)
                         if props.get('flameAnimation',False):
                             layout['tiledVisuals'][-1]['animation']='chandelier-flames'
+                        if props.get('warmLight',False):
+                            layout['tiledVisuals'][-1]['light']='chandelier'
                     continue
                 if klass=='Passage':
                     if rotation or gid&(H|V|D):raise ValueError('통로는 회전하지 말고 좌/우 통로 타일을 선택하세요.')

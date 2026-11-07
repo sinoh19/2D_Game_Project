@@ -25,6 +25,11 @@
           "name": "flameAnimation",
           "type": "bool",
           "value": true
+        },
+        {
+          "name": "warmLight",
+          "type": "bool",
+          "value": true
         }
       ]
     }

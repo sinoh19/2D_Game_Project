@@ -35,6 +35,8 @@ class DungeonAssets:
                 self.chandelier_frames[key] = prepare(self.images[key])
         from game.background import build_layer
         self.background_layer = build_layer(self)
+        from game.lighting import FireLights
+        self.fire_lights = FireLights(self.layout,self.scale,self.view_width)
 
     def image(self, name, x, top, width, height, camera=0, flip=False):
         image = self.images[name]

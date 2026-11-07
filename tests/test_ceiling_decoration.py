@@ -31,6 +31,8 @@ class CeilingDecorationTests(unittest.TestCase):
             after = load_map(path, base, ROOT/'assets/dungeon')
         sprite = after['tiledVisuals'][-1]
         self.assertEqual((sprite['x'],sprite['y'],sprite['width'],sprite['height']), (320,32,48,64))
+        self.assertEqual(sprite['light'], 'chandelier')
+        self.assertEqual(sprite['animation'], 'chandelier-flames')
         for key in ('solids','platforms','slopes'):
             self.assertEqual(after[key],before[key])
 
