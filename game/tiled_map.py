@@ -187,7 +187,13 @@ def load_map(map_path,base_layout,asset_root):
                 if klass in ('Solid','Platform'):
                     if rotation:raise ValueError('사각 충돌은 회전하지 말고 경사면 선을 사용하세요.')
                     target=layout['platforms'] if klass=='Platform' else layout['solids']
-                    target.append([x,y,x+w,y+h]);continue
+                    top=y-h if gid else y
+                    collision_height=h
+                    if gid:
+                        collision_height=float(props.get('collisionHeight',rect[3]))*h/rect[3]
+                        collision_height=max(1,min(h,collision_height))
+                        if shown:visual(gid,x,top,w,h,rotation,alpha)
+                    target.append([x,top,x+w,top+collision_height]);continue
                 if klass=='Slope':
                     if rotation:raise ValueError('경사면은 선 끝점을 움직여 편집하세요.')
                     points=obj.get('polyline',[])

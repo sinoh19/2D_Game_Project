@@ -79,6 +79,23 @@ class TiledMapTests(unittest.TestCase):
         self.assertAlmostEqual(rotated['x'],192)
         self.assertAlmostEqual(rotated['y'],208)
 
+    def test_platform_object_moves_its_picture_and_collision(self):
+        layer=next(l for l in self.data['layers'] if l['name']=='발판')
+        obj=layer['objects'][0]
+        obj['x']+=32;obj['y']-=16
+        loaded=self.load(self.data)
+        self.assertIn([224,232,288,240],loaded['platforms'])
+        self.assertNotIn([192,248,256,256],loaded['platforms'])
+        self.assertTrue(any(v['x']==224 and v['y']==232 and v['width']==64 for v in loaded['tiledVisuals']))
+
+    def test_new_platform_inherits_visible_one_way_collision(self):
+        layer=next(l for l in self.data['layers'] if l['name']=='발판')
+        layer['objects'].append({'id':999,'gid':2001,'x':800,'y':200,'width':32,'height':16,'rotation':0})
+        loaded=self.load(self.data)
+        self.assertIn([800,184,832,192],loaded['platforms'])
+        self.assertNotIn([800,184,832,192],loaded['solids'])
+        self.assertTrue(any(v['x']==800 and v['y']==184 and loaded['images'][v['image']].endswith('platform-32.png') for v in loaded['tiledVisuals']))
+
     def test_new_level_template_uses_automatic_collision(self):
         data=json.loads((ROOT/'maps/new_level_template.tmj').read_text(encoding='utf-8'))
         loaded=self.load(data)
