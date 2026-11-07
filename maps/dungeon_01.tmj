@@ -301,6 +301,29 @@
       "y": 0
     },
     {
+      "id": 13,
+      "name": "배경 구조물",
+      "type": "objectgroup",
+      "draworder": "topdown",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "objects": [
+        {
+          "id": 57,
+          "name": "나무 다리",
+          "gid": 41,
+          "x": 1088,
+          "y": 320,
+          "width": 128,
+          "height": 32,
+          "rotation": 0,
+          "visible": true
+        }
+      ]
+    },
+    {
       "data": [
         3,
         4,
@@ -3593,8 +3616,8 @@
       "y": 0
     }
   ],
-  "nextlayerid": 13,
-  "nextobjectid": 57,
+  "nextlayerid": 14,
+  "nextobjectid": 58,
   "orientation": "orthogonal",
   "properties": [
     {
