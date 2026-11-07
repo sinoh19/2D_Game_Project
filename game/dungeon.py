@@ -9,9 +9,12 @@ from game.terrain import slope_surfaces, inside_slope
 
 
 class DungeonAssets:
-    def __init__(self):
+    def __init__(self, map_path=None):
         folder = ASSETS / 'dungeon'
         self.layout = json.loads((folder / 'dungeon_01.json').read_text(encoding='utf-8'))
+        if map_path is not None:
+            from game.tiled_map import load_map
+            self.layout = load_map(map_path, self.layout, folder)
         self.view_width, self.view_height = self.layout['viewport']
         self.scale = WINDOW_WIDTH / self.view_width
         self.character_scale = self.layout['characterScale']
@@ -85,26 +88,49 @@ class DungeonAssets:
             sx, sy, sw, sh, 0, spec['flip'], round(center_x*self.scale),
             round(WINDOW_HEIGHT-center_y*self.scale), round(width*self.scale), round(height*self.scale))
 
+    def draw_prop(self, prop, camera, time=0):
+        if prop['kind'] == 'torch':
+            self.unity_sprite('torch_body', prop['x'], prop['bottom'], prop['unitScale'], camera)
+            animation = self.layout['torchAnimation']
+            moment = time % animation['duration']
+            frame = animation['frames'][0]
+            for candidate in animation['frames']:
+                if candidate['time'] > moment:
+                    break
+                frame = candidate
+            ox, oy = animation['offset']
+            self.unity_sprite(frame['sprite'], prop['x']+ox*prop['unitScale'],
+                              prop['bottom']-oy*prop['unitScale'], prop['unitScale'], camera)
+        else:
+            self.unity_sprite(prop['kind'], prop['x'], prop['bottom'], prop['unitScale'], camera)
+
+    def draw_tiled(self, camera, time):
+        for command in self.layout['tiledDrawOrder']:
+            if command['kind']=='prop':
+                self.draw_prop(self.layout['props'][command['index']],camera,time)
+                continue
+            item=self.layout['tiledVisuals'][command['index']]
+            x,y,w,h=item['x'],item['y'],item['width'],item['height']
+            if x+w<camera or x>camera+self.view_width:continue
+            image=self.images[item['image']]
+            sx,sy,sw,sh=item['rect']
+            alpha=round(max(0,min(1,item['opacity']))*255)
+            if alpha!=255:p2d.SDL_SetTextureAlphaMod(image.texture,alpha)
+            image.clip_composite_draw(sx,sy,sw,sh,item['angle'],item['flip'],
+                (round(x-camera)+w/2)*self.scale,WINDOW_HEIGHT-(round(y)+h/2)*self.scale,
+                round(w*self.scale),round(h*self.scale))
+            if alpha!=255:p2d.SDL_SetTextureAlphaMod(image.texture,255)
+
     def draw_world(self, camera, time=0):
         from game.background import draw_layer
         draw_layer(self, camera)
+        if "tiledVisuals" in self.layout:
+            self.draw_tiled(camera,time)
+            return
         size = self.tile_size
         start = int(camera//size)*size
         for prop in self.layout['props']:
-            if prop['kind'] == 'torch':
-                self.unity_sprite('torch_body', prop['x'], prop['bottom'], prop['unitScale'], camera)
-                animation = self.layout['torchAnimation']
-                moment = time % animation['duration']
-                frame = animation['frames'][0]
-                for candidate in animation['frames']:
-                    if candidate['time'] > moment:
-                        break
-                    frame = candidate
-                ox, oy = animation['offset']
-                self.unity_sprite(frame['sprite'], prop['x']+ox*prop['unitScale'],
-                                  prop['bottom']-oy*prop['unitScale'], prop['unitScale'], camera)
-            else:
-                self.unity_sprite(prop['kind'], prop['x'], prop['bottom'], prop['unitScale'], camera)
+            self.draw_prop(prop,camera,time)
         for left, top, right, bottom in self.layout['renderRegions']:
             for x in range(round(left), round(right), size):
                 width = min(size, right-x)
@@ -314,5 +340,5 @@ class Knight:
 
 def get_assets(resources):
     if getattr(resources, 'dungeon', None) is None:
-        resources.dungeon = DungeonAssets()
+        resources.dungeon = DungeonAssets(getattr(resources, "map_path", None))
     return resources.dungeon

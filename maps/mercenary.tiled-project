@@ -1,0 +1,93 @@
+{
+  "folders": [
+    "."
+  ],
+  "extensionsPath": "extensions",
+  "automappingRulesFile": "",
+  "propertyTypes": [
+    {
+      "id": 1,
+      "name": "Spawn",
+      "type": "class",
+      "color": "#ffe6c45c",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 2,
+      "name": "Solid",
+      "type": "class",
+      "color": "#ffff7160",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 3,
+      "name": "Platform",
+      "type": "class",
+      "color": "#ff8fbd66",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 4,
+      "name": "Slope",
+      "type": "class",
+      "color": "#ff49d4ce",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 5,
+      "name": "Torch",
+      "type": "class",
+      "color": "#ffe7a755",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 6,
+      "name": "Armor",
+      "type": "class",
+      "color": "#ffb6c4d2",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    },
+    {
+      "id": 7,
+      "name": "Passage",
+      "type": "class",
+      "color": "#ffbb90d6",
+      "drawFill": true,
+      "useAs": [
+        "object",
+        "tile"
+      ],
+      "members": []
+    }
+  ]
+}

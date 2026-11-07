@@ -43,11 +43,12 @@ class SidePassages:
     def __init__(self,scene,restore=True):
         self.scene=scene
         data=scene.app.storage.read('gates.json',{}) if restore else {}
-        opened=data.get('opened',[]) if data.get('scene')=='dungeon_01' else []
+        self.map_id=scene.layout.get('mapId','dungeon_01')
+        opened=data.get('opened',[]) if data.get('scene')==self.map_id else []
         if not isinstance(opened,list):opened=[]
         self.gates=[LiftGate(s,s['id'] in opened) for s in scene.layout.get('sidePassages',[])]
         self.base_solids=list(scene.layout['solids'])
-        self.base_solids += [(g.spec['left'],0,g.spec['right'],g.spec['openingTop']) for g in self.gates]
+        self.base_solids += [(g.spec['left'],g.spec.get('top',0),g.spec['right'],g.spec['openingTop']) for g in self.gates]
         assets=scene.assets
         if not hasattr(assets,'gate_sound'):
             assets.gate_sound=None
@@ -83,7 +84,7 @@ class SidePassages:
         # A gate already being opened resumes fully open, rather than trapping
         # a player who saved while standing in its opening.
         opened=[g.spec['id'] for g in self.gates if g.state!='closed']
-        self.scene.app.storage.write('gates.json',{'version':1,'scene':'dungeon_01','opened':opened})
+        self.scene.app.storage.write('gates.json',{'version':1,'scene':self.map_id,'opened':opened})
 
     def draw(self,camera):
         assets=self.scene.assets
@@ -99,16 +100,17 @@ class SidePassages:
             if remaining:
                 jitter=1 if gate.state=='opening' and int(gate.clock*24)%3==1 else 0
                 panel=assets.images['lift_gate']
-                panel.clip_draw(0,0,w,remaining,(gx+w/2+jitter)*SCALE,
+                source_height=max(1,min(panel.h,round(panel.h*remaining/gate.height)))
+                panel.clip_draw(0,0,panel.w,source_height,(gx+w/2+jitter)*SCALE,
                     WINDOW_HEIGHT-(s['openingTop']+remaining/2)*SCALE,w*SCALE,remaining*SCALE)
-                panel.clip_draw(0,min(panel.h-4,remaining),w,4,(gx+w/2+jitter)*SCALE,
+                panel.clip_draw(0,min(panel.h-4,source_height),panel.w,4,(gx+w/2+jitter)*SCALE,
                     WINDOW_HEIGHT-(s['openingTop']-2)*SCALE,w*SCALE,4*SCALE)
             cap_top=s['openingTop']-32
             for x in range(s['left'],s['right'],32):
                 edge=None
                 if s['side']=='left' and x==s['right']-32:edge='right'
                 if s['side']=='right' and x==s['left']:edge='left'
-                for y in range(0,cap_top,32):
+                for y in range(s.get('top',0),cap_top,32):
                     key='passage_wall_'+edge if edge else 'Fill'
                     assets.tile(key,x,y,32,min(32,cap_top-y),camera)
                 # The underside and exposed side share the original rock

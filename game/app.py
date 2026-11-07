@@ -7,12 +7,13 @@ from pico2d import pico2d as backend
 from game.config import ROOT, TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, TARGET_FPS, NATIVE_WIDTH, NATIVE_HEIGHT, SCALE
 from game.resources import Resources
 from game.storage import Storage
+from game.config import DEFAULT_TILED_MAP
 from game import drawing
 from game.config import DEBUG_SKIP_ENABLED, DEBUG_SKIP_BOUNDS
 
 
 class App:
-    def __init__(self, data_directory=None, hidden=False):
+    def __init__(self, data_directory=None, hidden=False, map_path=None):
         os.environ["SDL_RENDER_SCALE_QUALITY"] = "0"
         p2d.SDL_SetHint(b"SDL_RENDER_SCALE_QUALITY", b"0")
         p2d.open_canvas(WINDOW_WIDTH, WINDOW_HEIGHT, sync=True)
@@ -27,6 +28,8 @@ class App:
             raise RuntimeError("640×360 렌더 타깃 생성 실패")
         self.begin_native_frame()
         self.storage = Storage(Path(data_directory) if data_directory else ROOT / "user_data")
+        selected_map = Path(map_path) if map_path else DEFAULT_TILED_MAP
+        self.map_path = selected_map.resolve() if selected_map.is_absolute() else (ROOT/selected_map).resolve()
         self.animation = self.storage.animation_enabled()
         self.running = True
         self.debug_skip_hovered = False
@@ -34,6 +37,7 @@ class App:
         self.resources = None
         try:
             self.resources = Resources()
+            self.resources.map_path = self.map_path
             self.show_title()
         except Exception:
             self.close()
@@ -75,6 +79,24 @@ class App:
     def start_field(self, position):
         from game.scenes.field import FieldScene
         self.scene = FieldScene(self, position)
+
+    def reload_field_map(self):
+        previous = self.scene
+        previous.save()
+        position = (previous.x, previous.y)
+        assets = self.resources.dungeon
+        self.resources.dungeon = None
+        try:
+            self.start_field(position)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            self.scene = previous
+            self.resources.dungeon = assets
+            previous.map_notice = '맵 오류: '+str(error)[:50]
+            previous.map_notice_time = 5.0
+            return False
+        self.scene.map_notice = 'Tiled 맵을 다시 불러왔습니다.'
+        self.scene.map_notice_time = 2.5
+        return True
 
     def can_skip_intro(self):
         from game.scenes.title import TitleScene
