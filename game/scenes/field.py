@@ -100,6 +100,7 @@ class FieldScene:
         self.passages.draw(self.camera_x)
         clip, time = self.player.clip
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
+        self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         self.passages.draw_hint()
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
