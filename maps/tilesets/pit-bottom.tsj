@@ -1,0 +1,307 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "구멍 하단 연결",
+  "tilewidth": 32,
+  "tileheight": 32,
+  "columns": 0,
+  "tilecount": 3,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "image": "images/pit-bottom-flat.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "하단 평면 연결"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "class": "Solid",
+            "x": 0,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "image": "images/pit-bottom-left.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "하단 왼쪽 둥근 연결"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "class": "Solid",
+            "x": 6,
+            "y": 0,
+            "width": 26,
+            "height": 1
+          },
+          {
+            "id": 2,
+            "class": "Solid",
+            "x": 5,
+            "y": 1,
+            "width": 27,
+            "height": 2
+          },
+          {
+            "id": 3,
+            "class": "Solid",
+            "x": 4,
+            "y": 3,
+            "width": 28,
+            "height": 1
+          },
+          {
+            "id": 4,
+            "class": "Solid",
+            "x": 3,
+            "y": 4,
+            "width": 29,
+            "height": 9
+          },
+          {
+            "id": 5,
+            "class": "Solid",
+            "x": 4,
+            "y": 13,
+            "width": 28,
+            "height": 1
+          },
+          {
+            "id": 6,
+            "class": "Solid",
+            "x": 5,
+            "y": 14,
+            "width": 27,
+            "height": 1
+          },
+          {
+            "id": 7,
+            "class": "Solid",
+            "x": 6,
+            "y": 15,
+            "width": 26,
+            "height": 1
+          },
+          {
+            "id": 8,
+            "class": "Solid",
+            "x": 7,
+            "y": 16,
+            "width": 25,
+            "height": 1
+          },
+          {
+            "id": 9,
+            "class": "Solid",
+            "x": 8,
+            "y": 17,
+            "width": 24,
+            "height": 6
+          },
+          {
+            "id": 10,
+            "class": "Solid",
+            "x": 9,
+            "y": 23,
+            "width": 23,
+            "height": 3
+          },
+          {
+            "id": 11,
+            "class": "Solid",
+            "x": 10,
+            "y": 26,
+            "width": 22,
+            "height": 1
+          },
+          {
+            "id": 12,
+            "class": "Solid",
+            "x": 12,
+            "y": 27,
+            "width": 20,
+            "height": 1
+          },
+          {
+            "id": 13,
+            "class": "Solid",
+            "x": 14,
+            "y": 28,
+            "width": 18,
+            "height": 1
+          },
+          {
+            "id": 14,
+            "class": "Solid",
+            "x": 15,
+            "y": 29,
+            "width": 17,
+            "height": 1
+          },
+          {
+            "id": 15,
+            "class": "Solid",
+            "x": 23,
+            "y": 30,
+            "width": 9,
+            "height": 1
+          },
+          {
+            "id": 16,
+            "class": "Solid",
+            "x": 24,
+            "y": 31,
+            "width": 8,
+            "height": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "image": "images/pit-bottom-right.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "하단 오른쪽 둥근 연결"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "class": "Solid",
+            "x": 0,
+            "y": 0,
+            "width": 28,
+            "height": 3
+          },
+          {
+            "id": 2,
+            "class": "Solid",
+            "x": 0,
+            "y": 3,
+            "width": 27,
+            "height": 4
+          },
+          {
+            "id": 3,
+            "class": "Solid",
+            "x": 0,
+            "y": 7,
+            "width": 28,
+            "height": 1
+          },
+          {
+            "id": 4,
+            "class": "Solid",
+            "x": 0,
+            "y": 8,
+            "width": 29,
+            "height": 8
+          },
+          {
+            "id": 5,
+            "class": "Solid",
+            "x": 0,
+            "y": 16,
+            "width": 27,
+            "height": 6
+          },
+          {
+            "id": 6,
+            "class": "Solid",
+            "x": 0,
+            "y": 22,
+            "width": 26,
+            "height": 1
+          },
+          {
+            "id": 7,
+            "class": "Solid",
+            "x": 0,
+            "y": 23,
+            "width": 25,
+            "height": 1
+          },
+          {
+            "id": 8,
+            "class": "Solid",
+            "x": 0,
+            "y": 24,
+            "width": 24,
+            "height": 1
+          },
+          {
+            "id": 9,
+            "class": "Solid",
+            "x": 0,
+            "y": 25,
+            "width": 23,
+            "height": 1
+          },
+          {
+            "id": 10,
+            "class": "Solid",
+            "x": 0,
+            "y": 26,
+            "width": 22,
+            "height": 3
+          },
+          {
+            "id": 11,
+            "class": "Solid",
+            "x": 0,
+            "y": 29,
+            "width": 18,
+            "height": 1
+          },
+          {
+            "id": 12,
+            "class": "Solid",
+            "x": 0,
+            "y": 30,
+            "width": 15,
+            "height": 1
+          },
+          {
+            "id": 13,
+            "class": "Solid",
+            "x": 0,
+            "y": 31,
+            "width": 11,
+            "height": 1
+          }
+        ]
+      }
+    }
+  ]
+}
