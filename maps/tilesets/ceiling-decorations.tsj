@@ -20,6 +20,11 @@
           "name": "label",
           "type": "string",
           "value": "쇠사슬 샹들리에"
+        },
+        {
+          "name": "flameAnimation",
+          "type": "bool",
+          "value": true
         }
       ]
     }

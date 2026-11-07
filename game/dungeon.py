@@ -27,6 +27,12 @@ class DungeonAssets:
         if self.layout.get('spriteStyle', {}).get('enabled', False):
             from game.pixel_style import apply
             apply(self)
+        self.chandelier_frames = {}
+        from game.chandelier import prepare
+        for item in self.layout.get('tiledVisuals',[]):
+            key = item['image']
+            if item.get('animation') == 'chandelier-flames' and key not in self.chandelier_frames:
+                self.chandelier_frames[key] = prepare(self.images[key])
         from game.background import build_layer
         self.background_layer = build_layer(self)
 
@@ -113,6 +119,9 @@ class DungeonAssets:
             x,y,w,h=item['x'],item['y'],item['width'],item['height']
             if x+w<camera or x>camera+self.view_width:continue
             image=self.images[item['image']]
+            if item.get('animation') == 'chandelier-flames':
+                from game.chandelier import frame_index
+                image=self.chandelier_frames[item['image']][frame_index(time)]
             sx,sy,sw,sh=item['rect']
             alpha=round(max(0,min(1,item['opacity']))*255)
             if alpha!=255:p2d.SDL_SetTextureAlphaMod(image.texture,alpha)
