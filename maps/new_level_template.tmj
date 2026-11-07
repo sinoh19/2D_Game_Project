@@ -40,6 +40,10 @@
     {
       "firstgid": 2001,
       "source": "tilesets/platforms.tsj"
+    },
+    {
+      "firstgid": 3001,
+      "source": "tilesets/ceiling-decorations.tsj"
     }
   ],
   "layers": [

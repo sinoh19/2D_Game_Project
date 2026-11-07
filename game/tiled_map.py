@@ -208,6 +208,12 @@ def load_map(map_path,base_layout,asset_root):
                     layout['props'].append({'kind':'torch' if klass=='Torch' else 'armor','x':x+w*px,
                         'bottom':y-h*py+float(props.get('groundOffset',0))*h/sh,'unitScale':w/sw*spec['ppu']})
                     layout['tiledDrawOrder'].append({'kind':'prop','index':len(layout['props'])-1});continue
+                if klass=='CeilingDecoration':
+                    # Ceiling tilesets use a top-left editor anchor, so their
+                    # hanging mount stays on the ceiling when snapping.
+                    if rotation:raise ValueError('천장 장식은 회전 없이 배치하세요.')
+                    if shown:visual(gid,x,y,w,h,opacity=alpha)
+                    continue
                 if klass=='Passage':
                     if rotation or gid&(H|V|D):raise ValueError('통로는 회전하지 말고 좌/우 통로 타일을 선택하세요.')
                     top=y-h if gid else y;left=round(x);right=round(x+w);bottom=round(top+h)
