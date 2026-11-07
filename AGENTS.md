@@ -9,3 +9,5 @@
 - Keep the existing controls: arrows to move, Space to jump, C to attack, E to interact, Esc to save/return. The debug skip button starts a fresh closed-gate run; Continue restores saved progress.
 - Relevant baseline check: `.venv/Scripts/python.exe main.py --self-check`. Use additional targeted checks for collision, gate state, or transitions when changing those systems.
 - Preserve source art and existing animation timing when changing rendering. Keep runtime paths relative to the project.
+
+- Editable map source is `maps/dungeon_01.tmj` plus external `.tsj` palettes. Keep the legacy dungeon JSON as the asset/animation library; edit map placement in Tiled source. New painted terrain uses automatic collision, migrated manual layers retain separate collision objects. Run `tests/test_tiled_map.py` when changing the loader or editor maps. Do not rerun `tools/migrate_legacy_map.py` over user-edited maps. `.tools/` and Tiled session state stay untracked.

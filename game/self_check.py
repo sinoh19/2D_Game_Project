@@ -19,9 +19,9 @@ from game.config import OPENING_DIALOGUE_DELAY, DIALOGUE_CHARACTERS_PER_SECOND
 from game.config import OPENING_DURATION, OPENING_FADE_START, OPENING_WINDOW, OPENING_MAX_ZOOM
 
 
-def run(capture=None):
+def run(capture=None, map_path=None):
     with tempfile.TemporaryDirectory(prefix=".self-check-", dir=ROOT) as directory:
-        app = App(data_directory=Path(directory), hidden=True)
+        app = App(data_directory=Path(directory), hidden=True, map_path=map_path)
         try:
             title = app.scene
             assert len(app.resources.menu_images) == 4

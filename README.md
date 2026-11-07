@@ -41,7 +41,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 - 게임 시작은 새 위치와 닫힌 문으로 시작하고, 이어하기는 저장된 위치와 문 상태를 복원합니다. 인트로를 취소하면 이전 저장은 유지합니다.
 - 디버그 버튼으로 바로 진입하면 새 진행으로 시작합니다. 버튼은 인게임에서 숨깁니다.
 
-적·투사체·턴제 전투·아이템·다음 맵 전환과 Tiled 맵 편집 연결은 아직 구현하지 않았습니다.
+적·투사체·턴제 전투·아이템·다음 맵 전환은 아직 구현하지 않았습니다.
 
 ## 화면·아트 기준
 
@@ -62,7 +62,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 | `game/gates.py` | 철문 상호작용·상승·충돌·저장 |
 | `game/background.py` | 던전 배경 레이어 |
 | `game/pixel_style.py` | 캐릭터·오브젝트의 도트 표현 통일 |
-| `assets/dungeon/dungeon_01.json` | 타일·오브젝트·경사면·통로 배치 |
+| `maps/dungeon_01.tmj` | Tiled에서 편집하는 현재 지형·장식·판정·통로 배치 |
+| `game/tiled_map.py` | Tiled JSON 불러오기와 자동 충돌 |
+| `assets/dungeon/dungeon_01.json` | 원본 맵 보관 및 에셋·애니메이션 라이브러리 |
 | `assets/dungeon/character.json` | 애니메이션 프레임과 피벗 |
 | `data/opening_dialogue.json` | 인트로 대사 |
 | `user_data/` | 개인 저장·설정. Git 제외 |
@@ -76,3 +78,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 실제 SDL 렌더링으로 메뉴·줌인·대화 입력·책/타일 전환·이동·저장·설정·종료를 점검합니다. 임시 저장을 사용하므로 개인 진행을 덮어쓰지 않습니다.
 
 기획 PPT와 발표 영상도 저장소에 함께 보관합니다. 개발 변경은 작업 단위로 커밋하여 이 저장소에 업데이트합니다.
+
+## 직접 맵 편집하기
+
+`open_map.cmd`를 실행하면 Tiled에서 현재 맵을 엽니다. **새 지형 (자동 충돌)** 레이어를 선택해 타일을 칠하고 Ctrl+S로 저장한 뒤, 게임에서 **F6**을 누르면 반영됩니다. 장식·철문·시작점·경사면은 오브젝트로 이동할 수 있습니다. 처음 새 맵을 만들 때는 `maps/new_level_template.tmj`를 다른 이름으로 저장하세요.
+
+기존 맵에는 원래 위치와 충돌을 보존하는 수동 레이어도 있으므로 [Tiled 사용 가이드](docs/TILED_GUIDE.md)를 먼저 참고하세요. 별도의 Tiled JSON 내보내기는 필요 없으며 `.tmj` 저장 파일을 게임이 직접 읽습니다. 편집기는 처음 실행 시 공식 배포를 프로젝트 `.tools/`에 준비하며 Git에는 포함하지 않습니다.

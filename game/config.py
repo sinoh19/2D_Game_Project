@@ -50,3 +50,6 @@ TILE_FLIP_BLACK_SECONDS = 0.3
 # 개발 중 메인/인트로 우측 상단에서 새 던전으로 바로 진입.
 DEBUG_SKIP_ENABLED = True
 DEBUG_SKIP_BOUNDS = (536, 8, 631, 29)
+
+# Tiled에서 저장한 맵을 실행 시 직접 읽습니다.
+DEFAULT_TILED_MAP = ROOT / "maps" / "dungeon_01.tmj"
