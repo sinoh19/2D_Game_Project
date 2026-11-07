@@ -1,0 +1,125 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "가구·소품",
+  "tilewidth": 80,
+  "tileheight": 80,
+  "columns": 0,
+  "tilecount": 8,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Decoration",
+      "image": "images/props/bookcase.png",
+      "imagewidth": 48,
+      "imageheight": 80,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "책장"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "class": "Decoration",
+      "image": "images/props/chair.png",
+      "imagewidth": 24,
+      "imageheight": 40,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "의자"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "class": "Decoration",
+      "image": "images/props/skull.png",
+      "imagewidth": 16,
+      "imageheight": 16,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "해골"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "class": "Decoration",
+      "image": "images/props/banner.png",
+      "imagewidth": 24,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "휘장"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "class": "Decoration",
+      "image": "images/props/shelf.png",
+      "imagewidth": 64,
+      "imageheight": 24,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "선반"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "class": "Decoration",
+      "image": "images/props/bed.png",
+      "imagewidth": 80,
+      "imageheight": 40,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "침대"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "class": "Decoration",
+      "image": "images/props/chest.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "보물상자"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "class": "Decoration",
+      "image": "images/props/crate.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "나무 박스"
+        }
+      ]
+    }
+  ]
+}
