@@ -6,7 +6,7 @@
   "tilewidth": 64,
   "tileheight": 16,
   "columns": 0,
-  "tilecount": 2,
+  "tilecount": 6,
   "objectalignment": "bottomleft",
   "tiles": [
     {
@@ -39,6 +39,82 @@
           "name": "label",
           "type": "string",
           "value": "긴 발판"
+        },
+        {
+          "name": "collisionHeight",
+          "type": "int",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "class": "Platform",
+      "image": "images/platform-cap-left.png",
+      "imagewidth": 32,
+      "imageheight": 16,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "발판 왼쪽 끝"
+        },
+        {
+          "name": "collisionHeight",
+          "type": "int",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "class": "Platform",
+      "image": "images/platform-cap-right.png",
+      "imagewidth": 32,
+      "imageheight": 16,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "발판 오른쪽 끝"
+        },
+        {
+          "name": "collisionHeight",
+          "type": "int",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "class": "Platform",
+      "image": "images/platform-rounded-32.png",
+      "imagewidth": 32,
+      "imageheight": 16,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "양끝 둥근 짧은 발판"
+        },
+        {
+          "name": "collisionHeight",
+          "type": "int",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "class": "Platform",
+      "image": "images/platform-rounded-64.png",
+      "imagewidth": 64,
+      "imageheight": 16,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "양끝 둥근 긴 발판"
         },
         {
           "name": "collisionHeight",
