@@ -27,8 +27,8 @@ def light_sources(layout):
         if item.get('light')!='chandelier':continue
         x,y,w,h=item['x'],item['y'],item['width'],item['height']
         scale=max(w/48,h/64);opacity=item['opacity']
-        sources.append((x+w*.5,y+h*44/64,56*scale,.65*opacity))
-        for px,py in ((4,44),(24,44),(44,44)):
+        sources.append((x+w*.5,y+h*49/64,56*scale,.65*opacity))
+        for px,py in ((5,48),(24,49),(42,48)):
             sources.append((x+w*px/48,y+h*py/64,20*scale,.3*opacity))
     return sources
 
