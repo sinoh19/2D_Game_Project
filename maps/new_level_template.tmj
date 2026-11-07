@@ -9,7 +9,7 @@
   "height": 12,
   "tilewidth": 32,
   "tileheight": 32,
-  "nextlayerid": 11,
+  "nextlayerid": 12,
   "nextobjectid": 36,
   "properties": [
     {
@@ -36,6 +36,10 @@
     {
       "firstgid": 1001,
       "source": "tilesets/objects.tsj"
+    },
+    {
+      "firstgid": 2001,
+      "source": "tilesets/platforms.tsj"
     }
   ],
   "layers": [
@@ -2046,6 +2050,17 @@
       "x": 0,
       "y": 0,
       "draworder": "index",
+      "objects": []
+    },
+    {
+      "id": 11,
+      "name": "발판",
+      "type": "objectgroup",
+      "draworder": "index",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
       "objects": []
     },
     {
