@@ -56,6 +56,10 @@
     {
       "firstgid": 6005,
       "source": "tilesets/pillars.tsj"
+    },
+    {
+      "firstgid": 6010,
+      "source": "tilesets/stair-floor-joins.tsj"
     }
   ],
   "layers": [
