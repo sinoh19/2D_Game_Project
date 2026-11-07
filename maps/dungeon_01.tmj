@@ -29,39 +29,35 @@
     }
   ],
   "tilesets": [
-  {
-    "firstgid": 1,
-    "source": "tilesets/terrain.tsj"
-  },
-  {
-    "firstgid": 1001,
-    "source": "tilesets/objects.tsj"
-  },
-  {
-    "firstgid": 2001,
-    "source": "tilesets/platforms.tsj"
-  },
-  {
-    "firstgid": 3001,
-    "source": "tilesets/ceiling-decorations.tsj"
-  },
-  {
-    "firstgid": 4001,
-    "source": "tilesets/furniture.tsj"
-  },
-  {
-    "firstgid": 5001,
-    "source": "tilesets/wood-structures.tsj"
-  },
-  {
-    "firstgid": 6001,
-    "source": "tilesets/pillars.tsj"
-  },
-  {
-    "firstgid": 7001,
-    "source": "tilesets/pit-bottom.tsj"
-  }
-],
+    {
+      "firstgid": 1,
+      "source": "tilesets/terrain.tsj"
+    },
+    {
+      "firstgid": 1005,
+      "source": "tilesets/objects.tsj"
+    },
+    {
+      "firstgid": 2005,
+      "source": "tilesets/platforms.tsj"
+    },
+    {
+      "firstgid": 3005,
+      "source": "tilesets/ceiling-decorations.tsj"
+    },
+    {
+      "firstgid": 4005,
+      "source": "tilesets/furniture.tsj"
+    },
+    {
+      "firstgid": 5005,
+      "source": "tilesets/wood-structures.tsj"
+    },
+    {
+      "firstgid": 6005,
+      "source": "tilesets/pillars.tsj"
+    }
+  ],
   "layers": [
     {
       "id": 1,
@@ -115,7 +111,7 @@
           "rotation": 0,
           "visible": true,
           "name": "armor",
-          "gid": 1002,
+          "gid": 1006,
           "x": 1551.0,
           "y": 291.0,
           "width": 38.0,
@@ -126,7 +122,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 96.0,
           "y": 293.0,
           "width": 33.0,
@@ -137,7 +133,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 254.0,
           "y": 293.0,
           "width": 33.0,
@@ -148,7 +144,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 394.0,
           "y": 261.0,
           "width": 33.0,
@@ -159,7 +155,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 564.0,
           "y": 293.0,
           "width": 33.0,
@@ -170,7 +166,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 774.0,
           "y": 293.0,
           "width": 33.0,
@@ -181,7 +177,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 1014.0,
           "y": 293.0,
           "width": 33.0,
@@ -192,7 +188,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 1284.0,
           "y": 293.0,
           "width": 33.0,
@@ -203,7 +199,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 1764.0,
           "y": 293.0,
           "width": 33.0,
@@ -214,7 +210,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 2054.0,
           "y": 293.0,
           "width": 33.0,
@@ -225,7 +221,7 @@
           "rotation": 0,
           "visible": true,
           "name": "torch",
-          "gid": 1001,
+          "gid": 1005,
           "x": 2304.0,
           "y": 293.0,
           "width": 33.0,
@@ -2296,7 +2292,7 @@
         {
           "id": 19,
           "name": "긴 발판",
-          "gid": 2002,
+          "gid": 2006,
           "x": 192,
           "y": 264,
           "width": 64,
@@ -2307,7 +2303,7 @@
         {
           "id": 21,
           "name": "긴 발판",
-          "gid": 2002,
+          "gid": 2006,
           "x": 620,
           "y": 264,
           "width": 64,
@@ -2318,7 +2314,7 @@
         {
           "id": 23,
           "name": "짧은 발판",
-          "gid": 2001,
+          "gid": 2005,
           "x": 684,
           "y": 240,
           "width": 32,
@@ -3443,7 +3439,7 @@
           "rotation": 0,
           "visible": true,
           "name": "entrance",
-          "gid": 1003,
+          "gid": 1007,
           "x": 0,
           "y": 288,
           "width": 64,
@@ -3461,7 +3457,7 @@
           "rotation": 0,
           "visible": true,
           "name": "exit",
-          "gid": 1004,
+          "gid": 1008,
           "x": 2496,
           "y": 288,
           "width": 64,

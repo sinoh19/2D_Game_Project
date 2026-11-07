@@ -90,7 +90,7 @@ class TiledMapTests(unittest.TestCase):
 
     def test_new_platform_inherits_visible_one_way_collision(self):
         layer=next(l for l in self.data['layers'] if l['name']=='발판')
-        layer['objects'].append({'id':999,'gid':2001,'x':800,'y':200,'width':32,'height':16,'rotation':0})
+        layer['objects'].append({'id':999,'gid':next(t['firstgid'] for t in self.data['tilesets'] if t['source'].endswith('platforms.tsj')),'x':800,'y':200,'width':32,'height':16,'rotation':0})
         loaded=self.load(self.data)
         self.assertIn([800,184,832,192],loaded['platforms'])
         self.assertNotIn([800,184,832,192],loaded['solids'])
