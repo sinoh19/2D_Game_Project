@@ -1,0 +1,41 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "다리 연결부",
+  "tilewidth": 32,
+  "tileheight": 32,
+  "columns": 0,
+  "tilecount": 2,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Decoration",
+      "image": "images/bridge-bank-left.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "다리 연결 · 왼쪽"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "class": "Decoration",
+      "image": "images/bridge-bank-right.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "다리 연결 · 오른쪽"
+        }
+      ]
+    }
+  ]
+}
