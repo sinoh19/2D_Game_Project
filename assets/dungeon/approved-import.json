@@ -1,0 +1,629 @@
+{
+  "scene": "F:\\My project\\Assets\\TopDownPrototype\\Scenes\\MossvaultDungeon.unity",
+  "placedKinds": [
+    "door",
+    "armor",
+    "torch"
+  ],
+  "sprites": {
+    "Ceiling": {
+      "image": "unity_a315e12ba486dd61",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Ceiling_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "69c25c966c6c23942be93192ae7ae55f",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling.asset"
+    },
+    "Ceiling_DownLeft_1": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownLeft_1.asset"
+    },
+    "Ceiling_DownLeft_2": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownLeft_2.asset"
+    },
+    "Ceiling_DownRight_1": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownRight_1.asset"
+    },
+    "Ceiling_DownRight_2": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownRight_2.asset"
+    },
+    "Ceiling_RepeatB": {
+      "image": "unity_a315e12ba486dd61",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Ceiling_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "69c25c966c6c23942be93192ae7ae55f",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_RepeatB.asset"
+    },
+    "Corner_BottomLeft": {
+      "image": "unity_53a9386d64e133a8",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "0e3e2d70d5252e74f9f01fb1669f46c2",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_BottomLeft.asset"
+    },
+    "Corner_BottomRight": {
+      "image": "unity_cfaf11947724a822",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "4191d32c10575304eb377bc5fca544d1",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_BottomRight.asset"
+    },
+    "Corner_TopLeft": {
+      "image": "unity_57de54409840cb2f",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "87133f7915e8f684eaf51a17334f97c4",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_TopLeft.asset"
+    },
+    "Corner_TopRight": {
+      "image": "unity_bae37974e4e4a1a9",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "14f07c2057b07ea4082a95f6752f7878",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_TopRight.asset"
+    },
+    "Fill": {
+      "image": "unity_0a6cd819fc9c3326",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Fill_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "52cdffbfbfd0819478d14cf45bc60441",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Fill.asset"
+    },
+    "Floor": {
+      "image": "unity_b2ba31813d7b5150",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Floor_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "b9f5622d0ef4b9441aa8ead161fc4703",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Floor.asset"
+    },
+    "Floor_RepeatB": {
+      "image": "unity_b2ba31813d7b5150",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Floor_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "b9f5622d0ef4b9441aa8ead161fc4703",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Floor_RepeatB.asset"
+    },
+    "Stairs_UpLeft_1": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "hv",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpLeft_1.asset"
+    },
+    "Stairs_UpLeft_2": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "hv",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpLeft_2.asset"
+    },
+    "Stairs_UpRight_1": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpRight_1.asset"
+    },
+    "Stairs_UpRight_2": {
+      "image": "unity_1557632bce42e658",
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpRight_2.asset"
+    },
+    "WallLeft_RepeatB": {
+      "image": "unity_445e6b262668ba00",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallLeft_RepeatB_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "fac7b1dadf620cc408bf70d73f676be5",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_WallLeft_RepeatB.asset"
+    },
+    "WallRight_RepeatB": {
+      "image": "unity_f245d6764186706d",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallRight_RepeatB_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "168f1210bb99e2f40846ce5c644f747e",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_WallRight_RepeatB.asset"
+    },
+    "Wall_FaceLeft": {
+      "image": "unity_445e6b262668ba00",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Wall_FaceLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "11b2a6bf8e7291640b476c490ecdd8a5",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Wall_FaceLeft.asset"
+    },
+    "Wall_FaceRight": {
+      "image": "unity_f245d6764186706d",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 887.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Wall_FaceRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "38c49b29dd245b84eb25c8ddcb4f6e30",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Wall_FaceRight.asset"
+    },
+    "Background": {
+      "image": "unity_dd58f48a6823d620",
+      "rect": [
+        300,
+        300,
+        128,
+        128
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 128.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\TopDownPrototype\\EditableBackground\\WallTileSprite.asset",
+      "fileID": 21300000,
+      "guid": "42d012682e013d948b4bdff58019b216",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\OriginalBackground1x1\\Background_Original_1x1.asset"
+    },
+    "door": {
+      "image": "unity_45f7c649c0826580",
+      "rect": [
+        0,
+        0,
+        1123,
+        1400
+      ],
+      "pivot": [
+        0.49955475,
+        0.058571428
+      ],
+      "ppu": 287.77777,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\GrandDoor_Cutout.png",
+      "fileID": 21300000,
+      "guid": "6d09543c42e0ed449ac194eaf7dd306b",
+      "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\propsLarge\\GrandDoor_Cutout.prefab"
+    },
+    "armor": {
+      "image": "unity_eb5dfcaebfd0aeeb",
+      "rect": [
+        0,
+        0,
+        884,
+        1780
+      ],
+      "pivot": [
+        0.5,
+        0.041573033
+      ],
+      "ppu": 562.3333,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\KnightStatue_Cutout.png",
+      "fileID": 21300000,
+      "guid": "04ba8c92d52ceed4fa2b546cd967881e",
+      "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\propsLarge\\KnightStatue_Cutout.prefab"
+    },
+    "torch_body": {
+      "image": "unity_ba100805de5cc694",
+      "rect": [
+        0,
+        0,
+        903,
+        1742
+      ],
+      "pivot": [
+        0.5,
+        0.07921929
+      ],
+      "ppu": 650.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsSmall\\CandleStand_Body.png",
+      "fileID": 21300000,
+      "guid": "c95822c989523ed4d8a2a422aef6ecc8"
+    },
+    "torch_flame_0": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ],
+      "pivot": [
+        0.58984375,
+        0.140625
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_0.asset",
+      "fileID": 21300000,
+      "guid": "7685e02a8a3ea624fa34ce1903d7b5ea"
+    },
+    "torch_flame_1": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ],
+      "pivot": [
+        0.52734375,
+        0.140625
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_1.asset",
+      "fileID": 21300000,
+      "guid": "657813e426adc3749b6709ab17e85452"
+    },
+    "torch_flame_2": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        1024,
+        512,
+        512,
+        512
+      ],
+      "pivot": [
+        0.421875,
+        0.140625
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_2.asset",
+      "fileID": 21300000,
+      "guid": "f29a33550e3d1364ba5d3670d922f8be"
+    },
+    "torch_flame_3": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "pivot": [
+        0.52734375,
+        0.22070312
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_3.asset",
+      "fileID": 21300000,
+      "guid": "bd13802a750592545a022874d106d9e1"
+    },
+    "torch_flame_4": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        512,
+        0,
+        512,
+        512
+      ],
+      "pivot": [
+        0.52734375,
+        0.22070312
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_4.asset",
+      "fileID": 21300000,
+      "guid": "ea446e5ca15c1654486b3fe8c417021c"
+    },
+    "torch_flame_5": {
+      "image": "unity_0d24e0c10fac0401",
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ],
+      "pivot": [
+        0.49609375,
+        0.22070312
+      ],
+      "ppu": 1080.0,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_5.asset",
+      "fileID": 21300000,
+      "guid": "335eaef6d4302ae44881ac307488a06a"
+    }
+  },
+  "torchAnimation": {
+    "frames": [
+      {
+        "time": 0.0,
+        "sprite": "torch_flame_0"
+      },
+      {
+        "time": 0.1,
+        "sprite": "torch_flame_1"
+      },
+      {
+        "time": 0.2,
+        "sprite": "torch_flame_2"
+      },
+      {
+        "time": 0.3,
+        "sprite": "torch_flame_3"
+      },
+      {
+        "time": 0.4,
+        "sprite": "torch_flame_4"
+      },
+      {
+        "time": 0.5,
+        "sprite": "torch_flame_5"
+      }
+    ],
+    "duration": 0.6,
+    "offset": [
+      0,
+      2.0596154
+    ],
+    "unityClip": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\CandleFlicker.anim",
+    "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\Lighting\\CandleStand_Animated.prefab"
+  },
+  "oldDraftPropsLoaded": false,
+  "textureCopiesAreByteIdentical": true
+}

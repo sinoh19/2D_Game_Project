@@ -1,0 +1,10 @@
+{
+  "nativeWidth": 160,
+  "nativeHeight": 90,
+  "gameWidth": 320,
+  "gameHeight": 180,
+  "scaleFilter": "nearest-neighbor",
+  "state": "closed",
+  "placement": "right",
+  "style": "large pixel clusters, red cover"
+}

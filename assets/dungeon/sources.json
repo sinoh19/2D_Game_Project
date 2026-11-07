@@ -1,0 +1,97 @@
+[
+  {
+    "file": "assets\\dungeon\\character\\idle.png",
+    "source": "F:\\My project\\Assets\\Characters\\DarkKnight\\Standing64\\DarkKnight_Idle_64_Sheet.png",
+    "sha256": "4971c21646de4e56affe91438c625ce88287a972390dec6fbfbf12db23037515"
+  },
+  {
+    "file": "assets\\dungeon\\character\\walk.png",
+    "source": "F:\\My project\\Assets\\Characters\\DarkKnight\\Standing64\\DarkKnight_Walk_64_Sheet.png",
+    "sha256": "75d7b23685773324cfab981d4e4aab426c17747e8709e2869abffe1e1e7cf17a"
+  },
+  {
+    "file": "assets\\dungeon\\character\\jump.png",
+    "source": "F:\\My project\\Assets\\Characters\\DarkKnight\\Standing64\\DarkKnight_Jump_Keyposes_64_Sheet.png",
+    "sha256": "5ff078361d3cde659ff951d7f4cad41123feb73d391cb42950b85040d44a2f34"
+  },
+  {
+    "file": "assets\\dungeon\\character\\attack.png",
+    "source": "F:\\My project\\Assets\\Characters\\DarkKnight\\AttackOverheadPixelLab\\DarkKnight_OverheadAttack_Sheet.png",
+    "sha256": "a5d5fd0d0821314a86c5e75d99ce3db2c73451376d63ab74bf19e9f92a4218ac"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_a315e12ba486dd61.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Ceiling_MatchedToSteps.png",
+    "sha256": "a315e12ba486dd61d75b7c177b8e22df84744ab66c6cff39b471c75431c59fca"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+    "sha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_53a9386d64e133a8.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomLeft_MatchedToSteps.png",
+    "sha256": "53a9386d64e133a899fbe2e1eab309b1f25621c5d41d92142d57d79b02dffa91"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_cfaf11947724a822.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomRight_MatchedToSteps.png",
+    "sha256": "cfaf11947724a822898a563da7ca7de89aa434b8560d9cf981d1919f7e53833b"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_57de54409840cb2f.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopLeft_MatchedToSteps.png",
+    "sha256": "57de54409840cb2fc9a8aac6cb359c487bba57236f1714d76c2db78f3e03fd0b"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_bae37974e4e4a1a9.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopRight_MatchedToSteps.png",
+    "sha256": "bae37974e4e4a1a95b3ed2e3e300f15c25f71fa248c21cec15ae0dee8619c6fc"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_0a6cd819fc9c3326.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Fill_MatchedToSteps.png",
+    "sha256": "0a6cd819fc9c33263f5ea7924ff0af3610332a74b523f7f2ebe93b102d9ada79"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_b2ba31813d7b5150.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Floor_MatchedToSteps.png",
+    "sha256": "b2ba31813d7b5150f49c49f8a845571a24e882ec18ff1a52a756772a4d0e6569"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_445e6b262668ba00.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallLeft_RepeatB_MatchedToSteps.png",
+    "sha256": "445e6b262668ba00d874e242c8822256efb4bbdd955a575f341b04239381df66"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_f245d6764186706d.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallRight_RepeatB_MatchedToSteps.png",
+    "sha256": "f245d6764186706d6ce0aff372a45e1c389a3ccc0a6f7687b76ef90d64241c69"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_dd58f48a6823d620.png",
+    "source": "F:\\My project\\Assets\\TopDownPrototype\\RuleMap\\Continuous-Stone-Wall.png",
+    "sha256": "dd58f48a6823d62075ffbee2eb704ba2225d9c73cedd6d942b9122305fec725e"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_45f7c649c0826580.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\GrandDoor_Cutout.png",
+    "sha256": "45f7c649c08265803cbf2eaed401e19903cd9d700604b8483bfd6f5cda544c48"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_eb5dfcaebfd0aeeb.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\KnightStatue_Cutout.png",
+    "sha256": "eb5dfcaebfd0aeeb7c362321a135235cbe2dccebef3ea5bd39ad6129979b7dea"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_ba100805de5cc694.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsSmall\\CandleStand_Body.png",
+    "sha256": "ba100805de5cc6947bcf6988f7e91492d4db91a99555429b763df8d8d4c252d6"
+  },
+  {
+    "file": "assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+    "source": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\FlameSheet.png",
+    "sha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1"
+  }
+]

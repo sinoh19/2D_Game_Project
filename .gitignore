@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+user_data/
+.pytest_cache/
+*.bmp
+.self-check-*/
+.env
+.env.*
+!.env.example
+*.log
+Thumbs.db
+.DS_Store

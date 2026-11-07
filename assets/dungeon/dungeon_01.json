@@ -1,0 +1,2550 @@
+{
+  "name": "던전 입구",
+  "width": 2560,
+  "height": 360,
+  "spawn": [
+    88,
+    288
+  ],
+  "images": {
+    "Ceiling": "cave_panorama_20261108/ceiling-v2.png",
+    "Ceiling_DownLeft_1": "native640/sprites/Ceiling_DownLeft_1.png",
+    "Ceiling_DownLeft_2": "native640/sprites/Ceiling_DownLeft_2.png",
+    "Ceiling_DownRight_1": "native640/sprites/Ceiling_DownRight_1.png",
+    "Ceiling_DownRight_2": "native640/sprites/Ceiling_DownRight_2.png",
+    "Ceiling_RepeatB": "native640/sprites/Ceiling_RepeatB.png",
+    "Corner_BottomLeft": "native640/sprites/Corner_BottomLeft.png",
+    "Corner_BottomRight": "native640/sprites/Corner_BottomRight.png",
+    "Corner_TopLeft": "native640/sprites/Corner_TopLeft.png",
+    "Corner_TopRight": "native640/sprites/Corner_TopRight.png",
+    "Fill": "cave_panorama_20261108/fill.png",
+    "Floor": "cave_panorama_20261108/floor.png",
+    "Floor_RepeatB": "native640/sprites/Floor_RepeatB.png",
+    "Stairs_UpLeft_1": "cave_panorama_20261108/stairs-left.png",
+    "Stairs_UpLeft_2": "cave_panorama_20261108/stairs-left.png",
+    "Stairs_UpRight_1": "cave_panorama_20261108/stairs-right.png",
+    "Stairs_UpRight_2": "cave_panorama_20261108/stairs-right.png",
+    "WallLeft_RepeatB": "native640/sprites/WallLeft_RepeatB.png",
+    "WallRight_RepeatB": "native640/sprites/WallRight_RepeatB.png",
+    "Wall_FaceLeft": "native640/sprites/Wall_FaceLeft.png",
+    "Wall_FaceRight": "native640/sprites/Wall_FaceRight.png",
+    "Background": "native640/sprites/Background.png",
+    "door": "native640/sprites/door.png",
+    "armor": "native640/sprites/armor.png",
+    "torch_body": "native640/sprites/torch_body.png",
+    "torch_flame_0": "native640/sprites/torch_flame_0.png",
+    "torch_flame_1": "native640/sprites/torch_flame_1.png",
+    "torch_flame_2": "native640/sprites/torch_flame_2.png",
+    "torch_flame_3": "native640/sprites/torch_flame_3.png",
+    "torch_flame_4": "native640/sprites/torch_flame_4.png",
+    "torch_flame_5": "native640/sprites/torch_flame_5.png",
+    "bg_intact_01": "pixellab_20261108/intact-01.png",
+    "bg_intact_02": "pixellab_20261108/intact-02.png",
+    "bg_intact_03": "pixellab_20261108/intact-03.png",
+    "bg_intact_04": "pixellab_20261108/intact-04.png",
+    "bg_intact_05": "pixellab_20261108/intact-05.png",
+    "bg_intact_06": "pixellab_20261108/intact-06.png",
+    "bg_intact_07": "pixellab_20261108/intact-07.png",
+    "bg_intact_08": "pixellab_20261108/intact-08.png",
+    "bg_broken_01": "background_variants_v1/broken/broken-01.png",
+    "bg_broken_02": "background_variants_v1/broken/broken-02.png",
+    "bg_broken_03": "background_variants_v1/broken/broken-03.png",
+    "bg_broken_04": "background_variants_v1/broken/broken-04.png",
+    "bg_broken_05": "background_variants_v1/broken/broken-05.png",
+    "bg_broken_06": "background_variants_v1/broken/broken-06.png",
+    "bg_window_01": "background_variants_v1/windows/windows-01.png",
+    "bg_window_04": "background_variants_v1/windows/windows-04.png",
+    "bg_window_06": "background_variants_v1/windows/windows-06.png",
+    "dungeon_panorama": "cave_panorama_20261108/dungeon-panorama.png",
+    "lift_gate": "side_passages/lift-gate.png",
+    "passage_wall_right": "side_passages/wall-right.png",
+    "passage_wall_left": "side_passages/wall-left.png",
+    "passage_ceiling": "side_passages/ceiling-matched.png",
+    "passage_corner_bl": "side_passages/corner-bottom-left.png",
+    "passage_corner_br": "side_passages/corner-bottom-right.png"
+  },
+  "solids": [
+    [
+      0,
+      288,
+      304,
+      360
+    ],
+    [
+      368,
+      256,
+      496,
+      360
+    ],
+    [
+      560,
+      288,
+      2560,
+      360
+    ],
+    [
+      820,
+      264,
+      844,
+      288
+    ]
+  ],
+  "platforms": [
+    [
+      192,
+      248,
+      256,
+      256
+    ],
+    [
+      620,
+      248,
+      684,
+      256
+    ],
+    [
+      684,
+      224,
+      716,
+      232
+    ]
+  ],
+  "props": [
+    {
+      "kind": "armor",
+      "x": 1570,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 112,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 270,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 410,
+      "bottom": 256,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 580,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 790,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 1030,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 1300,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 1780,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 2070,
+      "bottom": 288,
+      "unitScale": 24
+    },
+    {
+      "kind": "torch",
+      "x": 2320,
+      "bottom": 288,
+      "unitScale": 24
+    }
+  ],
+  "notes": "Only final Unity door, armor display and animated candle stand are placed. All terrain uses current Unity Tile sprite references; stair collision follows the source alpha contour. Other draft props are not loaded or drawn.",
+  "unitySprites": {
+    "Ceiling": {
+      "image": "Ceiling",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Ceiling_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "69c25c966c6c23942be93192ae7ae55f",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 3
+    },
+    "Ceiling_DownLeft_1": {
+      "image": "Ceiling_DownLeft_1",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownLeft_1.asset",
+      "sourceRect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Ceiling_DownLeft_2": {
+      "image": "Ceiling_DownLeft_2",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownLeft_2.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Ceiling_DownRight_1": {
+      "image": "Ceiling_DownRight_1",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownRight_1.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Ceiling_DownRight_2": {
+      "image": "Ceiling_DownRight_2",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_DownRight_2.asset",
+      "sourceRect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Ceiling_RepeatB": {
+      "image": "Ceiling_RepeatB",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Ceiling_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "69c25c966c6c23942be93192ae7ae55f",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Ceiling_RepeatB.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Corner_BottomLeft": {
+      "image": "Corner_BottomLeft",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "0e3e2d70d5252e74f9f01fb1669f46c2",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_BottomLeft.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Corner_BottomRight": {
+      "image": "Corner_BottomRight",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_BottomRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "4191d32c10575304eb377bc5fca544d1",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_BottomRight.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Corner_TopLeft": {
+      "image": "Corner_TopLeft",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "87133f7915e8f684eaf51a17334f97c4",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_TopLeft.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Corner_TopRight": {
+      "image": "Corner_TopRight",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Corner_TopRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "14f07c2057b07ea4082a95f6752f7878",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Corner_TopRight.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Fill": {
+      "image": "Fill",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Fill_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "52cdffbfbfd0819478d14cf45bc60441",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Fill.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "Floor": {
+      "image": "Floor",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Floor_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "b9f5622d0ef4b9441aa8ead161fc4703",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Floor.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "Floor_RepeatB": {
+      "image": "Floor_RepeatB",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "h",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Floor_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "b9f5622d0ef4b9441aa8ead161fc4703",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Floor_RepeatB.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Stairs_UpLeft_1": {
+      "image": "Stairs_UpLeft_1",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpLeft_1.asset",
+      "sourceRect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "Stairs_UpLeft_2": {
+      "image": "Stairs_UpLeft_2",
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpLeft_2.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "Stairs_UpRight_1": {
+      "image": "Stairs_UpRight_1",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300100,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpRight_1.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "Stairs_UpRight_2": {
+      "image": "Stairs_UpRight_2",
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Masonry-Steps-Master.png",
+      "fileID": 21300101,
+      "guid": "7d785f9ad73d4fc9938030bcf2d3e0a8",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Stairs_UpRight_2.asset",
+      "sourceRect": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0,
+      "horizontalVariants": 1
+    },
+    "WallLeft_RepeatB": {
+      "image": "WallLeft_RepeatB",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallLeft_RepeatB_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "fac7b1dadf620cc408bf70d73f676be5",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_WallLeft_RepeatB.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "WallRight_RepeatB": {
+      "image": "WallRight_RepeatB",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "v",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_WallRight_RepeatB_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "168f1210bb99e2f40846ce5c644f747e",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_WallRight_RepeatB.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Wall_FaceLeft": {
+      "image": "Wall_FaceLeft",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Wall_FaceLeft_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "11b2a6bf8e7291640b476c490ecdd8a5",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Wall_FaceLeft.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Wall_FaceRight": {
+      "image": "Wall_FaceRight",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\StraightMatchedToSteps\\Terrain1x1_Wall_FaceRight_MatchedToSteps.png",
+      "fileID": 21300000,
+      "guid": "38c49b29dd245b84eb25c8ddcb4f6e30",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\Terrain1x1\\Terrain1x1_Wall_FaceRight.asset",
+      "sourceRect": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourcePpu": 887.0
+    },
+    "Background": {
+      "image": "Background",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "ppu": 32,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\TopDownPrototype\\EditableBackground\\WallTileSprite.asset",
+      "fileID": 21300000,
+      "guid": "42d012682e013d948b4bdff58019b216",
+      "unityTile": "F:\\My project\\Assets\\DungeonAssetPack\\OriginalBackground1x1\\Background_Original_1x1.asset",
+      "sourceRect": [
+        300,
+        300,
+        128,
+        128
+      ],
+      "sourcePpu": 128.0
+    },
+    "door": {
+      "image": "door",
+      "rect": [
+        0,
+        0,
+        94,
+        117
+      ],
+      "pivot": [
+        0.5,
+        0.05982905982905983
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\GrandDoor_Cutout.png",
+      "fileID": 21300000,
+      "guid": "6d09543c42e0ed449ac194eaf7dd306b",
+      "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\propsLarge\\GrandDoor_Cutout.prefab",
+      "sourceRect": [
+        0,
+        0,
+        1123,
+        1400
+      ],
+      "sourcePpu": 287.77777
+    },
+    "armor": {
+      "image": "armor",
+      "rect": [
+        0,
+        0,
+        38,
+        76
+      ],
+      "pivot": [
+        0.5,
+        0.039473684210526314
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsLarge\\KnightStatue_Cutout.png",
+      "fileID": 21300000,
+      "guid": "04ba8c92d52ceed4fa2b546cd967881e",
+      "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\propsLarge\\KnightStatue_Cutout.prefab",
+      "sourceRect": [
+        0,
+        0,
+        884,
+        1780
+      ],
+      "sourcePpu": 562.3333
+    },
+    "torch_body": {
+      "image": "torch_body",
+      "rect": [
+        0,
+        0,
+        33,
+        64
+      ],
+      "pivot": [
+        0.48484848484848486,
+        0.078125
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Sprites\\propsSmall\\CandleStand_Body.png",
+      "fileID": 21300000,
+      "guid": "c95822c989523ed4d8a2a422aef6ecc8",
+      "sourceRect": [
+        0,
+        0,
+        903,
+        1742
+      ],
+      "sourcePpu": 650.0
+    },
+    "torch_flame_0": {
+      "image": "torch_flame_0",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.5454545454545454,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_0.asset",
+      "fileID": 21300000,
+      "guid": "7685e02a8a3ea624fa34ce1903d7b5ea",
+      "sourceRect": [
+        0,
+        512,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "torch_flame_1": {
+      "image": "torch_flame_1",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.5454545454545454,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_1.asset",
+      "fileID": 21300000,
+      "guid": "657813e426adc3749b6709ab17e85452",
+      "sourceRect": [
+        512,
+        512,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "torch_flame_2": {
+      "image": "torch_flame_2",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.45454545454545453,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_2.asset",
+      "fileID": 21300000,
+      "guid": "f29a33550e3d1364ba5d3670d922f8be",
+      "sourceRect": [
+        1024,
+        512,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "torch_flame_3": {
+      "image": "torch_flame_3",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.5454545454545454,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_3.asset",
+      "fileID": 21300000,
+      "guid": "bd13802a750592545a022874d106d9e1",
+      "sourceRect": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "torch_flame_4": {
+      "image": "torch_flame_4",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.5454545454545454,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_4.asset",
+      "fileID": 21300000,
+      "guid": "ea446e5ca15c1654486b3fe8c417021c",
+      "sourceRect": [
+        512,
+        0,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "torch_flame_5": {
+      "image": "torch_flame_5",
+      "rect": [
+        0,
+        0,
+        11,
+        11
+      ],
+      "pivot": [
+        0.45454545454545453,
+        0.18181818181818182
+      ],
+      "ppu": 24,
+      "flip": "",
+      "unitySprite": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\Flame_5.asset",
+      "fileID": 21300000,
+      "guid": "335eaef6d4302ae44881ac307488a06a",
+      "sourceRect": [
+        1024,
+        0,
+        512,
+        512
+      ],
+      "sourcePpu": 1080.0
+    },
+    "passage_wall_right": {
+      "image": "passage_wall_right",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "flip": "",
+      "ppu": 32,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "passage_wall_left": {
+      "image": "passage_wall_left",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "flip": "",
+      "ppu": 32,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "passage_ceiling": {
+      "image": "passage_ceiling",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "flip": "",
+      "ppu": 32,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "passage_corner_bl": {
+      "image": "passage_corner_bl",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "flip": "",
+      "ppu": 32,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "passage_corner_br": {
+      "image": "passage_corner_br",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "flip": "",
+      "ppu": 32,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "torchAnimation": {
+    "frames": [
+      {
+        "time": 0.0,
+        "sprite": "torch_flame_0"
+      },
+      {
+        "time": 0.1,
+        "sprite": "torch_flame_1"
+      },
+      {
+        "time": 0.2,
+        "sprite": "torch_flame_2"
+      },
+      {
+        "time": 0.3,
+        "sprite": "torch_flame_3"
+      },
+      {
+        "time": 0.4,
+        "sprite": "torch_flame_4"
+      },
+      {
+        "time": 0.5,
+        "sprite": "torch_flame_5"
+      }
+    ],
+    "duration": 0.6,
+    "offset": [
+      0,
+      2.0596154
+    ],
+    "unityClip": "F:\\My project\\Assets\\DungeonAssetPack\\Animations\\Candle\\CandleFlicker.anim",
+    "unityPrefab": "F:\\My project\\Assets\\DungeonAssetPack\\Prefabs\\Lighting\\CandleStand_Animated.prefab"
+  },
+  "renderRegions": [
+    [
+      0,
+      288,
+      304,
+      360
+    ],
+    [
+      368,
+      256,
+      496,
+      360
+    ],
+    [
+      560,
+      288,
+      2560,
+      360
+    ],
+    [
+      820,
+      264,
+      844,
+      288
+    ]
+  ],
+  "stairArt": [
+    {
+      "tiles": [
+        "Stairs_UpRight_1",
+        "Stairs_UpRight_2"
+      ],
+      "x": 304,
+      "top": 256
+    },
+    {
+      "tiles": [
+        "Stairs_UpLeft_1",
+        "Stairs_UpLeft_2"
+      ],
+      "x": 496,
+      "top": 256
+    }
+  ],
+  "viewport": [
+    640,
+    360
+  ],
+  "characterScale": 1.0,
+  "tileSize": 32,
+  "scaleReference": {
+    "image": "codex-clipboard-f4b94a30-3129-479d-b677-9d6150e14985.png",
+    "referenceHeight": 431,
+    "adultBodyHeightApprox": 54,
+    "targetBodyHeightFraction": 0.12529002320185614,
+    "knightBodySourceRows": [
+      9,
+      61
+    ],
+    "expectedBodyPixels": 68.25,
+    "method": "Body head-to-feet, excluding sword and transparent sprite margins. All world art shares the camera zoom."
+  },
+  "nativeArtStandard": {
+    "canvas": [
+      640,
+      360
+    ],
+    "tilePixels": 32,
+    "characterFramePixels": 56,
+    "displayScale": 2,
+    "filter": "nearest-neighbor",
+    "sourceArtPreserved": true
+  },
+  "background": {
+    "seed": 20261105,
+    "wallTileSize": [
+      64,
+      64
+    ],
+    "allowedWindows": [
+      1,
+      4,
+      6
+    ],
+    "excludedWindows": [
+      2,
+      3,
+      5
+    ],
+    "cells": [
+      {
+        "x": 0,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 64,
+        "y": 0,
+        "variant": 5
+      },
+      {
+        "x": 128,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 192,
+        "y": 0,
+        "variant": 6
+      },
+      {
+        "x": 256,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 320,
+        "y": 0,
+        "variant": 4
+      },
+      {
+        "x": 384,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 448,
+        "y": 0,
+        "variant": 7
+      },
+      {
+        "x": 512,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 576,
+        "y": 0,
+        "variant": 5
+      },
+      {
+        "x": 640,
+        "y": 0,
+        "variant": 4
+      },
+      {
+        "x": 704,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 768,
+        "y": 0,
+        "variant": 6
+      },
+      {
+        "x": 832,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 896,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 960,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 1024,
+        "y": 0,
+        "variant": 8
+      },
+      {
+        "x": 1088,
+        "y": 0,
+        "variant": 5
+      },
+      {
+        "x": 1152,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 1216,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 1280,
+        "y": 0,
+        "variant": 4
+      },
+      {
+        "x": 1344,
+        "y": 0,
+        "variant": 8
+      },
+      {
+        "x": 1408,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 1472,
+        "y": 0,
+        "variant": 6
+      },
+      {
+        "x": 1536,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 1600,
+        "y": 0,
+        "variant": 4
+      },
+      {
+        "x": 1664,
+        "y": 0,
+        "variant": 3
+      },
+      {
+        "x": 1728,
+        "y": 0,
+        "variant": 8
+      },
+      {
+        "x": 1792,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 1856,
+        "y": 0,
+        "variant": 8
+      },
+      {
+        "x": 1920,
+        "y": 0,
+        "variant": 3
+      },
+      {
+        "x": 1984,
+        "y": 0,
+        "variant": 5
+      },
+      {
+        "x": 2048,
+        "y": 0,
+        "variant": 7
+      },
+      {
+        "x": 2112,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 2176,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 2240,
+        "y": 0,
+        "variant": 3
+      },
+      {
+        "x": 2304,
+        "y": 0,
+        "variant": 4
+      },
+      {
+        "x": 2368,
+        "y": 0,
+        "variant": 6
+      },
+      {
+        "x": 2432,
+        "y": 0,
+        "variant": 1
+      },
+      {
+        "x": 2496,
+        "y": 0,
+        "variant": 2
+      },
+      {
+        "x": 0,
+        "y": 64,
+        "variant": 7
+      },
+      {
+        "x": 64,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 128,
+        "y": 64,
+        "variant": 4
+      },
+      {
+        "x": 192,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 256,
+        "y": 64,
+        "variant": 8
+      },
+      {
+        "x": 320,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 384,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 448,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 512,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 576,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 640,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 704,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 768,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 832,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 896,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 960,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 1024,
+        "y": 64,
+        "variant": 7
+      },
+      {
+        "x": 1088,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 1152,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 1216,
+        "y": 64,
+        "variant": 6
+      },
+      {
+        "x": 1280,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 1344,
+        "y": 64,
+        "variant": 4
+      },
+      {
+        "x": 1408,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 1472,
+        "y": 64,
+        "variant": 7
+      },
+      {
+        "x": 1536,
+        "y": 64,
+        "variant": 4
+      },
+      {
+        "x": 1600,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 1664,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 1728,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 1792,
+        "y": 64,
+        "variant": 7
+      },
+      {
+        "x": 1856,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 1920,
+        "y": 64,
+        "variant": 5
+      },
+      {
+        "x": 1984,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 2048,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 2112,
+        "y": 64,
+        "variant": 8
+      },
+      {
+        "x": 2176,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 2240,
+        "y": 64,
+        "variant": 7
+      },
+      {
+        "x": 2304,
+        "y": 64,
+        "variant": 1
+      },
+      {
+        "x": 2368,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 2432,
+        "y": 64,
+        "variant": 2
+      },
+      {
+        "x": 2496,
+        "y": 64,
+        "variant": 3
+      },
+      {
+        "x": 0,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 64,
+        "y": 128,
+        "variant": 3
+      },
+      {
+        "x": 128,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 192,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 256,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 320,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 384,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 448,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 512,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 576,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 640,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 704,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 768,
+        "y": 128,
+        "variant": 7
+      },
+      {
+        "x": 832,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 896,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 960,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1024,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 1088,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 1152,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 1216,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1280,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 1344,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1408,
+        "y": 128,
+        "variant": 8
+      },
+      {
+        "x": 1472,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 1536,
+        "y": 128,
+        "variant": 6
+      },
+      {
+        "x": 1600,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 1664,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1728,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 1792,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1856,
+        "y": 128,
+        "variant": 7
+      },
+      {
+        "x": 1920,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 1984,
+        "y": 128,
+        "variant": 7
+      },
+      {
+        "x": 2048,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 2112,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 2176,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 2240,
+        "y": 128,
+        "variant": 2
+      },
+      {
+        "x": 2304,
+        "y": 128,
+        "variant": 7
+      },
+      {
+        "x": 2368,
+        "y": 128,
+        "variant": 1
+      },
+      {
+        "x": 2432,
+        "y": 128,
+        "variant": 4
+      },
+      {
+        "x": 2496,
+        "y": 128,
+        "variant": 5
+      },
+      {
+        "x": 0,
+        "y": 192,
+        "variant": 8
+      },
+      {
+        "x": 64,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 128,
+        "y": 192,
+        "variant": 6
+      },
+      {
+        "x": 192,
+        "y": 192,
+        "variant": 5
+      },
+      {
+        "x": 256,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 320,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 384,
+        "y": 192,
+        "variant": 8
+      },
+      {
+        "x": 448,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 512,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 576,
+        "y": 192,
+        "variant": 7
+      },
+      {
+        "x": 640,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 704,
+        "y": 192,
+        "variant": 3
+      },
+      {
+        "x": 768,
+        "y": 192,
+        "variant": 6
+      },
+      {
+        "x": 832,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 896,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 960,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 1024,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 1088,
+        "y": 192,
+        "variant": 3
+      },
+      {
+        "x": 1152,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 1216,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 1280,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 1344,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 1408,
+        "y": 192,
+        "variant": 3
+      },
+      {
+        "x": 1472,
+        "y": 192,
+        "variant": 7
+      },
+      {
+        "x": 1536,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 1600,
+        "y": 192,
+        "variant": 7
+      },
+      {
+        "x": 1664,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 1728,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 1792,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 1856,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 1920,
+        "y": 192,
+        "variant": 5
+      },
+      {
+        "x": 1984,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 2048,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 2112,
+        "y": 192,
+        "variant": 3
+      },
+      {
+        "x": 2176,
+        "y": 192,
+        "variant": 1
+      },
+      {
+        "x": 2240,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 2304,
+        "y": 192,
+        "variant": 3
+      },
+      {
+        "x": 2368,
+        "y": 192,
+        "variant": 4
+      },
+      {
+        "x": 2432,
+        "y": 192,
+        "variant": 2
+      },
+      {
+        "x": 2496,
+        "y": 192,
+        "variant": 6
+      },
+      {
+        "x": 0,
+        "y": 256,
+        "variant": 5
+      },
+      {
+        "x": 64,
+        "y": 256,
+        "variant": 6
+      },
+      {
+        "x": 128,
+        "y": 256,
+        "variant": 2
+      },
+      {
+        "x": 192,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 256,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 320,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 384,
+        "y": 256,
+        "variant": 2
+      },
+      {
+        "x": 448,
+        "y": 256,
+        "variant": 6
+      },
+      {
+        "x": 512,
+        "y": 256,
+        "variant": 7
+      },
+      {
+        "x": 576,
+        "y": 256,
+        "variant": 2
+      },
+      {
+        "x": 640,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 704,
+        "y": 256,
+        "variant": 5
+      },
+      {
+        "x": 768,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 832,
+        "y": 256,
+        "variant": 6
+      },
+      {
+        "x": 896,
+        "y": 256,
+        "variant": 8
+      },
+      {
+        "x": 960,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1024,
+        "y": 256,
+        "variant": 8
+      },
+      {
+        "x": 1088,
+        "y": 256,
+        "variant": 4
+      },
+      {
+        "x": 1152,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1216,
+        "y": 256,
+        "variant": 6
+      },
+      {
+        "x": 1280,
+        "y": 256,
+        "variant": 4
+      },
+      {
+        "x": 1344,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 1408,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1472,
+        "y": 256,
+        "variant": 5
+      },
+      {
+        "x": 1536,
+        "y": 256,
+        "variant": 6
+      },
+      {
+        "x": 1600,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1664,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 1728,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1792,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 1856,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 1920,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 1984,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 2048,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 2112,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 2176,
+        "y": 256,
+        "variant": 7
+      },
+      {
+        "x": 2240,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 2304,
+        "y": 256,
+        "variant": 4
+      },
+      {
+        "x": 2368,
+        "y": 256,
+        "variant": 1
+      },
+      {
+        "x": 2432,
+        "y": 256,
+        "variant": 3
+      },
+      {
+        "x": 2496,
+        "y": 256,
+        "variant": 2
+      },
+      {
+        "x": 0,
+        "y": 320,
+        "variant": 4
+      },
+      {
+        "x": 64,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 128,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 192,
+        "y": 320,
+        "variant": 7
+      },
+      {
+        "x": 256,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 320,
+        "y": 320,
+        "variant": 6
+      },
+      {
+        "x": 384,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 448,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 512,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 576,
+        "y": 320,
+        "variant": 7
+      },
+      {
+        "x": 640,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 704,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 768,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 832,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 896,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 960,
+        "y": 320,
+        "variant": 7
+      },
+      {
+        "x": 1024,
+        "y": 320,
+        "variant": 6
+      },
+      {
+        "x": 1088,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 1152,
+        "y": 320,
+        "variant": 6
+      },
+      {
+        "x": 1216,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 1280,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 1344,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 1408,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 1472,
+        "y": 320,
+        "variant": 4
+      },
+      {
+        "x": 1536,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 1600,
+        "y": 320,
+        "variant": 3
+      },
+      {
+        "x": 1664,
+        "y": 320,
+        "variant": 4
+      },
+      {
+        "x": 1728,
+        "y": 320,
+        "variant": 5
+      },
+      {
+        "x": 1792,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 1856,
+        "y": 320,
+        "variant": 6
+      },
+      {
+        "x": 1920,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 1984,
+        "y": 320,
+        "variant": 5
+      },
+      {
+        "x": 2048,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 2112,
+        "y": 320,
+        "variant": 8
+      },
+      {
+        "x": 2176,
+        "y": 320,
+        "variant": 5
+      },
+      {
+        "x": 2240,
+        "y": 320,
+        "variant": 4
+      },
+      {
+        "x": 2304,
+        "y": 320,
+        "variant": 5
+      },
+      {
+        "x": 2368,
+        "y": 320,
+        "variant": 2
+      },
+      {
+        "x": 2432,
+        "y": 320,
+        "variant": 1
+      },
+      {
+        "x": 2496,
+        "y": 320,
+        "variant": 7
+      }
+    ],
+    "damage": [
+      {
+        "variant": 1,
+        "x": 64,
+        "y": 64
+      },
+      {
+        "variant": 2,
+        "x": 320,
+        "y": 64
+      },
+      {
+        "variant": 3,
+        "x": 704,
+        "y": 64
+      },
+      {
+        "variant": 6,
+        "x": 1024,
+        "y": 128
+      },
+      {
+        "variant": 5,
+        "x": 1344,
+        "y": 64
+      },
+      {
+        "variant": 4,
+        "x": 1728,
+        "y": 96
+      },
+      {
+        "variant": 2,
+        "x": 1984,
+        "y": 64
+      },
+      {
+        "variant": 6,
+        "x": 2240,
+        "y": 96
+      }
+    ],
+    "windows": [
+      {
+        "variant": 1,
+        "x": 176,
+        "y": 144
+      },
+      {
+        "variant": 4,
+        "x": 464,
+        "y": 128
+      },
+      {
+        "variant": 6,
+        "x": 896,
+        "y": 128
+      },
+      {
+        "variant": 1,
+        "x": 1192,
+        "y": 160
+      },
+      {
+        "variant": 4,
+        "x": 1536,
+        "y": 128
+      },
+      {
+        "variant": 6,
+        "x": 1856,
+        "y": 144
+      },
+      {
+        "variant": 1,
+        "x": 2144,
+        "y": 160
+      },
+      {
+        "variant": 6,
+        "x": 2384,
+        "y": 128
+      }
+    ],
+    "rooms": [
+      {
+        "name": "던전 입구",
+        "left": 0,
+        "right": 640
+      },
+      {
+        "name": "무너진 회랑",
+        "left": 640,
+        "right": 1280
+      },
+      {
+        "name": "기사의 전당",
+        "left": 1280,
+        "right": 1920
+      },
+      {
+        "name": "봉인된 문",
+        "left": 1920,
+        "right": 2560
+      }
+    ],
+    "mortarStyle": "One continuous dark dungeon panorama; approved cave terrain in foreground",
+    "mode": "panorama",
+    "panorama": {
+      "image": "dungeon_panorama",
+      "width": 1080,
+      "height": 360,
+      "scrollRatio": 0.22916666666666666
+    }
+  },
+  "tileSurfaceInsets": {},
+  "spriteStyle": {
+    "enabled": true,
+    "pixelGrid": 2,
+    "paletteColors": 24,
+    "scope": "in-game character and door/armor/torch only; originals preserved"
+  },
+  "sidePassages": [
+    {
+      "id": "entrance",
+      "side": "left",
+      "left": 0,
+      "right": 64,
+      "openingTop": 184,
+      "bottom": 288,
+      "gateX": 0,
+      "gateWidth": 24
+    },
+    {
+      "id": "exit",
+      "side": "right",
+      "left": 2496,
+      "right": 2560,
+      "openingTop": 184,
+      "bottom": 288,
+      "gateX": 2536,
+      "gateWidth": 24
+    }
+  ],
+  "slopes": [
+    {
+      "x1": 304,
+      "y1": 288,
+      "x2": 368,
+      "y2": 256,
+      "bottom": 360
+    },
+    {
+      "x1": 496,
+      "y1": 256,
+      "x2": 560,
+      "y2": 288,
+      "bottom": 360
+    }
+  ]
+}

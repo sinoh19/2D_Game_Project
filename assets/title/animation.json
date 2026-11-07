@@ -1,0 +1,18 @@
+{
+  "width": 640,
+  "height": 360,
+  "fps": 8,
+  "frameCount": 24,
+  "durationSeconds": 3.0,
+  "loop": true,
+  "sheetColumns": 6,
+  "sheetRows": 4,
+  "frameOrder": "row-major",
+  "layer": "background",
+  "containsUI": false,
+  "sourceFrameSize": [
+    320,
+    180
+  ],
+  "pixelScale": "nearest-neighbor 2x"
+}

@@ -1,0 +1,11 @@
+{
+  "nativeWidth": 256,
+  "nativeHeight": 128,
+  "variants": 8,
+  "edgeBandPixels": 2,
+  "editedBoundaryPixels": 3968,
+  "originalMossPixels": 49,
+  "interiorCompared": 28752,
+  "interiorPreserved": 28752,
+  "interiorUnchanged": true
+}

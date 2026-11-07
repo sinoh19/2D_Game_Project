@@ -1,0 +1,605 @@
+{
+  "baseResolution": [
+    640,
+    360
+  ],
+  "displayScale": 2,
+  "method": "Deterministic crop and nearest-neighbor normalization; no AI redraw",
+  "files": [
+    {
+      "file": "title/background_sheet.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\title\\background_sheet.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "057aa563ba706f74c2ca53319befb98a5de8f679b216086b4150da500e0cc159",
+      "sha256": "a978263e0d679e1ead41f6964da0a789cfe6e556c7b9fc2ab2efccf827ef8aac",
+      "width": 3840,
+      "height": 1440,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "title/background_still.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\title\\background_still.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "9f19574fab455b435a62516cbac332834e8e9a87f351935ee202899ace06d136",
+      "sha256": "af77313bc6e5edccad686e8655ae65d337c148c1082a9f717a0cedf1b20db796",
+      "width": 640,
+      "height": 360,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "ui/start.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\ui\\start.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "bfbe5ee3b307c48a6584ed30031fbb4a88dd40c8a810413ad4da6daff6b4e181",
+      "sha256": "b8456c35afc382086131363c59fb804c98c83bece745f5d70b6442a75af13d01",
+      "width": 158,
+      "height": 54,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "ui/continue.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\ui\\continue.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "1c9f63973e047568f919b5b45595f13e4db3380de78c2bcb7a0b671ae4424084",
+      "sha256": "447f84f52423d67ea5ce0ebb97ec1a4357bf551ed14d833a8270bd7c9fc0b126",
+      "width": 158,
+      "height": 54,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "ui/settings.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\ui\\settings.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "f7823303af69b1d64fab30669e32a313952bd11339cd873e38d3c8fd79f0380b",
+      "sha256": "9eb8ce453c46a9166a04d27f649711b45a7b3e04a8788eb9c73a3cf77d1326a9",
+      "width": 158,
+      "height": 54,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "ui/exit.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\ui\\exit.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "05c3e96dc4948ea8a5da5c291b867bc8e00ab8fa6f971be4c3fb5a5f1a3b6d4b",
+      "sha256": "b43bf89d4dcb6f7178184e88663ed78c0b463a661157631c259a62dc4f9268d0",
+      "width": 158,
+      "height": 54,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "book/opening_sheet.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\book\\opening_sheet.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "38091dd4e6726055e7044e1fb4cf6e3a4d4887579c838fb7fd872af46bc0d3bd",
+      "sha256": "a2bf4acede746168f69908ed73ff9f5592aadca37883e59056e56a01aa43fc43",
+      "width": 3840,
+      "height": 2160,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "book/closed_book.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\book\\closed_book_native160.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "1c52d7e0ed9df8d3965c0209ca527245a37e454ddf10681a303e2aa1a63fc825",
+      "sha256": "e3cc3f08e3293d8b9331d2b1fffc5f4a45ec68ac2033e377e6c7939eadf91511",
+      "width": 640,
+      "height": 360,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "book/open_book.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\book\\open_book_native160.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "592cac17b11b32d121ce413c21a7799c7342701732def4e74cac1f094c965c0b",
+      "sha256": "42f0c0db2a5e0110f9a88fc2735f27cf42e74687e2a873afba03b6760d5c2516",
+      "width": 640,
+      "height": 360,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/character/idle.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\character\\idle.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "4971c21646de4e56affe91438c625ce88287a972390dec6fbfbf12db23037515",
+      "sha256": "3d92e18500b83679c4e0299bd9a1ab1d8799017e185eae963d4a0ee4a703ca43",
+      "width": 280,
+      "height": 56,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/character/walk.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\character\\walk.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "75d7b23685773324cfab981d4e4aab426c17747e8709e2869abffe1e1e7cf17a",
+      "sha256": "8a72c6df250c91b24a148ba55616e0dcf656f499c419105588e1e314c2fb7fe8",
+      "width": 448,
+      "height": 56,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/character/jump.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\character\\jump.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "5ff078361d3cde659ff951d7f4cad41123feb73d391cb42950b85040d44a2f34",
+      "sha256": "ceb5a051e16323304f8e22d7042c803fb52c689239de51a497e32f788c25c964",
+      "width": 672,
+      "height": 56,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/character/attack.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\character\\attack.png",
+      "sourceRectBottomLeft": null,
+      "sourceSha256": "a5d5fd0d0821314a86c5e75d99ce3db2c73451376d63ab74bf19e9f92a4218ac",
+      "sha256": "e1f22d2d6aa7e873bc142b440be4e0caa4ac369d26dccb06e8463f8e946aa5bc",
+      "width": 560,
+      "height": 448,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_a315e12ba486dd61.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "a315e12ba486dd61d75b7c177b8e22df84744ab66c6cff39b471c75431c59fca",
+      "sha256": "4ea8af5a7fedb6bfc05f6e1defe96fa89e37450d3213b60852728e3c5f1a6c4c",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling_DownLeft_1.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "ba9b8139f94142c9665aab9497b0b38470e7c7911522f404fe149215b8ee368a",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling_DownLeft_2.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "6d3435c472cd355904b0f532d5eef336495e328e3e19b1164d7768881a69c752",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling_DownRight_1.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "6d3435c472cd355904b0f532d5eef336495e328e3e19b1164d7768881a69c752",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling_DownRight_2.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "ba9b8139f94142c9665aab9497b0b38470e7c7911522f404fe149215b8ee368a",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Ceiling_RepeatB.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_a315e12ba486dd61.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "a315e12ba486dd61d75b7c177b8e22df84744ab66c6cff39b471c75431c59fca",
+      "sha256": "4ea8af5a7fedb6bfc05f6e1defe96fa89e37450d3213b60852728e3c5f1a6c4c",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Corner_BottomLeft.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_53a9386d64e133a8.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "53a9386d64e133a899fbe2e1eab309b1f25621c5d41d92142d57d79b02dffa91",
+      "sha256": "e0ebca29cb804a1f6908009075db4657630d92704be782199e55822443bf9c44",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Corner_BottomRight.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_cfaf11947724a822.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "cfaf11947724a822898a563da7ca7de89aa434b8560d9cf981d1919f7e53833b",
+      "sha256": "cf3e650c93b948c8a45f7ad571c004c59ae658f676b27a3dfb387fc572c8da7e",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Corner_TopLeft.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_57de54409840cb2f.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "57de54409840cb2fc9a8aac6cb359c487bba57236f1714d76c2db78f3e03fd0b",
+      "sha256": "25cff83a76c0ebe1a41a4ac4aa6b8161b39fc144f6b9bdcd4a232c87815875a0",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Corner_TopRight.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_bae37974e4e4a1a9.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "bae37974e4e4a1a95b3ed2e3e300f15c25f71fa248c21cec15ae0dee8619c6fc",
+      "sha256": "0eb92a572deee9e3343ad6de448fd55e119e72c15b884d28327c062786ae45d5",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Fill.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0a6cd819fc9c3326.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "0a6cd819fc9c33263f5ea7924ff0af3610332a74b523f7f2ebe93b102d9ada79",
+      "sha256": "4376be1e5ae2c5bc68ec283c0586dfd500d0c69a95fc4ba671732abefcbeb78b",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Floor.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_b2ba31813d7b5150.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "b2ba31813d7b5150f49c49f8a845571a24e882ec18ff1a52a756772a4d0e6569",
+      "sha256": "62f8f0575777a94959b30e69d5e4370c60394e8c39784178e516b8b1e9a82b9b",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Floor_RepeatB.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_b2ba31813d7b5150.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "b2ba31813d7b5150f49c49f8a845571a24e882ec18ff1a52a756772a4d0e6569",
+      "sha256": "62f8f0575777a94959b30e69d5e4370c60394e8c39784178e516b8b1e9a82b9b",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Stairs_UpLeft_1.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "ba9b8139f94142c9665aab9497b0b38470e7c7911522f404fe149215b8ee368a",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Stairs_UpLeft_2.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "6d3435c472cd355904b0f532d5eef336495e328e3e19b1164d7768881a69c752",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Stairs_UpRight_1.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "6d3435c472cd355904b0f532d5eef336495e328e3e19b1164d7768881a69c752",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Stairs_UpRight_2.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_1557632bce42e658.png",
+      "sourceRectBottomLeft": [
+        887,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "1557632bce42e6587a95ae7d8b24469b05a29c752a86142ebd6fe7d9892b50bb",
+      "sha256": "ba9b8139f94142c9665aab9497b0b38470e7c7911522f404fe149215b8ee368a",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/WallLeft_RepeatB.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_445e6b262668ba00.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "445e6b262668ba00d874e242c8822256efb4bbdd955a575f341b04239381df66",
+      "sha256": "57f2d388d1301ba9c0faaaccaa4eca571411b573fb19b9d3f92d21125e68e47d",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/WallRight_RepeatB.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_f245d6764186706d.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "f245d6764186706d6ce0aff372a45e1c389a3ccc0a6f7687b76ef90d64241c69",
+      "sha256": "023f9410d0a4e331ecaf2e751184fad2c2dbcd4f8f51e5f07a8e4542b507b07e",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Wall_FaceLeft.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_445e6b262668ba00.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "445e6b262668ba00d874e242c8822256efb4bbdd955a575f341b04239381df66",
+      "sha256": "57f2d388d1301ba9c0faaaccaa4eca571411b573fb19b9d3f92d21125e68e47d",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Wall_FaceRight.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_f245d6764186706d.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "sourceSha256": "f245d6764186706d6ce0aff372a45e1c389a3ccc0a6f7687b76ef90d64241c69",
+      "sha256": "023f9410d0a4e331ecaf2e751184fad2c2dbcd4f8f51e5f07a8e4542b507b07e",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/Background.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_dd58f48a6823d620.png",
+      "sourceRectBottomLeft": [
+        300,
+        300,
+        128,
+        128
+      ],
+      "sourceSha256": "dd58f48a6823d62075ffbee2eb704ba2225d9c73cedd6d942b9122305fec725e",
+      "sha256": "eda1a2c5705557c651a4576198ac3511e48c22cf1b6d079926a27c64a46e0417",
+      "width": 32,
+      "height": 32,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/door.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_45f7c649c0826580.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        1123,
+        1400
+      ],
+      "sourceSha256": "45f7c649c08265803cbf2eaed401e19903cd9d700604b8483bfd6f5cda544c48",
+      "sha256": "b6fb25a4e301ac9178fec9560f14fcdfac2b942ab19a3338687bd3c95a47cb0e",
+      "width": 94,
+      "height": 117,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/armor.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_eb5dfcaebfd0aeeb.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        884,
+        1780
+      ],
+      "sourceSha256": "eb5dfcaebfd0aeeb7c362321a135235cbe2dccebef3ea5bd39ad6129979b7dea",
+      "sha256": "c501fcf6302327099f2ba674dfe51fa1b052f4c948fd37774a64ff1cb37fd5ad",
+      "width": 38,
+      "height": 76,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_body.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_ba100805de5cc694.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        903,
+        1742
+      ],
+      "sourceSha256": "ba100805de5cc6947bcf6988f7e91492d4db91a99555429b763df8d8d4c252d6",
+      "sha256": "f78892ad20dc1500e94583ba301aa932f40c7474155c32bc43237801e9c7f8dd",
+      "width": 33,
+      "height": 64,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_0.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        0,
+        512,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "8ceb5d679cdb48abd8f4415f8643e1cb1ca4e12f7a0f9080cf7f92b76dcd4b9d",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_1.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        512,
+        512,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "60121c69841f38bed3dc29d10440ef550a39219ea3071034becf2846128bc04f",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_2.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        1024,
+        512,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "7045750b7cd519d86c53af4cf4055c99d6f60dcb49dba8375c6e738bcc73696e",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_3.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "5bfc3667f1b12f05bc992b920d8b263946c17abd64f43b2f314f36f67e977acc",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_4.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        512,
+        0,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "3e54d23521546b79c4813ac958594890b4533d0f88e7a7950f8a9331e0d859c2",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    },
+    {
+      "file": "dungeon/native640/sprites/torch_flame_5.png",
+      "source": "C:\\Users\\sinoh\\Desktop\\용병일기_pico2d\\assets\\dungeon\\approved\\unity_0d24e0c10fac0401.png",
+      "sourceRectBottomLeft": [
+        1024,
+        0,
+        512,
+        512
+      ],
+      "sourceSha256": "0d24e0c10fac0401c6934c2d8b02f0c8fbef848f9d39243e57db6393b1c62fb1",
+      "sha256": "4f5f5dd6983d1c5749b9cbc36126e8cd8d3449371c5fd06d8bd92fc851c6027a",
+      "width": 11,
+      "height": 11,
+      "filter": "nearest-neighbor"
+    }
+  ]
+}
