@@ -309,19 +309,7 @@
       "visible": true,
       "x": 0,
       "y": 0,
-      "objects": [
-        {
-          "id": 57,
-          "name": "나무 다리",
-          "gid": 41,
-          "x": 1088,
-          "y": 320,
-          "width": 128,
-          "height": 32,
-          "rotation": 0,
-          "visible": true
-        }
-      ]
+      "objects": []
     },
     {
       "data": [
@@ -3617,7 +3605,7 @@
     }
   ],
   "nextlayerid": 14,
-  "nextobjectid": 58,
+  "nextobjectid": 57,
   "orientation": "orthogonal",
   "properties": [
     {
