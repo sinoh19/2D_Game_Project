@@ -1,0 +1,7 @@
+# Rounded pit upper corners
+
+Built-in image tool; edit target: the current smoothed cave floor tile.
+
+Use case: precise-object-edit. Edit the supplied32x32 blue-grey stone floor tile into ONE upper lip corner for the LEFT BANK of a pit (solid ground on LEFT, empty pit on RIGHT). Preserve its palette, broad rock texture and flat top rim. Round/blunt ONLY the TOP-RIGHT outer corner: top surface remains flat y0 fromx0tox25, then small2pixel stair-shaped bevels descend to a nearly vertical rock face atx30 aroundy6. Along the RIGHT side show a subtle2-4pixel grey bevel, rough but blunt, with clear transparent space to its right. Bottom edge and LEFT edge remain square and connect to solid stone fill; do NOT round bottom or left corners. This is a modular terrain tile, not a detached round rock. Pixel art at32x32 with2x2pixel clusters,4-6muted slate shades, no antialiasing or gradients. No bright isolated spots, no moss, no outline box. Transparent background ONLY outside the cut-away right corner/right edge. Tight32x32canvas footprint, no padding, no cast shadow, no glow, no labels, no extra objects. Keep the top rim at the same level as the source.
+
+Packaging preserves the existing floor body, uses the generated right rim and silhouette, mirrors the rim for the opposite bank, and matches the bottom edge to the existing vertical wall tiles. Final tiles are32x32 in terrain atlas cells14/15.
