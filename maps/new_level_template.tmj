@@ -9,7 +9,7 @@
   "height": 12,
   "tilewidth": 32,
   "tileheight": 32,
-  "nextlayerid": 13,
+  "nextlayerid": 14,
   "nextobjectid": 36,
   "properties": [
     {
@@ -109,6 +109,17 @@
       "x": 0,
       "y": 0,
       "draworder": "index",
+      "objects": []
+    },
+    {
+      "id": 13,
+      "name": "배경 구조물",
+      "type": "objectgroup",
+      "draworder": "topdown",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
       "objects": []
     },
     {
