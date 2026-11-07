@@ -1,0 +1,61 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "계단·바닥 연결 32px",
+  "tilewidth": 32,
+  "tileheight": 32,
+  "columns": 2,
+  "tilecount": 2,
+  "image": "images/stair-floor-joins.png",
+  "imagewidth": 64,
+  "imageheight": 32,
+  "tiles": [
+    {
+      "id": 0,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "계단 연결 · 왼쪽 끝"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "class": "Solid",
+            "x": 0,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "계단 연결 · 오른쪽 끝"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "class": "Solid",
+            "x": 0,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          }
+        ]
+      }
+    }
+  ]
+}

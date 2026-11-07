@@ -1933,10 +1933,10 @@
         0,
         6,
         7,
+        47,
         1,
         1,
-        1,
-        1,
+        48,
         8,
         9,
         0,
@@ -3644,6 +3644,10 @@
     {
       "firstgid": 42,
       "source": "tilesets/pillars.tsj"
+    },
+    {
+      "firstgid": 47,
+      "source": "tilesets/stair-floor-joins.tsj"
     }
   ],
   "tilewidth": 32,
