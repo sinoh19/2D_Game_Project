@@ -301,15 +301,29 @@
       "y": 0
     },
     {
+      "draworder": "topdown",
       "id": 13,
       "name": "배경 구조물",
-      "type": "objectgroup",
-      "draworder": "topdown",
+      "objects": [
+        {
+          "gid": 41,
+          "height": 32,
+          "id": 57,
+          "name": "",
+          "opacity": 1,
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 128,
+          "x": 1088,
+          "y": 320
+        }
+      ],
       "opacity": 1,
+      "type": "objectgroup",
       "visible": true,
       "x": 0,
-      "y": 0,
-      "objects": []
+      "y": 0
     },
     {
       "data": [
@@ -3382,6 +3396,54 @@
       "y": 0
     },
     {
+      "id": 14,
+      "name": "지형 앞 연결부",
+      "type": "objectgroup",
+      "draworder": "topdown",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "objects": [
+        {
+          "id": 58,
+          "name": "다리 연결 · 왼쪽",
+          "gid": 49,
+          "x": 1088,
+          "y": 320,
+          "width": 32,
+          "height": 32,
+          "rotation": 0,
+          "visible": true,
+          "properties": [
+            {
+              "name": "bridgeObjectId",
+              "type": "int",
+              "value": 57
+            }
+          ]
+        },
+        {
+          "id": 59,
+          "name": "다리 연결 · 오른쪽",
+          "gid": 50,
+          "x": 1184,
+          "y": 320,
+          "width": 32,
+          "height": 32,
+          "rotation": 0,
+          "visible": true,
+          "properties": [
+            {
+              "name": "bridgeObjectId",
+              "type": "int",
+              "value": 57
+            }
+          ]
+        }
+      ]
+    },
+    {
       "color": "#ff7160",
       "draworder": "topdown",
       "id": 7,
@@ -3604,8 +3666,8 @@
       "y": 0
     }
   ],
-  "nextlayerid": 14,
-  "nextobjectid": 57,
+  "nextlayerid": 15,
+  "nextobjectid": 60,
   "orientation": "orthogonal",
   "properties": [
     {
@@ -3659,6 +3721,10 @@
     {
       "firstgid": 47,
       "source": "tilesets/stair-floor-joins.tsj"
+    },
+    {
+      "firstgid": 49,
+      "source": "tilesets/bridge-banks.tsj"
     }
   ],
   "tilewidth": 32,
