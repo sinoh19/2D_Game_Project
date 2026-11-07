@@ -1,0 +1,41 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "목재 구조물",
+  "tilewidth": 96,
+  "tileheight": 64,
+  "columns": 0,
+  "tilecount": 2,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Decoration",
+      "image": "images/props/wood-stairs.png",
+      "imagewidth": 64,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "나무 계단"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "class": "Decoration",
+      "image": "images/props/wood-bridge.png",
+      "imagewidth": 96,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "나무 다리"
+        }
+      ]
+    }
+  ]
+}

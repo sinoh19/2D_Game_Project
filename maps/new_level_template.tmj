@@ -29,23 +29,31 @@
     }
   ],
   "tilesets": [
-    {
-      "firstgid": 1,
-      "source": "tilesets/terrain.tsj"
-    },
-    {
-      "firstgid": 1001,
-      "source": "tilesets/objects.tsj"
-    },
-    {
-      "firstgid": 2001,
-      "source": "tilesets/platforms.tsj"
-    },
-    {
-      "firstgid": 3001,
-      "source": "tilesets/ceiling-decorations.tsj"
-    }
-  ],
+  {
+    "firstgid": 1,
+    "source": "tilesets/terrain.tsj"
+  },
+  {
+    "firstgid": 1001,
+    "source": "tilesets/objects.tsj"
+  },
+  {
+    "firstgid": 2001,
+    "source": "tilesets/platforms.tsj"
+  },
+  {
+    "firstgid": 3001,
+    "source": "tilesets/ceiling-decorations.tsj"
+  },
+  {
+    "firstgid": 4001,
+    "source": "tilesets/furniture.tsj"
+  },
+  {
+    "firstgid": 5001,
+    "source": "tilesets/wood-structures.tsj"
+  }
+],
   "layers": [
     {
       "id": 1,
