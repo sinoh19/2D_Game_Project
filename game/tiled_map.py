@@ -206,7 +206,7 @@ def load_map(map_path,base_layout,asset_root):
                     px,py=spec['pivot'];sw,sh=spec['rect'][2:]
                     if abs(w/sw-h/sh)>.001:raise ValueError('횃불·갑옷 크기는 가로세로 비율을 유지하세요.')
                     layout['props'].append({'kind':'torch' if klass=='Torch' else 'armor','x':x+w*px,
-                        'bottom':y-h*py,'unitScale':w/sw*spec['ppu']})
+                        'bottom':y-h*py+float(props.get('groundOffset',0))*h/sh,'unitScale':w/sw*spec['ppu']})
                     layout['tiledDrawOrder'].append({'kind':'prop','index':len(layout['props'])-1});continue
                 if klass=='Passage':
                     if rotation or gid&(H|V|D):raise ValueError('통로는 회전하지 말고 좌/우 통로 타일을 선택하세요.')

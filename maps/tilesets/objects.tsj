@@ -20,10 +20,16 @@
     {
       "id": 1,
       "class": "Armor",
-      "image": "images/armor.png",
+      "image": "images/armor-grounded.png",
       "imagewidth": 38,
       "imageheight": 76,
-      "properties": []
+      "properties": [
+        {
+          "name": "groundOffset",
+          "type": "int",
+          "value": 2
+        }
+      ]
     },
     {
       "id": 2,
