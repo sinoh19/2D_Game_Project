@@ -1,0 +1,22 @@
+{
+  "width": 640,
+  "height": 360,
+  "fps": 12,
+  "frameCount": 33,
+  "sheetColumns": 6,
+  "sheetRows": 6,
+  "frameOrder": "row-major",
+  "loop": false,
+  "holdLastFrame": true,
+  "provider": "PixelLab PixMiniMax",
+  "jobId": "39297ca8-bdbb-4c49-92a8-63fe622098ac",
+  "closedFrame": 0,
+  "openFrame": 32,
+  "pixelScale": "nearest-neighbor",
+  "motionSource": "Unmodified PixelLab generated poses; PNG format normalization only",
+  "sourceFrameSize": [
+    160,
+    90
+  ],
+  "nativeNormalization": "nearest-neighbor 4x; original poses and timing retained"
+}

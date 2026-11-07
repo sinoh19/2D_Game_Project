@@ -1,0 +1,190 @@
+{
+  "baseResolution": [
+    640,
+    360
+  ],
+  "baseTerrainGrid": [
+    32,
+    32
+  ],
+  "provider": "built-in image_gen",
+  "sourceMethod": "Reference-based reconstruction; not lossless extraction",
+  "reference": "codex-clipboard-45e67f16-bfce-4b07-aa99-107fde29bdfc.webp",
+  "alphaExport": "White checker error in broken-wall holes removed from exported alpha; all sprites use binary alpha; no recoloring",
+  "mapApplied": false,
+  "groups": [
+    {
+      "name": "intact",
+      "count": 8,
+      "width": 64,
+      "height": 64,
+      "atlas": "intact-atlas.png",
+      "columns": 4,
+      "rows": 2,
+      "files": [
+        {
+          "id": 0,
+          "file": "intact/intact-01.png",
+          "sha256": "4cd8658f89216b4bdfe4fb7b1e44970a47023ac0993874c6690a8044946aa743",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 1,
+          "file": "intact/intact-02.png",
+          "sha256": "c025db64646933c3169326f9a0c8dab77c1c9fc3de1c977a9e25fd5ccc0cdb94",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 2,
+          "file": "intact/intact-03.png",
+          "sha256": "92253ca47e748689135f564b6b09618393d43d32528f840be6d24a3981dd2c5c",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 3,
+          "file": "intact/intact-04.png",
+          "sha256": "c4b60d56f410182bd9f516eb2cbbae1069ad74aac2a9ba8c4cc7ab91051a2203",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 4,
+          "file": "intact/intact-05.png",
+          "sha256": "7f0b5c704f566a7be4e343df50ad5ac209d5916d0eb68527761a5c90322c828d",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 5,
+          "file": "intact/intact-06.png",
+          "sha256": "81f192bf00428f02f3155c1ebfc3280a2d12028e68f192becdf0835f0fd8ccfd",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 6,
+          "file": "intact/intact-07.png",
+          "sha256": "6d371e911ec84ec5f53812adeb2cf8d8ff83e0e302b4ce4e0789e3b522b83294",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "id": 7,
+          "file": "intact/intact-08.png",
+          "sha256": "24e1da7c03ce98978e19a2a4e4f95c0a56ec154f99c6b82fef08d989cbd9735e",
+          "width": 64,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "name": "broken",
+      "count": 6,
+      "width": 128,
+      "height": 96,
+      "atlas": "broken-atlas.png",
+      "columns": 3,
+      "rows": 2,
+      "files": [
+        {
+          "id": 0,
+          "file": "broken/broken-01.png",
+          "sha256": "31f6751d88dc3643060838b3b62bfa8df37ef78005f32f8f9f26afa9651531e4",
+          "width": 128,
+          "height": 96
+        },
+        {
+          "id": 1,
+          "file": "broken/broken-02.png",
+          "sha256": "5a0db0901bdc0f801a3a62a0fec7a3e51b47d4e19a34e94cb86a23bd70d2b877",
+          "width": 128,
+          "height": 96
+        },
+        {
+          "id": 2,
+          "file": "broken/broken-03.png",
+          "sha256": "313923aee44d6068beab75923144d6b2d02c304b38c2ca4d6d6d67da698e7f0f",
+          "width": 128,
+          "height": 96
+        },
+        {
+          "id": 3,
+          "file": "broken/broken-04.png",
+          "sha256": "688ff974de4fcbbf38999d3a5ba090c61b54e467503ae1a4ae87eaed4a2e89b1",
+          "width": 128,
+          "height": 96
+        },
+        {
+          "id": 4,
+          "file": "broken/broken-05.png",
+          "sha256": "74422cf0b0eb22d8a55570fd73aa564f5cf8378cc5b5144297a7a7eedf3ceef9",
+          "width": 128,
+          "height": 96
+        },
+        {
+          "id": 5,
+          "file": "broken/broken-06.png",
+          "sha256": "5d9ef0eaca1d6d768a563914f26dca6a24abb701252785c8a8ff32b45fd81839",
+          "width": 128,
+          "height": 96
+        }
+      ]
+    },
+    {
+      "name": "windows",
+      "count": 6,
+      "width": 48,
+      "height": 80,
+      "atlas": "windows-atlas.png",
+      "columns": 3,
+      "rows": 2,
+      "files": [
+        {
+          "id": 0,
+          "file": "windows/windows-01.png",
+          "sha256": "755e9f8f54a6aeaa3fa3257da4bf2b744416022144df3c4d89c40cdee62fa3eb",
+          "width": 48,
+          "height": 80
+        },
+        {
+          "id": 1,
+          "file": "windows/windows-02.png",
+          "sha256": "edf3daec25f3015296dcbc145a7f67f7a5cd07d10eff21dfffb4b9e138e0b435",
+          "width": 48,
+          "height": 80
+        },
+        {
+          "id": 2,
+          "file": "windows/windows-03.png",
+          "sha256": "315a28b269d2b053e08599a52b8dea0d00f718507380a59f8565d209a44fb32a",
+          "width": 48,
+          "height": 80
+        },
+        {
+          "id": 3,
+          "file": "windows/windows-04.png",
+          "sha256": "ae48a51e78a09be14487ffb64c260fdc4797da70469ef8f9dcfd5fb32255b5e5",
+          "width": 48,
+          "height": 80
+        },
+        {
+          "id": 4,
+          "file": "windows/windows-05.png",
+          "sha256": "62bf61781074121b4be820c07a736dd68a51f65891348c5cac24130ac0ad8d2d",
+          "width": 48,
+          "height": 80
+        },
+        {
+          "id": 5,
+          "file": "windows/windows-06.png",
+          "sha256": "a522f0f5e1602d8cc37c5e9afce5e6ab83b77a83f61b73deacade5248297caa7",
+          "width": 48,
+          "height": 80
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "targetFaceRGB": [
+    90.0,
+    100.0,
+    106.0
+  ],
+  "method": "Constant additive RGB offset per tile; no quantization, no blur, original ochre/moss pixels protected",
+  "localContrastPreserved": true,
+  "protectedMossPixels": 51,
+  "clippedPixels": 0,
+  "tiles": [
+    {
+      "beforeFaceRGB": [
+        89.71,
+        99.575,
+        105.395
+      ],
+      "offsetRGB": [
+        0,
+        0,
+        1
+      ],
+      "afterFaceRGB": [
+        89.71,
+        99.575,
+        106.395
+      ],
+      "tile": 1,
+      "protectedMossPixels": 0,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4096
+    },
+    {
+      "beforeFaceRGB": [
+        93.085,
+        106.86,
+        114.495
+      ],
+      "offsetRGB": [
+        -3,
+        -7,
+        -8
+      ],
+      "afterFaceRGB": [
+        90.085,
+        99.86,
+        106.495
+      ],
+      "tile": 2,
+      "protectedMossPixels": 0,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4096
+    },
+    {
+      "beforeFaceRGB": [
+        89.225,
+        98.99,
+        104.86
+      ],
+      "offsetRGB": [
+        1,
+        1,
+        1
+      ],
+      "afterFaceRGB": [
+        90.225,
+        99.99,
+        105.86
+      ],
+      "tile": 3,
+      "protectedMossPixels": 0,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4096
+    },
+    {
+      "beforeFaceRGB": [
+        89.78,
+        100.09,
+        106.015
+      ],
+      "offsetRGB": [
+        0,
+        0,
+        0
+      ],
+      "afterFaceRGB": [
+        89.78,
+        100.09,
+        106.015
+      ],
+      "tile": 4,
+      "protectedMossPixels": 0,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4096
+    },
+    {
+      "beforeFaceRGB": [
+        90.77,
+        102.595,
+        109.095
+      ],
+      "offsetRGB": [
+        -1,
+        -3,
+        -3
+      ],
+      "afterFaceRGB": [
+        89.77,
+        99.595,
+        106.095
+      ],
+      "tile": 5,
+      "protectedMossPixels": 0,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4096
+    },
+    {
+      "beforeFaceRGB": [
+        89.49,
+        99.22,
+        104.91
+      ],
+      "offsetRGB": [
+        1,
+        1,
+        1
+      ],
+      "afterFaceRGB": [
+        90.49,
+        100.22,
+        105.91
+      ],
+      "tile": 6,
+      "protectedMossPixels": 31,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4065
+    },
+    {
+      "beforeFaceRGB": [
+        90.02,
+        102.36,
+        109.135
+      ],
+      "offsetRGB": [
+        0,
+        -2,
+        -3
+      ],
+      "afterFaceRGB": [
+        90.02,
+        100.36,
+        106.135
+      ],
+      "tile": 7,
+      "protectedMossPixels": 19,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4077
+    },
+    {
+      "beforeFaceRGB": [
+        89.27,
+        99.155,
+        105.13
+      ],
+      "offsetRGB": [
+        1,
+        1,
+        1
+      ],
+      "afterFaceRGB": [
+        90.27,
+        100.155,
+        106.13
+      ],
+      "tile": 8,
+      "protectedMossPixels": 1,
+      "clippedPixels": 0,
+      "verifiedUniformPixels": 4095
+    }
+  ]
+}
