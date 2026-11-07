@@ -1,0 +1,83 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "배경 돌기둥",
+  "tilewidth": 64,
+  "tileheight": 288,
+  "columns": 0,
+  "tilecount": 5,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Decoration",
+      "image": "images/pillars/pillar-full.png",
+      "imagewidth": 64,
+      "imageheight": 288,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "돌기둥 완성형"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "class": "Decoration",
+      "image": "images/pillars/pillar-top.png",
+      "imagewidth": 64,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "기둥 천장 연결"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "class": "Decoration",
+      "image": "images/pillars/pillar-middle-a.png",
+      "imagewidth": 64,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "기둥 중간 A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "class": "Decoration",
+      "image": "images/pillars/pillar-middle-b.png",
+      "imagewidth": 64,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "기둥 중간 B"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "class": "Decoration",
+      "image": "images/pillars/pillar-base.png",
+      "imagewidth": 64,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "기둥 바닥 연결"
+        }
+      ]
+    }
+  ]
+}
