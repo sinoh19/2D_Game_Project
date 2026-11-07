@@ -4,7 +4,7 @@
 def flame_frames(rgba, width, height):
     base = bytearray(rgba)
     flames = [[], [], []]
-    for y in range(44, min(51, height)):
+    for y in range(height//2, height):
         for x in range(width):
             i = (y*width+x)*4
             r, g, b, a = rgba[i:i+4]
