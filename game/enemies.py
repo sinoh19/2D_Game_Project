@@ -1,11 +1,13 @@
-"""Animated field enemies; combat encounters will be connected separately."""
+"""Animated field enemies with patrol motion and combat health."""
 import json
 import math
 from game.terrain import slope_height
+from game.combat import Vitals
 
 
-class Slime:
+class Slime(Vitals):
     def __init__(self, spec, motion):
+        super().__init__()
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed, self.scale = spec['speed'], spec['scale']

@@ -5,6 +5,7 @@ from game import drawing
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime
+from game.combat import resolve_encounter
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -19,6 +20,7 @@ class FieldScene:
         self.platforms = self.layout['platforms']
         self.slopes = self.layout.get('slopes', [])
         self.keys = set()
+        self.encounter = None
         self.camera_x = 0.0
         self.scenery_time = 0.0
         self.map_notice = ""
@@ -87,6 +89,8 @@ class FieldScene:
             self.keys.discard(event.key)
 
     def update(self, dt):
+        if self.encounter is not None:
+            return
         dt = max(0.0, min(1.0, dt))
         self.scenery_time += dt
         self.map_notice_time = max(0, self.map_notice_time-dt)
@@ -95,8 +99,10 @@ class FieldScene:
         direction = int(p2d.SDLK_RIGHT in self.keys)-int(p2d.SDLK_LEFT in self.keys)
         for _ in range(steps):
             self.player.step(dt/steps, direction)
-        for enemy in self.enemies:
-            enemy.update(dt, self)
+            for enemy in self.enemies:
+                enemy.update(dt/steps, self)
+            if resolve_encounter(self):
+                return
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     def draw(self):
@@ -108,6 +114,8 @@ class FieldScene:
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         self.passages.draw_hint()
+        drawing.rectangle((6,6,126,26),(20,19,22),filled=True)
+        drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
                      '← → 이동   SPACE 점프   C 공격   E 상호작용   F6 맵 새로고침   ESC 저장/메인')

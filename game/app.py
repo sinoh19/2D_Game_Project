@@ -80,6 +80,10 @@ class App:
         from game.scenes.field import FieldScene
         self.scene = FieldScene(self, position)
 
+    def start_melee(self, field, enemy, cause):
+        from game.scenes.melee import MeleeScene
+        self.scene = MeleeScene(self, field, enemy, cause)
+
     def reload_field_map(self):
         previous = self.scene
         previous.save()

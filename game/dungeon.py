@@ -6,6 +6,7 @@ from pico2d import pico2d as backend
 from game.config import ASSETS, WINDOW_WIDTH, WINDOW_HEIGHT
 from game import drawing
 from game.terrain import slope_surfaces, inside_slope
+from game.combat import Vitals
 
 
 class DungeonAssets:
@@ -197,7 +198,7 @@ class DungeonAssets:
                                   round(width*actor_scale*self.scale), round(height*actor_scale*self.scale))
 
 
-class Knight:
+class Knight(Vitals):
     HALF_WIDTH = 6.125
     HEIGHT = 46.0
     SPEED = 140.0
@@ -206,6 +207,7 @@ class Knight:
     STEP_HEIGHT = 8.0
 
     def __init__(self, scene, position):
+        super().__init__()
         self.scene = scene
         self.x, self.y = map(float, position)
         self.vy = 0.0
