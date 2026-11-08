@@ -1,0 +1,122 @@
+{
+  "image": "move.png",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frameCount": 8,
+  "fps": 8,
+  "duration": 1.0,
+  "loop": true,
+  "facing": "left",
+  "inPlace": true,
+  "coordinates": "top-left",
+  "pivot": [
+    16,
+    30
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 28,
+      "bodyHeight": 20,
+      "footY": 30
+    },
+    {
+      "index": 1,
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 32,
+      "bodyHeight": 16,
+      "footY": 30
+    },
+    {
+      "index": 2,
+      "rect": [
+        64,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 24,
+      "bodyHeight": 24,
+      "footY": 28
+    },
+    {
+      "index": 3,
+      "rect": [
+        96,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 28,
+      "bodyHeight": 20,
+      "footY": 24
+    },
+    {
+      "index": 4,
+      "rect": [
+        128,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 28,
+      "bodyHeight": 20,
+      "footY": 26
+    },
+    {
+      "index": 5,
+      "rect": [
+        160,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 32,
+      "bodyHeight": 18,
+      "footY": 30
+    },
+    {
+      "index": 6,
+      "rect": [
+        192,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 32,
+      "bodyHeight": 16,
+      "footY": 30
+    },
+    {
+      "index": 7,
+      "rect": [
+        224,
+        0,
+        32,
+        32
+      ],
+      "duration": 0.125,
+      "bodyWidth": 28,
+      "bodyHeight": 20,
+      "footY": 30
+    }
+  ]
+}
