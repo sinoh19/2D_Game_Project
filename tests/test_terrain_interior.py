@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from game.terrain_interior import rasterize,interior_alpha,TerrainInterior
+from game.terrain_interior import rasterize,interior_alpha,round_peaks,TerrainInterior
 from game.tiled_map import load_map
 
 
@@ -42,7 +42,7 @@ class InteriorTests(unittest.TestCase):
     def test_adjacent_tiles_share_depth_without_a_seam(self):
         images={'stone':(2,2,bytes([255]*4))}
         mask,w,h=rasterize([sprite(0,2),sprite(4,2)],images,8,8,step=1)
-        alpha=interior_alpha(mask,w,h,step=1,surface=0,fade=4)
+        alpha=interior_alpha(mask,w,h,step=1,surface=0,fade=4,rounding=0)
         self.assertGreater(alpha[3*w+3],0)
         self.assertEqual(alpha[3*w+3],alpha[3*w+4])
 
@@ -90,6 +90,28 @@ class InteriorTests(unittest.TestCase):
         self.assertFalse(result['terrainInteriorShading']);self.assertEqual(result['terrainInteriorDepth'],72)
         for key in ('solids','platforms','slopes','props','spawn','sidePassages'):
             self.assertEqual(result[key],layout[key])
+
+
+    def test_diagonal_depth_does_not_form_a_manhattan_diamond(self):
+        mask=bytearray([1]*441);mask[10*21+10]=0
+        alpha=interior_alpha(mask,21,21,step=1,surface=0,fade=20,rounding=0)
+        self.assertLessEqual(alpha[14*21+14],alpha[10*21+16])
+
+    def test_rounding_removes_a_narrow_upward_peak(self):
+        alpha=bytearray(40*32)
+        for y in range(18,32):
+            for x in range(40):alpha[y*40+x]=220
+        for y in range(8,18):
+            for x in range(18,22):alpha[y*40+x]=220
+        rounded=round_peaks(alpha,40,32,radius=4)
+        self.assertEqual(rounded[10*40+19],0)
+        self.assertEqual(rounded[27*40+19],220)
+        self.assertTrue(all(a<=b for a,b in zip(rounded,alpha)))
+        self.assertTrue(all(rounded[i]==0 for i,a in enumerate(alpha) if a==0))
+
+    def test_rounding_preserves_a_flat_floor_profile_and_map_edges(self):
+        alpha=bytearray(value for y in range(32) for value in [min(248,max(0,(y-5)*12))]*24)
+        self.assertEqual(round_peaks(alpha,24,32,radius=4),alpha)
 
 
 if __name__=='__main__':unittest.main()

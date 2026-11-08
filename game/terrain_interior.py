@@ -1,5 +1,4 @@
 """Cached stone-interior shading, measured across adjoining terrain sprites."""
-from collections import deque
 import math
 
 
@@ -41,35 +40,76 @@ def rasterize(items,images,width,height,step=2):
     return mask,columns,rows
 
 
-def interior_alpha(mask,width,height,step=2,surface=6,fade=40,max_alpha=248):
-    """Distance from air, treating map boundaries as continuing solid material."""
-    cap=math.ceil((surface+fade)/step)+1
-    distance=bytearray([min(255,cap)])*len(mask);queue=deque()
-    for i,solid in enumerate(mask):
-        if not solid:continue
-        x,y=i%width,i//width
-        if ((x and not mask[i-1]) or (x+1<width and not mask[i+1])
-                or (y and not mask[i-width]) or (y+1<height and not mask[i+width])):
-            distance[i]=0;queue.append(i)
-    while queue:
-        i=queue.popleft();d=distance[i]+1
-        if d>=cap:continue
-        x,y=i%width,i//width
-        neighbors=[]
-        if x:neighbors.append(i-1)
-        if x+1<width:neighbors.append(i+1)
-        if y:neighbors.append(i-width)
-        if y+1<height:neighbors.append(i+width)
-        for neighbor in neighbors:
-            if mask[neighbor] and d<distance[neighbor]:
-                distance[neighbor]=d;queue.append(neighbor)
+def round_peaks(alpha,width,height,radius=4):
+    """Grayscale disk opening removes narrow dark peaks without spreading darkness.
+
+    Clamp the world edges rather than adding an artificial bright border.
+    A pixel that was transparent or in the protected surface stays untouched.
+    """
+    if radius<=0:return bytearray(alpha)
+    offsets=[(dx,dy) for dy in range(-radius,radius+1) for dx in range(-radius,radius+1)
+             if dx*dx+dy*dy<=radius*radius and (dx or dy)]
+    padded_width=width+radius*2;padded_height=height+radius*2
+    eroded=bytearray(padded_width*padded_height)
+    for i in range(len(eroded)):
+        x,y=i%padded_width-radius,i//padded_width-radius
+        value=alpha[max(0,min(height-1,y))*width+max(0,min(width-1,x))]
+        if not value:continue
+        lowest=value
+        for dx,dy in offsets:
+            nx=max(0,min(width-1,x+dx));ny=max(0,min(height-1,y+dy))
+            lowest=min(lowest,alpha[ny*width+nx])
+            if not lowest:break
+        eroded[i]=lowest
+    result=bytearray(alpha)
+    for i,value in enumerate(alpha):
+        if not value:continue
+        ex,ey=i%width+radius,i//width+radius
+        if eroded[ey*padded_width+ex]==value:continue
+        highest=eroded[ey*padded_width+ex]
+        for dx,dy in offsets:
+            highest=max(highest,eroded[(ey+dy)*padded_width+ex+dx])
+            if highest>=value:break
+        result[i]=min(value,highest)
+    return result
+
+
+def interior_alpha(mask,width,height,step=2,surface=6,fade=40,max_alpha=248,rounding=8):
+    """Near-Euclidean distance plus rounded dark contours; no tile-grid seams."""
+    from array import array
+    # A3/4 chamfer includes diagonal paths, unlike the old diamond-shaped
+    # four-neighbor distance. Map boundaries continue as solid material.
+    cap=min(65530,math.ceil((surface+fade)/step+2)*3)
+    distance=array('H',(cap if solid else 0 for solid in mask))
+    for y in range(height):
+        for x in range(width):
+            i=y*width+x
+            if not mask[i]:continue
+            d=distance[i]
+            if x:d=min(d,distance[i-1]+3)
+            if y:
+                d=min(d,distance[i-width]+3)
+                if x:d=min(d,distance[i-width-1]+4)
+                if x+1<width:d=min(d,distance[i-width+1]+4)
+            distance[i]=d
+    for y in range(height-1,-1,-1):
+        for x in range(width-1,-1,-1):
+            i=y*width+x
+            if not mask[i]:continue
+            d=distance[i]
+            if x+1<width:d=min(d,distance[i+1]+3)
+            if y+1<height:
+                d=min(d,distance[i+width]+3)
+                if x:d=min(d,distance[i+width-1]+4)
+                if x+1<width:d=min(d,distance[i+width+1]+4)
+            distance[i]=d
     output=bytearray(len(mask))
     for i,solid in enumerate(mask):
         if not solid:continue
-        t=max(0,min(1,(distance[i]*step-surface)/max(1,fade)))
+        depth=max(0,distance[i]/3-1)*step
+        t=max(0,min(1,(depth-surface)/max(1,fade)))
         output[i]=round(max_alpha*t*t*(3-2*t))
-    return output
-
+    return round_peaks(output,width,height,math.ceil(rounding/step)) if rounding>0 else output
 
 PASSAGE_KEYS=('Fill','passage_wall_left','passage_wall_right',
               'passage_ceiling','passage_corner_bl','passage_corner_br')
