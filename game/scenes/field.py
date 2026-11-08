@@ -21,6 +21,7 @@ class FieldScene:
         self.slopes = self.layout.get('slopes', [])
         self.keys = set()
         self.encounter = None
+        self.melee_delay = 0.0
         self.camera_x = 0.0
         self.scenery_time = 0.0
         self.map_notice = ""
@@ -90,6 +91,11 @@ class FieldScene:
 
     def update(self, dt):
         if self.encounter is not None:
+            if self.melee_delay > 0:
+                self.melee_delay = max(0.0,self.melee_delay-max(0.0,dt))
+                if self.melee_delay == 0:
+                    enemy,cause = self.encounter
+                    self.app.start_melee(self,enemy,cause)
             return
         dt = max(0.0, min(1.0, dt))
         self.scenery_time += dt
