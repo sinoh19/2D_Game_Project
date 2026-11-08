@@ -21,6 +21,7 @@ class DungeonAssets:
         self.character_scale = self.layout['characterScale']
         self.tile_size = self.layout['tileSize']
         self.animations = json.loads((folder / 'character.json').read_text(encoding='utf-8'))
+        self.attack_hitboxes = json.loads((folder/'attack-hitboxes.json').read_text(encoding='utf-8-sig'))
         self.images = {name: p2d.load_image(str(folder / path))
                        for name, path in self.layout['images'].items()}
         self.sheets = {name: p2d.load_image(str(folder / path))

@@ -10,7 +10,7 @@ import pico2d as p2d
 from game.app import App
 from game.scenes.field import FieldScene
 from game.scenes.melee import MeleeScene
-from game.combat import Vitals, resolve_encounter
+from game.combat import Vitals, resolve_encounter, attack_regions, attack_connects
 
 
 class MeleeEntryTests(unittest.TestCase):
@@ -33,7 +33,8 @@ class MeleeEntryTests(unittest.TestCase):
 
     def attack(self):
         self.field.handle_event(SimpleNamespace(type=p2d.SDL_KEYDOWN,key=p2d.SDLK_c))
-        self.field.update(.25)
+        for _ in range(66):
+            self.app.scene.update(1/60)
 
     def test_contact_damages_player_and_enters_melee(self):
         self.player.x=710
@@ -76,7 +77,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertIs(self.app.scene,self.field)
 
     def test_active_sword_wins_simultaneous_contact(self):
-        self.player.x=710;self.player.attack_time=.25
+        self.player.x=710;self.player.attack_time=.8
         self.field.update(1/60)
         self.assertEqual((self.player.hp,self.enemy.hp),(100,90))
 
@@ -87,7 +88,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertEqual(self.enemy.hp,100)
 
     def test_vertical_separation_does_not_trigger(self):
-        self.player.y=200;self.attack()
+        self.player.y=200;self.player.attack_time=.8;self.field.update(1/120)
         self.assertIs(self.app.scene,self.field)
         self.assertEqual(self.enemy.hp,100)
 
@@ -102,6 +103,40 @@ class MeleeEntryTests(unittest.TestCase):
         self.attack()
         self.app.scene.handle_event(SimpleNamespace(type=p2d.SDL_KEYDOWN,key=p2d.SDLK_ESCAPE))
         self.assertIsInstance(self.app.scene,TitleScene)
+
+    def test_windup_has_no_sword_hitbox(self):
+        for time in (0,.2,.5,.7,.79,1.0,1.4):
+            self.player.attack_time=time
+            self.assertEqual(attack_regions(self.field),[],time)
+            self.assertFalse(attack_connects(self.field,self.enemy))
+
+    def test_sword_hit_is_visible_before_transition(self):
+        self.player.attack()
+        for _ in range(47):self.field.update(1/60)
+        self.assertIs(self.app.scene,self.field)
+        self.assertEqual(self.enemy.hp,100)
+        for _ in range(3):
+            self.field.update(1/60)
+            if self.field.encounter:break
+        self.assertEqual(self.enemy.hp,90)
+        self.assertIs(self.app.scene,self.field)
+        self.assertTrue(.79<=self.player.attack_time<1)
+        self.assertTrue(attack_regions(self.field))
+        self.field.update(.11)
+        self.assertIsInstance(self.app.scene,MeleeScene)
+
+    def test_blade_shape_misses_inside_old_rectangle(self):
+        self.player.attack_time=.8
+        self.enemy.scale=.25
+        self.enemy.y=268
+        self.enemy.x=self.player.x+10
+        self.assertFalse(attack_connects(self.field,self.enemy))
+
+    def test_mirrored_swing(self):
+        self.player.x=750;self.player.facing=-1;self.player.attack_time=.8
+        self.assertTrue(attack_connects(self.field,self.enemy))
+        self.player.facing=1
+        self.assertFalse(attack_connects(self.field,self.enemy))
 
     def test_health_clamps_at_zero(self):
         actor=Vitals();actor.take_damage(150)

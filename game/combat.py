@@ -1,9 +1,7 @@
 """Field encounter rules, independent of the eventual turn-based battle UI."""
 DEFAULT_HP = 100
 HIT_DAMAGE = 10
-ATTACK_START = .2
-ATTACK_END = .5
-ATTACK_REACH = 30.0
+SWORD_HIT_PAUSE = .10
 
 
 class Vitals:
@@ -31,23 +29,40 @@ def player_bounds(player):
             player.x+player.HALF_WIDTH, player.y)
 
 
-def attack_bounds(player):
-    start = player.x
-    end = start+player.facing*(player.HALF_WIDTH+ATTACK_REACH)
-    return (min(start,end), player.y-36, max(start,end), player.y+2)
+def attack_regions(scene):
+    """World-space strips following the visible blade/arc of this exact frame."""
+    player = scene.player
+    if player.attack_time is None:
+        return []
+    clip = scene.assets.animations['clips']['attack']
+    index = 0
+    for i, candidate in enumerate(clip['frames']):
+        if candidate['time'] > player.attack_time+1e-8:
+            break
+        index = i
+    frame = clip['frames'][index]
+    px, py = frame['pivot']
+    height = frame['rect'][3]
+    scale = scene.assets.character_scale
+    regions = []
+    for x,y,w,h in scene.assets.attack_hitboxes['frames'].get(str(index),[]):
+        left = player.x+(x-px)*scale*player.facing
+        right = player.x+(x+w-px)*scale*player.facing
+        top = player.y+(y-height+py)*scale
+        regions.append((min(left,right),top,max(left,right),top+h*scale))
+    return regions
 
 
 def attack_connects(scene, enemy):
-    player = scene.player
-    if player.attack_time is None or not ATTACK_START <= player.attack_time < ATTACK_END:
-        return False
     target = enemy_bounds(enemy)
-    if not overlaps(attack_bounds(player),target):
-        return False
-    # Solid walls between the actors also block the opening strike.
-    height = (max(target[1],player.y-36)+min(target[3],player.y))/2
-    return not any(min(player.x,enemy.x) < r and max(player.x,enemy.x) > l
-                   and t < height < b for l,t,r,b in scene.solids)
+    for region in attack_regions(scene):
+        if not overlaps(region,target):
+            continue
+        hit_y = (max(region[1],target[1])+min(region[3],target[3]))/2
+        if not any(min(scene.player.x,enemy.x) < r and max(scene.player.x,enemy.x) > l
+                   and t < hit_y < b for l,t,r,b in scene.solids):
+            return True
+    return False
 
 
 def resolve_encounter(scene):
@@ -68,5 +83,9 @@ def resolve_encounter(scene):
     victim.take_damage()
     scene.encounter = (enemy,cause)
     scene.keys.clear()
-    scene.app.start_melee(scene,enemy,cause)
+    if attacked:
+        # Keep the connecting swing visible before replacing the field screen.
+        scene.melee_delay = SWORD_HIT_PAUSE
+    else:
+        scene.app.start_melee(scene,enemy,cause)
     return True
