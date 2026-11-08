@@ -3404,44 +3404,7 @@
       "visible": true,
       "x": 0,
       "y": 0,
-      "objects": [
-        {
-          "id": 58,
-          "name": "다리 연결 · 왼쪽",
-          "gid": 49,
-          "x": 1088,
-          "y": 320,
-          "width": 32,
-          "height": 32,
-          "rotation": 0,
-          "visible": true,
-          "properties": [
-            {
-              "name": "bridgeObjectId",
-              "type": "int",
-              "value": 57
-            }
-          ]
-        },
-        {
-          "id": 59,
-          "name": "다리 연결 · 오른쪽",
-          "gid": 50,
-          "x": 1184,
-          "y": 320,
-          "width": 32,
-          "height": 32,
-          "rotation": 0,
-          "visible": true,
-          "properties": [
-            {
-              "name": "bridgeObjectId",
-              "type": "int",
-              "value": 57
-            }
-          ]
-        }
-      ]
+      "objects": []
     },
     {
       "color": "#ff7160",
