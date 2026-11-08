@@ -61,6 +61,8 @@ def load_map(map_path,base_layout,asset_root):
                   props=[],solids=[],platforms=[],slopes=[],sidePassages=[],tiledVisuals=[],tiledDrawOrder=[])
     if layout['width']<640 or layout['height']<360:raise ValueError('맵은 최소 640×360이어야 합니다.')
     layout['characterScale']=float(mp.get('characterScale',layout['characterScale']))
+    layout['terrainInteriorShading']=bool(mp.get('terrainInteriorShading',True))
+    layout['terrainInteriorDepth']=max(2,min(160,float(mp.get('terrainInteriorDepth',40))))
     tilesets=[];image_keys={};spawns=[];passage_ids=set();background_found=False
 
     def image_key(image_path):
@@ -79,14 +81,16 @@ def load_map(map_path,base_layout,asset_root):
             tp=(path.parent/entry['source']).resolve()
             ts=json.loads(tp.read_text(encoding='utf-8-sig'));directory=tp.parent
         else:ts=entry;directory=path.parent
-        tilesets.append((entry['firstgid'],ts,directory,{t['id']:t for t in ts.get('tiles',[])}))
+        default_terrain=Path(entry.get('source','')).stem in ('terrain','stair-floor-joins','platforms','pit-bottom')
+        terrain=bool(properties(ts).get('terrainInterior',default_terrain))
+        tilesets.append((entry['firstgid'],ts,directory,{t['id']:t for t in ts.get('tiles',[])},terrain))
     tilesets.sort(key=lambda item:item[0])
 
     def tile(gid):
         actual=gid&0x0fffffff
         candidates=[t for t in tilesets if t[0]<=actual]
         if not candidates:raise ValueError(f'알 수 없는 타일 GID: {actual}')
-        first,ts,directory,definitions=candidates[-1];local=actual-first
+        first,ts,directory,definitions,terrain=candidates[-1];local=actual-first
         if local>=ts['tilecount']:raise ValueError(f'타일 범위를 벗어난 GID: {actual}')
         definition=definitions.get(local,{})
         if 'image' in definition:
@@ -97,7 +101,9 @@ def load_map(map_path,base_layout,asset_root):
             margin,spacing=ts.get('margin',0),ts.get('spacing',0)
             sx=margin+(local%ts['columns'])*(w+spacing)
             sy=margin+(local//ts['columns'])*(h+spacing)
-        return definition,properties(definition),image_key(image),(sx,ih-sy-h,w,h)
+        props=properties(definition)
+        props.setdefault('terrainInterior',terrain)
+        return definition,props,image_key(image),(sx,ih-sy-h,w,h)
 
     def visual(gid,x,y,w=None,h=None,rotation=0,opacity=1):
         definition,props,key,rect=tile(gid)
@@ -113,6 +119,7 @@ def load_map(map_path,base_layout,asset_root):
         layout['tiledVisuals'].append({'image':key,'rect':list(rect),'x':x,'y':y,
             'width':rect[2] if w is None else w,'height':rect[3] if h is None else h,
             'angle':angle-math.radians(rotation),'flip':flip,'opacity':opacity})
+        if props.get('terrainInterior'):layout['tiledVisuals'][-1]['terrainInterior']=True
         layout['tiledDrawOrder'].append({'kind':'tile','index':len(layout['tiledVisuals'])-1})
         return definition,props,rect
 

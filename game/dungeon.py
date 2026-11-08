@@ -27,6 +27,8 @@ class DungeonAssets:
         if self.layout.get('spriteStyle', {}).get('enabled', False):
             from game.pixel_style import apply
             apply(self)
+        from game.terrain_interior import TerrainInterior
+        self.terrain_shading = TerrainInterior(self)
         self.chandelier_frames = {}
         from game.chandelier import prepare
         for item in self.layout.get('tiledVisuals',[]):
@@ -80,6 +82,7 @@ class DungeonAssets:
             (round(x-camera)+width/2)*self.scale,
             WINDOW_HEIGHT-(round(top)+height/2)*self.scale,
             round(width*self.scale), round(height*self.scale))
+        self.terrain_shading.draw_legacy(name,x,top,width,height,camera)
 
     def unity_sprite(self, name, x, origin_y, units, camera):
         spec = self.layout['unitySprites'][name]
@@ -131,6 +134,7 @@ class DungeonAssets:
                 (round(x-camera)+w/2)*self.scale,WINDOW_HEIGHT-(round(y)+h/2)*self.scale,
                 round(w*self.scale),round(h*self.scale))
             if alpha!=255:p2d.SDL_SetTextureAlphaMod(image.texture,255)
+            self.terrain_shading.draw(item,camera)
 
     def draw_world(self, camera, time=0):
         from game.background import draw_layer
