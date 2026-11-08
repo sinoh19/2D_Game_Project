@@ -4,6 +4,7 @@ import pico2d as p2d
 from game import drawing
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
+from game.enemies import Slime
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -31,6 +32,7 @@ class FieldScene:
         if position is None or not self.valid_position(position):
             position = self.layout['spawn']
         self.player = Knight(self, position)
+        self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     @property
@@ -93,11 +95,15 @@ class FieldScene:
         direction = int(p2d.SDLK_RIGHT in self.keys)-int(p2d.SDLK_LEFT in self.keys)
         for _ in range(steps):
             self.player.step(dt/steps, direction)
+        for enemy in self.enemies:
+            enemy.update(dt, self)
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     def draw(self):
         self.assets.draw_world(self.camera_x, self.scenery_time)
         self.passages.draw(self.camera_x)
+        for enemy in self.enemies:
+            self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         clip, time = self.player.clip
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)

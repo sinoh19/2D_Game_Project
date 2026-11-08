@@ -3627,10 +3627,56 @@
       "visible": true,
       "x": 0,
       "y": 0
+    },
+    {
+      "id": 15,
+      "name": "몬스터",
+      "type": "objectgroup",
+      "draworder": "topdown",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "objects": [
+        {
+          "id": 60,
+          "name": "튜토리얼 슬라임",
+          "class": "Slime",
+          "gid": 51,
+          "x": 704,
+          "y": 288,
+          "width": 32,
+          "height": 32,
+          "rotation": 0,
+          "visible": true,
+          "properties": [
+            {
+              "name": "patrolLeft",
+              "type": "float",
+              "value": 640
+            },
+            {
+              "name": "patrolRight",
+              "type": "float",
+              "value": 800
+            },
+            {
+              "name": "speed",
+              "type": "float",
+              "value": 48
+            },
+            {
+              "name": "direction",
+              "type": "string",
+              "value": "left"
+            }
+          ]
+        }
+      ]
     }
   ],
-  "nextlayerid": 15,
-  "nextobjectid": 60,
+  "nextlayerid": 16,
+  "nextobjectid": 61,
   "orientation": "orthogonal",
   "properties": [
     {
@@ -3688,6 +3734,10 @@
     {
       "firstgid": 49,
       "source": "tilesets/bridge-banks.tsj"
+    },
+    {
+      "firstgid": 51,
+      "source": "tilesets/monsters.tsj"
     }
   ],
   "tilewidth": 32,
