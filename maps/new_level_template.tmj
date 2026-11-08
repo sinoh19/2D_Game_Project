@@ -9,7 +9,7 @@
   "height": 12,
   "tilewidth": 32,
   "tileheight": 32,
-  "nextlayerid": 15,
+  "nextlayerid": 16,
   "nextobjectid": 36,
   "properties": [
     {
@@ -64,6 +64,10 @@
     {
       "firstgid": 6012,
       "source": "tilesets/bridge-banks.tsj"
+    },
+    {
+      "firstgid": 6014,
+      "source": "tilesets/monsters.tsj"
     }
   ],
   "layers": [
@@ -3168,6 +3172,17 @@
           "point": true
         }
       ]
+    },
+    {
+      "id": 15,
+      "name": "몬스터",
+      "type": "objectgroup",
+      "draworder": "topdown",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "objects": []
     }
   ]
 }

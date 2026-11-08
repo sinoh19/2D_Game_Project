@@ -27,6 +27,8 @@ class DungeonAssets:
         if self.layout.get('spriteStyle', {}).get('enabled', False):
             from game.pixel_style import apply
             apply(self)
+        from game.enemies import SlimeArt
+        self.slime_art = SlimeArt(folder/'monsters/slime') if self.layout.get('enemies') else None
         from game.terrain_interior import TerrainInterior
         self.terrain_shading = TerrainInterior(self)
         self.chandelier_frames = {}

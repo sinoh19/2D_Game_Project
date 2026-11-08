@@ -1,0 +1,41 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "몬스터",
+  "tilewidth": 32,
+  "tileheight": 32,
+  "tilecount": 1,
+  "columns": 0,
+  "objectalignment": "bottomleft",
+  "tileoffset": {
+    "x": 0,
+    "y": 2
+  },
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Slime",
+      "image": "../../assets/dungeon/monsters/slime/idle.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "value": "슬라임"
+        },
+        {
+          "name": "patrolRadius",
+          "type": "float",
+          "value": 80
+        },
+        {
+          "name": "speed",
+          "type": "float",
+          "value": 48
+        }
+      ]
+    }
+  ]
+}
