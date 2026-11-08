@@ -1,7 +1,6 @@
 """Field encounter rules, independent of the eventual turn-based battle UI."""
 DEFAULT_HP = 100
 HIT_DAMAGE = 10
-SWORD_HIT_PAUSE = .10
 
 
 class Vitals:
@@ -83,9 +82,5 @@ def resolve_encounter(scene):
     victim.take_damage()
     scene.encounter = (enemy,cause)
     scene.keys.clear()
-    if attacked:
-        # Keep the connecting swing visible before replacing the field screen.
-        scene.melee_delay = SWORD_HIT_PAUSE
-    else:
-        scene.app.start_melee(scene,enemy,cause)
+    scene.app.start_melee(scene,enemy,cause)
     return True

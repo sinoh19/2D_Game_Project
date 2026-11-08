@@ -10,6 +10,7 @@ import pico2d as p2d
 from game.app import App
 from game.scenes.field import FieldScene
 from game.scenes.melee import MeleeScene
+from game.scenes.melee_transition import MeleeTransitionScene
 from game.combat import Vitals, resolve_encounter, attack_regions, attack_connects
 
 
@@ -33,12 +34,15 @@ class MeleeEntryTests(unittest.TestCase):
 
     def attack(self):
         self.field.handle_event(SimpleNamespace(type=p2d.SDL_KEYDOWN,key=p2d.SDLK_c))
-        for _ in range(66):
+        for _ in range(108):
             self.app.scene.update(1/60)
 
     def test_contact_damages_player_and_enters_melee(self):
         self.player.x=710
         self.field.update(1/60)
+        self.assertIsInstance(self.app.scene,MeleeTransitionScene)
+        self.assertEqual(self.app.scene.phase,'freeze')
+        self.app.scene.update(1)
         self.assertIsInstance(self.app.scene,MeleeScene)
         self.assertEqual((self.player.hp,self.enemy.hp),(90,100))
         self.assertEqual(self.app.scene.cause,'enemy_contact')
@@ -119,10 +123,11 @@ class MeleeEntryTests(unittest.TestCase):
             self.field.update(1/60)
             if self.field.encounter:break
         self.assertEqual(self.enemy.hp,90)
-        self.assertIs(self.app.scene,self.field)
+        self.assertIsInstance(self.app.scene,MeleeTransitionScene)
+        self.assertEqual(self.app.scene.phase,'freeze')
         self.assertTrue(.79<=self.player.attack_time<1)
         self.assertTrue(attack_regions(self.field))
-        self.field.update(.11)
+        self.app.scene.update(1)
         self.assertIsInstance(self.app.scene,MeleeScene)
 
     def test_blade_shape_misses_inside_old_rectangle(self):
@@ -137,6 +142,43 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertTrue(attack_connects(self.field,self.enemy))
         self.player.facing=1
         self.assertFalse(attack_connects(self.field,self.enemy))
+
+    def test_transition_freezes_world_and_ignores_attack_input(self):
+        self.player.x=710
+        self.field.update(1/60)
+        transition=self.app.scene
+        state=(self.player.x,self.player.y,self.player.clock,self.enemy.x,self.enemy.time,self.field.scenery_time)
+        transition.handle_event(SimpleNamespace(type=p2d.SDL_KEYDOWN,key=p2d.SDLK_c))
+        transition.update(.1)
+        self.assertEqual(transition.phase,'freeze')
+        transition.update(.12)
+        self.assertEqual(transition.phase,'cover')
+        self.assertEqual(state,(self.player.x,self.player.y,self.player.clock,self.enemy.x,self.enemy.time,self.field.scenery_time))
+        self.assertEqual((self.player.hp,self.enemy.hp),(90,100))
+        transition.update(1)
+        self.assertIs(self.app.scene,transition.destination)
+
+    def test_tile_transition_has_intermediate_wave_and_full_cover(self):
+        self.player.x=710;self.field.update(1/60)
+        transition=self.app.scene
+        transition.elapsed=.30
+        amounts=[transition.tile_amount(c,r) for r in range(12) for c in range(20)]
+        self.assertGreater(max(amounts),min(amounts))
+        self.assertTrue(any(0<a<1 for a in amounts))
+        transition.elapsed=.45
+        self.assertEqual(transition.phase,'black')
+        self.assertTrue(all(transition.tile_amount(c,r)==1 for r in range(12) for c in range(20)))
+        transition.elapsed=.6
+        self.assertEqual(transition.phase,'reveal')
+
+    def test_transition_escape_saves_and_returns_to_title(self):
+        from game.scenes.title import TitleScene
+        self.player.x=710;self.field.update(1/60)
+        transition=self.app.scene
+        transition.handle_event(SimpleNamespace(type=p2d.SDL_KEYDOWN,key=p2d.SDLK_ESCAPE))
+        self.assertIsInstance(self.app.scene,TitleScene)
+        transition.update(1)
+        self.assertIsInstance(self.app.scene,TitleScene)
 
     def test_health_clamps_at_zero(self):
         actor=Vitals();actor.take_damage(150)
