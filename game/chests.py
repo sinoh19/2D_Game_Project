@@ -10,7 +10,7 @@ from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
                         DroppedItem, Equipment)
 from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
-FRAME_SIZE = 217
+FRAME_SIZE = 112
 DRAW_SIZE = 44
 FRAME_COUNT = 5
 OPEN_TIME = .4
@@ -235,3 +235,4 @@ class TreasureChests:
                           (20, 19, 22), filled=True)
         drawing.text(font, x, y, label)
         return True
+
