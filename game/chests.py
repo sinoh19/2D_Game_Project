@@ -3,7 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, SCALE, WINDOW_HEIGHT
-from game.loot_ui import BAG_SIZE, BAG_SLOTS, CHEST_SLOT, CLOSE_BUTTON, POTION, draw_loot
+from game.loot_ui import BAG_SIZE, CHEST_SLOT, CLOSE_BUTTON, POTION, bag_slot_at, draw_loot
 
 FRAME_SIZE = 44
 FRAME_COUNT = 4
@@ -46,6 +46,7 @@ class TreasureChests:
         self.active = None
         self.message = ''
         self.press_origin = None
+        self.bag_source = None
         self.drag = None
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
@@ -70,7 +71,7 @@ class TreasureChests:
         return True
 
     def cancel_drag(self):
-        self.press_origin = self.drag = None
+        self.press_origin = self.drag = self.bag_source = None
 
     def close(self):
         self.cancel_drag()
@@ -85,6 +86,11 @@ class TreasureChests:
         elif not chest.looted and drawing.contains(CHEST_SLOT, x, y):
             self.press_origin = (x, y)
             self.message = '회복 포션  ×1'
+        else:
+            index = bag_slot_at(x, y)
+            if index is not None and self.bag[index] is not None:
+                self.press_origin = (x, y)
+                self.bag_source = index
 
     def mouse_move(self, x, y):
         if self.press_origin is None:
@@ -98,10 +104,17 @@ class TreasureChests:
             return
         self.mouse_move(x, y)
         dragging = self.drag is not None
+        source = self.bag_source
         self.cancel_drag()
+        if source is not None:
+            target = bag_slot_at(x, y) if dragging else None
+            if target is not None and target != source:
+                self.bag[source], self.bag[target] = self.bag[target], self.bag[source]
+                self.save()
+                self.message = '가방 슬롯을 옮겼습니다.'
+            return
         if dragging:
-            index = next((i for i, bounds in enumerate(BAG_SLOTS)
-                          if drawing.contains(bounds, x, y)), None)
+            index = bag_slot_at(x, y)
             if index is None:
                 return
             if self.bag[index] is not None:
@@ -125,7 +138,7 @@ class TreasureChests:
     def draw_loot(self):
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
             draw_loot(self.field.app.resources, self.potion,
-                      not self.active.looted, self.bag, self.message, self.drag)
+                      not self.active.looted, self.bag, self.message, self.drag, self.bag_source)
 
     def update(self, dt):
         for chest in self.chests:
