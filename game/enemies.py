@@ -99,9 +99,11 @@ class SlimeArt:
         elif attack_elapsed is not None:
             image = self.attack_image
             frame = min(self.ATTACK_FRAMES - 1, int(attack_elapsed * self.ATTACK_FPS))
-        tinted = not guarded and hit_elapsed is not None and 0 <= hit_elapsed < self.HIT_TINT_SECONDS
+        tint_seconds = .12 if guarded else self.HIT_TINT_SECONDS
+        tinted = hit_elapsed is not None and 0 <= hit_elapsed < tint_seconds
         if tinted:
-            p2d.SDL_SetTextureColorMod(image.texture, 255, 64, 55)
+            tint = (100, 105, 255) if guarded else (255, 64, 55)
+            p2d.SDL_SetTextureColorMod(image.texture, *tint)
         try:
             image.clip_composite_draw(
                 frame*m['frameWidth'], 0, m['frameWidth'], m['frameHeight'],
