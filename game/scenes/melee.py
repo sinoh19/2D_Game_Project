@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pico2d as p2d
 
 from game import drawing
-from game.combat import HIT_DAMAGE
+from game.combat import HIT_DAMAGE, roll_physical_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
@@ -178,7 +178,7 @@ class MeleeScene:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
-                self.enemy.take_damage(HIT_DAMAGE)
+                self.enemy.take_damage(roll_physical_damage(self.player.strength))
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
