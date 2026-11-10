@@ -82,6 +82,7 @@ class MeleeScene:
         self.damage_number = None
         self.enemy_direction = None
         self.enemy_elapsed = None
+        self.enemy_attack_evaded = False
         self.bag_open = False
         self.item_selection = None
         self.item_message = ''
@@ -136,6 +137,7 @@ class MeleeScene:
         elif self.enemy_elapsed is None:
             self.selected = index
             self.enemy_elapsed = 0.0
+            self.enemy_attack_evaded = False
             self.pointer = None
             self.record(f'{DIRECTIONS[index]} 방어!')
 
@@ -146,6 +148,9 @@ class MeleeScene:
             direction = DIRECTIONS[self.enemy_direction]
             if self.selected == self.enemy_direction:
                 self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
+            elif self.player.agility > 0 and randrange(200) < self.player.agility:
+                self.enemy_attack_evaded = True
+                self.record(f'슬라임 {direction} 공격 회피  ·  피해 0')
             else:
                 hp_before = self.player.hp
                 self.player.take_damage(self.enemy.roll_damage())
@@ -224,7 +229,8 @@ class MeleeScene:
     def impact_zoom(self):
         if self.attack_elapsed is not None:
             elapsed = self.attack_elapsed - self.impact_time
-        elif self.enemy_elapsed is not None and self.selected != self.enemy_direction:
+        elif (self.enemy_elapsed is not None and self.selected != self.enemy_direction
+              and not self.enemy_attack_evaded):
             elapsed = self.enemy_elapsed - SLIME_IMPACT_TIME
         else:
             return 1.0
@@ -281,7 +287,8 @@ class MeleeScene:
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
     def draw_mercenary(self, zoom=1.0):
-        if self.enemy_elapsed is not None and self.enemy_elapsed >= SLIME_IMPACT_TIME:
+        if (self.enemy_elapsed is not None and self.enemy_elapsed >= SLIME_IMPACT_TIME
+                and not self.enemy_attack_evaded):
             since_contact = self.enemy_elapsed - SLIME_IMPACT_TIME
             guarded = self.selected == self.enemy_direction
             elapsed = since_contact if guarded else since_contact + IMPACT_HIT_STOP - self.hit_stop_left
