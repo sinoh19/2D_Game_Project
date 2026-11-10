@@ -1,6 +1,7 @@
 """Portable dungeon layout and original Unity sprite animation data."""
 import json
 import math
+from bisect import bisect_right
 from functools import cached_property
 import pico2d as p2d
 from pico2d import pico2d as backend
@@ -8,6 +9,9 @@ from game.config import ASSETS, WINDOW_WIDTH, WINDOW_HEIGHT
 from game import drawing
 from game.terrain import slope_surfaces, inside_slope
 from game.combat import Vitals
+
+HIT_RECOIL_FRAME_ENDS = (.04, .12, .17, .22, .27)
+HIT_RECOIL_DURATION = HIT_RECOIL_FRAME_ENDS[-1]
 
 
 class DungeonAssets:
@@ -191,23 +195,18 @@ class DungeonAssets:
 
     @cached_property
     def mercenary_hit(self):
-        return p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit.png'))
+        return p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit-recoil.png'))
 
-    def draw_mercenary_hit(self, x, feet, facing, camera, *, actor_scale=None):
+    def draw_mercenary_hit(self, x, feet, facing, camera, elapsed, *, actor_scale=None):
         sprite = self.mercenary_hit
         actor_scale = self.character_scale if actor_scale is None else actor_scale
-        pivot_x, pivot_y = 40, 58
-        center_x = x - camera + (sprite.w / 2 - pivot_x) * facing * actor_scale
-        center_y = feet + (sprite.h / 2 - pivot_y) * actor_scale
-        p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
-        try:
-            sprite.clip_composite_draw(
-                0, 0, sprite.w, sprite.h, 0, 'h' if facing < 0 else '',
-                round(center_x * self.scale), round(WINDOW_HEIGHT - center_y * self.scale),
-                round(sprite.w * actor_scale * self.scale),
-                round(sprite.h * actor_scale * self.scale))
-        finally:
-            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+        width, height = 96, 72
+        frame = 1 + bisect_right(HIT_RECOIL_FRAME_ENDS, elapsed)
+        center_y = feet + (height / 2 - 62) * actor_scale
+        sprite.clip_composite_draw(
+            frame * width, 0, width, height, 0, 'h' if facing < 0 else '',
+            round((x - camera) * self.scale), round(WINDOW_HEIGHT - center_y * self.scale),
+            round(width * actor_scale * self.scale), round(height * actor_scale * self.scale))
 
     def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None, melee_detail=False):
         clip = self.animations['clips'][clip_name]

@@ -215,7 +215,7 @@ class FieldScene:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
-            self.assets.draw_mercenary_hit(self.x, self.y, facing, self.camera_x)
+            self.assets.draw_mercenary_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
         else:
             clip, time = self.player.clip
             self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
