@@ -1,5 +1,5 @@
 """Field encounter rules, independent of the eventual turn-based battle UI."""
-from random import randint
+from random import randint, randrange
 
 DEFAULT_HP = 100
 HIT_DAMAGE = 10
@@ -13,6 +13,12 @@ def apply_strength(base_damage, strength):
 
 def roll_physical_damage(strength):
     return apply_strength(BASE_PHYSICAL_DAMAGE, strength) + randint(-2, 2)
+
+
+def roll_player_damage(strength, luck):
+    damage = roll_physical_damage(strength)
+    critical = randrange(200) < 10 + luck
+    return ((damage * 3 + 1) // 2 if critical else damage), critical
 
 
 class Vitals:
@@ -91,7 +97,8 @@ def resolve_encounter(scene):
     enemy = min(targets,key=lambda e:abs(e.x-scene.player.x))
     cause = 'player_attack' if attacked else 'enemy_contact'
     if attacked:
-        enemy.take_damage(roll_physical_damage(scene.player.strength))
+        damage, _ = roll_player_damage(scene.player.strength, scene.player.luck)
+        enemy.take_damage(damage)
     else:
         scene.player.take_damage(enemy.roll_damage())
     scene.encounter = (enemy,cause)

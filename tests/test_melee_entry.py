@@ -29,6 +29,9 @@ class MeleeEntryTests(unittest.TestCase):
         roll = patch('game.combat.randint', return_value=0)
         roll.start()
         self.addCleanup(roll.stop)
+        critical_roll = patch('game.combat.randrange', return_value=199)
+        critical_roll.start()
+        self.addCleanup(critical_roll.stop)
         self.field=FieldScene(self.app,new_game=True)
         self.app.scene=self.field
         self.player=self.field.player
