@@ -8,7 +8,6 @@ from game.config import SCALE, WINDOW_HEIGHT
 from game.terrain import slope_surfaces
 
 POTION = 'health-potion'
-STARTER_SWORD = '용병의 검'
 BAG_SIZE = 10
 
 
@@ -17,6 +16,16 @@ class Item:
     name: str
     icon: str
     use: Callable[[object], tuple[bool, str]]
+
+
+@dataclass(frozen=True)
+class Weapon:
+    name: str
+    description: str
+    base_attack: int
+
+
+STARTER_SWORD = Weapon('용병의 검', '용병이 처음부터 지닌 검.', 7)
 
 
 def heal(player):

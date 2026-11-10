@@ -230,8 +230,9 @@ class MeleeScene:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
-                damage, critical = roll_player_damage(self.player.strength, self.player.luck,
-                                                       force_critical=force_critical)
+                damage, critical = roll_player_damage(
+                    self.player.strength, self.player.luck,
+                    base_attack=self.player.weapon.base_attack, force_critical=force_critical)
                 self.enemy.take_damage(damage)
                 if self.enemy.hp == 0:
                     self.death_elapsed = -SlimeArt.HIT_DURATION

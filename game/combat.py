@@ -3,7 +3,6 @@ from random import randint, randrange
 
 DEFAULT_HP = 100
 HIT_DAMAGE = 10
-BASE_PHYSICAL_DAMAGE = 7
 
 
 def apply_strength(base_damage, strength):
@@ -11,8 +10,8 @@ def apply_strength(base_damage, strength):
     return (base_damage * (20 + strength) + 10) // 20
 
 
-def roll_physical_damage(strength):
-    return apply_strength(BASE_PHYSICAL_DAMAGE, strength) + randint(-2, 2)
+def roll_physical_damage(base_attack, strength):
+    return apply_strength(base_attack, strength) + randint(-2, 2)
 
 
 def roll_critical_damage(damage, luck, *, base_chance, force_critical=False):
@@ -20,8 +19,8 @@ def roll_critical_damage(damage, luck, *, base_chance, force_critical=False):
     return ((damage * 3 + 1) // 2 if critical else damage), critical
 
 
-def roll_player_damage(strength, luck, *, force_critical=False):
-    return roll_critical_damage(roll_physical_damage(strength), luck, base_chance=2,
+def roll_player_damage(strength, luck, *, base_attack, force_critical=False):
+    return roll_critical_damage(roll_physical_damage(base_attack, strength), luck, base_chance=2,
                                 force_critical=force_critical)
 
 
@@ -101,7 +100,8 @@ def resolve_encounter(scene):
     enemy = min(targets,key=lambda e:abs(e.x-scene.player.x))
     cause = 'player_attack' if attacked else 'enemy_contact'
     if attacked:
-        damage, _ = roll_player_damage(scene.player.strength, scene.player.luck)
+        damage, _ = roll_player_damage(
+            scene.player.strength, scene.player.luck, base_attack=scene.player.weapon.base_attack)
         enemy.take_damage(damage)
     else:
         damage, _ = enemy.roll_damage()

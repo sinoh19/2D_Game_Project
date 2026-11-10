@@ -7,6 +7,7 @@ from game.loot_ui import GOLD, panel
 
 
 CLOSE = (540, 53, 560, 73)
+WEAPON_SLOT = (404, 116, 554, 164)
 CARD = (32, 33, 44)
 BORDER = (66, 65, 77)
 MUTED = (175, 169, 164)
@@ -22,10 +23,12 @@ class CharacterStatus:
     def __init__(self, field):
         self.field = field
         self.is_open = False
+        self.weapon_hovered = False
         self.idle_elapsed = 0.0
 
     def open(self):
         self.is_open = True
+        self.weapon_hovered = False
         self.idle_elapsed = 0.0
 
     def handle_event(self, event):
@@ -35,6 +38,9 @@ class CharacterStatus:
         elif (event.type == p2d.SDL_WINDOWEVENT
               and event.event == p2d.SDL_WINDOWEVENT_FOCUS_LOST):
             keys.clear()
+            self.weapon_hovered = False
+        elif event.type == p2d.SDL_MOUSEMOTION:
+            self.weapon_hovered = drawing.contains(WEAPON_SLOT, event.x / SCALE, event.y / SCALE)
         elif (event.type == p2d.SDL_KEYDOWN and event.key not in keys
               and event.key in (p2d.SDLK_e, p2d.SDLK_ESCAPE)):
             keys.add(event.key)
@@ -75,10 +81,11 @@ class CharacterStatus:
             text(resources.normal, 365, y + 18, str(getattr(player, attr)), GOLD)
 
         for index, (name, item) in enumerate((
-            ('무기', player.weapon), ('방어구', player.armor), ('장신구', player.accessory),
+            ('무기', player.weapon.name), ('방어구', player.armor), ('장신구', player.accessory),
         )):
             y = 116 + index * 54
-            panel((404, y, 554, y + 48), CARD, BORDER)
+            border = GOLD if index == 0 and self.weapon_hovered else BORDER
+            panel((404, y, 554, y + 48), CARD, border)
             panel((412, y + 8, 444, y + 40), (23, 24, 32), (98, 83, 64))
             if index == 0 and item:
                 self.draw_sword_icon(412, y + 8)
@@ -86,6 +93,13 @@ class CharacterStatus:
                 drawing.rectangle((424, y + 24, 432, y + 24), MUTED)
             text(resources.normal, 453, y + 13, name)
             text(resources.small, 453, y + 31, item or '빈 슬롯', MUTED)
+
+        if self.weapon_hovered:
+            weapon = player.weapon
+            panel((235, 116, 395, 190), (20, 20, 29), GOLD)
+            text(resources.normal, 246, 132, weapon.name, GOLD)
+            text(resources.small, 246, 152, weapon.description, MUTED)
+            text(resources.small, 246, 174, f'기본 공격력  {weapon.base_attack}')
 
     @staticmethod
     def draw_sword_icon(left, top):
