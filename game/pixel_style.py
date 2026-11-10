@@ -13,7 +13,7 @@ PALETTE = (
 )
 
 
-def simplify(image, block=2):
+def simplify(image, block=2, *, preserve_white=False):
     """Quantize a texture once, using a shared palette and 2px pixel grid."""
     renderer=backend.renderer
     previous=p2d.SDL_GetRenderTarget(renderer)
@@ -46,7 +46,8 @@ def simplify(image, block=2):
             if not visible:continue
             color=tuple(round(sum(raw[i+c] for i in visible)/len(visible)) for c in range(3))
             if color not in cache:
-                cache[color]=min(PALETTE,key=lambda p:sum((p[c]-color[c])**2 for c in range(3)))
+                cache[color] = (color if preserve_white and color == (255, 255, 255)
+                                else min(PALETTE, key=lambda p: sum((p[c]-color[c])**2 for c in range(3))))
             rgba=bytes((*cache[color],255))
             for i in points:output[i:i+4]=rgba
     texture=p2d.SDL_CreateTexture(renderer,p2d.SDL_PIXELFORMAT_RGBA32,
