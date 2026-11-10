@@ -70,7 +70,10 @@ class MeleeScene:
         self.log = []
         self.log_offset = 0
         self.pointer = None
-        self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
+        if cause == 'debug':
+            self.record('디버그 전투 시작')
+        else:
+            self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.attack_blocked = False
         self.hit_stop_left = 0.0
@@ -292,7 +295,8 @@ class MeleeScene:
             clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True)
 
     def save(self):
-        self.field.save()
+        if self.cause != 'debug':
+            self.field.save()
 
     def close_bag(self):
         self.bag_open = False
@@ -315,7 +319,8 @@ class MeleeScene:
                 self.item_message = message
                 return
             bag[index] = None
-            self.field.chests.save()
+            if self.cause != 'debug':
+                self.field.chests.save()
             self.close_bag()
             self.record(message)
             self.start_enemy_turn()
