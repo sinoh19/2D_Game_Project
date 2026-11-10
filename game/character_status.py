@@ -11,10 +11,10 @@ CARD = (32, 33, 44)
 BORDER = (66, 65, 77)
 MUTED = (175, 169, 164)
 STATS = (
-    ('힘', '물리 피해량 보정', 'strength'),
-    ('민첩', '회피 확률 보정', 'agility'),
-    ('지능', '상대 공격 방향 예측', 'intelligence'),
-    ('행운', '치명타 · 회피 · 루팅 보정', 'luck'),
+    ('힘', 'strength'),
+    ('민첩', 'agility'),
+    ('지능', 'intelligence'),
+    ('행운', 'luck'),
 )
 
 
@@ -68,11 +68,10 @@ class CharacterStatus:
         if health_width:
             drawing.rectangle((86, 303, 85 + health_width, 307), (155, 65, 65), filled=True)
 
-        for index, (name, description, attr) in enumerate(STATS):
+        for index, (name, attr) in enumerate(STATS):
             y = 116 + index * 40
             panel((225, y, 391, y + 35), CARD, BORDER)
-            text(resources.normal, 233, y + 10, name)
-            text(resources.small, 233, y + 25, description, MUTED)
+            text(resources.normal, 233, y + 18, name)
             text(resources.normal, 365, y + 18, str(getattr(player, attr)), GOLD)
 
         for index, (name, item) in enumerate((
