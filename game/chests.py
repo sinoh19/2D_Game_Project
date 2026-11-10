@@ -2,7 +2,7 @@
 import pico2d as p2d
 
 from game import drawing
-from game.config import ASSETS, SCALE, WINDOW_HEIGHT
+from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
 from game.loot_ui import BAG_SIZE, CHEST_SLOT, CLOSE_BUTTON, POTION, bag_slot_at, draw_loot
 
 FRAME_SIZE = 44
@@ -162,9 +162,13 @@ class TreasureChests:
         chest = self.nearby()
         if chest is None or self.active is not None:
             return False
-        x = min(553, max(3, round(chest.x - camera) - 30))
-        y = max(30, round(chest.y) - 46)
-        drawing.rectangle((x, y - 9, x + 76, y + 9), (20, 19, 22), filled=True)
         label = 'E  상자 열기' if chest.elapsed is None else 'E  상자 보기'
-        drawing.text(self.field.app.resources.small, x + 6, y, label)
+        font = self.field.app.resources.small
+        width, height = font.measure(label)
+        x = max(5, min(NATIVE_WIDTH - width - 5, round(chest.x - camera - width / 2)))
+        y = max(30, round(chest.y) - 46)
+        top = y - height // 2
+        drawing.rectangle((x - 5, top - 3, x + width + 4, top + height + 2),
+                          (20, 19, 22), filled=True)
+        drawing.text(font, x, y, label)
         return True
