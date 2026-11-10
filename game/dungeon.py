@@ -219,6 +219,10 @@ class Knight(Vitals):
     GRAVITY = 640.0
     JUMP_SPEED = 240.0
     STEP_HEIGHT = 8.0
+    DASH_SPEED = 360.0
+    DASH_PUSH_START = .10
+    DASH_PUSH_END = .35
+    DASH_REUSE_DELAY = .75
 
     def __init__(self, scene, position):
         super().__init__()
@@ -231,6 +235,8 @@ class Knight(Vitals):
         self.air_phase = None
         self.air_time = 0.0
         self.attack_time = None
+        self.dash_time = None
+        self.dash_cooldown = 0.0
         self.prepare_time = None
         self.land_time = None
         self.coyote = 0.08 if self.grounded else 0.0
@@ -247,15 +253,29 @@ class Knight(Vitals):
     def supported(self):
         return any(abs(self.y-height)<.1 for height in self.ground_heights())
 
+    def dash(self, direction=0):
+        if (not self.grounded or self.dash_cooldown > 0 or self.dash_time is not None
+                or self.attack_time is not None or self.prepare_time is not None
+                or self.land_time is not None):
+            return
+        self.facing = direction or self.facing
+        self.dash_time = 0.0
+        self.dash_cooldown = self.DASH_REUSE_DELAY
+        self.jump_buffer = 0.0
+
     def attack(self):
-        if self.attack_time is None and self.prepare_time is None and self.land_time is None:
+        if (self.attack_time is None and self.prepare_time is None
+                and self.land_time is None and self.dash_time is None):
             self.attack_time = 0.0
 
     def jump(self):
-        self.jump_buffer = 0.12
+        if self.dash_time is None:
+            self.jump_buffer = 0.12
 
     @property
     def clip(self):
+        if self.dash_time is not None:
+            return 'dash', self.dash_time
         if self.attack_time is not None:
             return 'attack', self.attack_time
         if self.prepare_time is not None:
@@ -272,6 +292,7 @@ class Knight(Vitals):
 
     def step(self, dt, direction):
         self.clock += dt
+        self.dash_cooldown = max(0.0, self.dash_cooldown - dt)
         self.jump_buffer = max(0.0, self.jump_buffer-dt)
         self.coyote = 0.08 if self.grounded else max(0.0, self.coyote-dt)
         clips = self.scene.assets.animations['clips']
@@ -283,7 +304,8 @@ class Knight(Vitals):
             self.land_time += dt
             if self.land_time >= clips['land']['duration']:
                 self.land_time = None
-        locked = self.attack_time is not None or self.land_time is not None
+        locked = (self.attack_time is not None or self.land_time is not None
+                  or self.dash_time is not None)
         if self.jump_buffer > 0 and self.coyote > 0 and not locked and self.prepare_time is None:
             self.prepare_time = 0.0
             self.jump_buffer = self.coyote = 0.0
@@ -295,6 +317,14 @@ class Knight(Vitals):
                 self.grounded = False
         locked = locked or self.prepare_time is not None
         dx = direction*self.SPEED*dt if not locked else 0.0
+        if self.dash_time is not None:
+            previous = self.dash_time
+            self.dash_time += dt
+            # Only move during the push frames, through the normal terrain checks.
+            push = min(self.dash_time, self.DASH_PUSH_END) - max(previous, self.DASH_PUSH_START)
+            dx = self.facing * self.DASH_SPEED * max(0.0, push)
+            if self.dash_time >= clips['dash']['duration']:
+                self.dash_time = None
         if dx:
             self.facing = 1 if dx > 0 else -1
         self.moving = bool(dx)
@@ -367,6 +397,7 @@ class Knight(Vitals):
         self.air_phase = phase
         if self.y > self.scene.layout["height"]+80:
             self.x, self.y = self.scene.layout['spawn']
+            self.dash_time = None
             self.vy = 0.0
             self.grounded = True
 
