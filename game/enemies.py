@@ -62,6 +62,8 @@ class SlimeArt:
     HIT_FPS = 12
     HIT_FRAMES = 5
     HIT_DURATION = HIT_FRAMES / HIT_FPS
+    HIT_TINT_SECONDS = 2 / HIT_FPS
+
     def __init__(self, folder):
         import pico2d as p2d
         self.motion = json.loads((folder/'move.json').read_text(encoding='utf-8'))
@@ -74,6 +76,7 @@ class SlimeArt:
             raise ValueError('슬라임 애니메이션 시트 크기가 잘못되었습니다.')
 
     def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None):
+        import pico2d as p2d
         from game.config import WINDOW_HEIGHT
         m = self.motion
         w, h = m['frameWidth']*enemy.scale, m['frameHeight']*enemy.scale
@@ -86,9 +89,16 @@ class SlimeArt:
             frame = min(self.HIT_FRAMES - 1, int(hit_elapsed * self.HIT_FPS))
             if hit_facing is not None:
                 facing = hit_facing
-        image.clip_composite_draw(
-            frame*m['frameWidth'], 0, m['frameWidth'], m['frameHeight'],
-            0, 'h' if facing > 0 else '',
-            round((enemy.x-camera)*world_scale),
-            round(WINDOW_HEIGHT-(top+h/2)*world_scale),
-            round(w*world_scale), round(h*world_scale))
+        tinted = hit_elapsed is not None and 0 <= hit_elapsed < self.HIT_TINT_SECONDS
+        if tinted:
+            p2d.SDL_SetTextureColorMod(image.texture, 255, 64, 55)
+        try:
+            image.clip_composite_draw(
+                frame*m['frameWidth'], 0, m['frameWidth'], m['frameHeight'],
+                0, 'h' if facing > 0 else '',
+                round((enemy.x-camera)*world_scale),
+                round(WINDOW_HEIGHT-(top+h/2)*world_scale),
+                round(w*world_scale), round(h*world_scale))
+        finally:
+            if tinted:
+                p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
