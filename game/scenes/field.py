@@ -64,6 +64,9 @@ class FieldScene:
         self.app.storage.save_position(self.x, self.y)
         self.passages.save()
 
+    def movement_direction(self):
+        return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
+
     def handle_event(self, event):
         if event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
             self.keys.clear()
@@ -81,6 +84,8 @@ class FieldScene:
                     return
                 if key == p2d.SDLK_SPACE:
                     self.player.jump()
+                elif key in (p2d.SDLK_LSHIFT, p2d.SDLK_RSHIFT):
+                    self.player.dash(self.movement_direction())
                 elif key == p2d.SDLK_c:
                     self.player.attack()
                 elif key == p2d.SDLK_e:
@@ -96,7 +101,7 @@ class FieldScene:
         self.map_notice_time = max(0, self.map_notice_time-dt)
         self.passages.update(dt)
         steps = max(1, math.ceil(dt*120))
-        direction = int(p2d.SDLK_RIGHT in self.keys)-int(p2d.SDLK_LEFT in self.keys)
+        direction = self.movement_direction()
         for _ in range(steps):
             self.player.step(dt/steps, direction)
             for enemy in self.enemies:
@@ -123,7 +128,7 @@ class FieldScene:
         drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   C 공격   E 상호작용   F6 맵 새로고침   ESC 저장/메인')
+                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   F6 맵 새로고침   ESC 저장/메인')
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
