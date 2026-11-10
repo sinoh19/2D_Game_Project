@@ -6,7 +6,7 @@ import pico2d as p2d
 from game import drawing
 from game.config import SCALE
 from game.items import BAG_SIZE, ITEMS, Equipment
-from game.loot_ui import GOLD, draw_drag_icon, panel, slot_bounds, slots
+from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
 
 BAG_SLOTS = tuple(slot_bounds(220, 130, 5, i) for i in range(BAG_SIZE))
 CLOSE = (415, 65, 438, 88)
@@ -23,6 +23,7 @@ class FieldInventory:
         self.press = None
         self.drag = None
         self.last_click = None
+        self.pointer = None
 
     def open(self):
         self.is_open = True
@@ -35,6 +36,7 @@ class FieldInventory:
 
     def click(self, event):
         x, y = event.x / SCALE, event.y / SCALE
+        self.pointer = (x, y)
         if event.button == p2d.SDL_BUTTON_RIGHT:
             self.cancel_drag()
             self.menu = None
@@ -80,6 +82,7 @@ class FieldInventory:
         self.press = self.drag = self.last_click = None
 
     def mouse_move(self, x, y):
+        self.pointer = (x, y)
         if self.press is None:
             return
         _, start_x, start_y = self.press
@@ -140,7 +143,10 @@ class FieldInventory:
         drawing.text(resources.normal, 422, 77, '×', GOLD)
         occupied = sum(item is not None for item in self.bag)
         drawing.text(resources.small, 220, 109, f'{occupied} / {BAG_SIZE}')
-        selected = self.menu[0] if self.menu else None
+        hovered = self.slot_at(*self.pointer) if self.pointer is not None else None
+        if hovered is not None and self.bag[hovered] is None:
+            hovered = None
+        selected = self.menu[0] if self.menu else hovered
         visible_bag = self.bag
         if self.drag is not None:
             visible_bag = self.bag.copy()
@@ -157,3 +163,5 @@ class FieldInventory:
                 drawing.text(resources.normal, bounds[0] + 11, bounds[1] + 10, label)
         if self.drag is not None:
             draw_drag_icon(icons[self.bag[self.press[0]]], *self.drag)
+        elif self.menu is None and hovered is not None and self.pointer is not None:
+            draw_item_tooltip(resources, ITEMS[self.bag[hovered]], self.pointer)
