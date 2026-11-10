@@ -176,6 +176,11 @@ class MeleeScene:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
+            if self.enemy.hp == 0:
+                if self.cause == 'debug':
+                    self.app.show_title()
+                else:
+                    self.field.resume_after_victory(self.enemy)
             return
         previous = self.attack_elapsed
         self.attack_elapsed += dt
