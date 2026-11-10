@@ -11,6 +11,7 @@ from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.items import ITEMS
 from game.loot_ui import panel, slots
+from game.pixel_style import simplify
 
 DIRECTIONS = ('상단', '중단', '하단')
 BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
@@ -82,7 +83,8 @@ class MeleeScene:
         self.item_message = ''
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
-        self.middle_slash = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-mid-slash.png'))
+        middle_slash = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-mid-slash.png'))
+        self.middle_slash = simplify(middle_slash, block=1, preserve_white=True)
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
     def record(self, message):
