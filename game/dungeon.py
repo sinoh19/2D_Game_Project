@@ -219,7 +219,7 @@ class Knight(Vitals):
     GRAVITY = 640.0
     JUMP_SPEED = 240.0
     STEP_HEIGHT = 8.0
-    DASH_SPEED = 480.0
+    DASH_SPEED = 420.0
     DASH_PUSH_START = .10
     DASH_PUSH_END = .35
     DASH_REUSE_DELAY = .75
