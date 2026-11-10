@@ -1,19 +1,24 @@
 """Animated field enemies with patrol motion and combat health."""
 import json
 import math
+from random import randint
 from game.terrain import slope_height
-from game.combat import Vitals
+from game.combat import Vitals, apply_strength
 
 
 class Slime(Vitals):
     def __init__(self, spec, motion):
         super().__init__()
+        self.strength = randint(0, 10)
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed, self.scale = spec['speed'], spec['scale']
         self.facing = -1 if spec['direction'] == 'left' else 1
         self.motion = motion
         self.time = 0.0
+
+    def roll_damage(self):
+        return apply_strength(randint(1, 5), self.strength)
 
     @property
     def frame(self):

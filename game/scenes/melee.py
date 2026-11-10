@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pico2d as p2d
 
 from game import drawing
-from game.combat import HIT_DAMAGE, roll_physical_damage
+from game.combat import roll_physical_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
@@ -148,7 +148,7 @@ class MeleeScene:
                 self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
-                self.player.take_damage(HIT_DAMAGE)
+                self.player.take_damage(self.enemy.roll_damage())
                 damage = hp_before - self.player.hp
                 self.damage_number = (damage, HOME_X, FLOOR - 109, 0.0)
                 self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{damage}')

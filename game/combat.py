@@ -6,10 +6,13 @@ HIT_DAMAGE = 10
 BASE_PHYSICAL_DAMAGE = 7
 
 
+def apply_strength(base_damage, strength):
+    # Strength adds 1/20 of base damage per point, rounding halves up.
+    return (base_damage * (20 + strength) + 10) // 20
+
+
 def roll_physical_damage(strength):
-    # Strength adds 1/20 of base damage per point. Round halves up before rolling.
-    scaled = (BASE_PHYSICAL_DAMAGE * (20 + strength) + 10) // 20
-    return scaled + randint(-2, 2)
+    return apply_strength(BASE_PHYSICAL_DAMAGE, strength) + randint(-2, 2)
 
 
 class Vitals:
@@ -90,7 +93,7 @@ def resolve_encounter(scene):
     if attacked:
         enemy.take_damage(roll_physical_damage(scene.player.strength))
     else:
-        scene.player.take_damage()
+        scene.player.take_damage(enemy.roll_damage())
     scene.encounter = (enemy,cause)
     scene.keys.clear()
     scene.app.start_melee(scene,enemy,cause)
