@@ -121,8 +121,12 @@ class SidePassages:
     def draw_hint(self):
         gate=self.nearby()
         if gate is None or gate.state=='open':return
-        text={'closed':'E  철문 열기','opening':'철문 개방 중…','open':'통로 열림'}[gate.state]
-        x=max(10,min(540,self.scene.x-self.scene.camera_x-30))
-        y=max(34,self.scene.y-68)
-        drawing.rectangle((x-4,y-13,x+92,y+4),(18,19,25),filled=True)
-        drawing.text(self.scene.app.resources.small,x,y,text,(210,205,183))
+        label = 'E  철문 열기' if gate.state == 'closed' else '철문 개방 중…'
+        font = self.scene.app.resources.small
+        width, height = font.measure(label)
+        x = max(10, min(630 - width, round(self.scene.x - self.scene.camera_x - 30)))
+        y = max(34, round(self.scene.y - 68))
+        top = y - height // 2
+        drawing.rectangle((x - 5, top - 3, x + width + 4, top + height + 2),
+                          (18, 19, 25), filled=True)
+        drawing.text(font, x, y, label, (210, 205, 183))
