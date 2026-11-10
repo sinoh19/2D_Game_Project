@@ -3,6 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, SCALE, WINDOW_HEIGHT
+from game.loot_ui import BAG_SIZE, CHEST_SLOT, POTION, draw_loot
 
 FRAME_SIZE = 44
 FRAME_COUNT = 4
@@ -10,9 +11,10 @@ OPEN_TIME = .4
 
 
 class TreasureChest:
-    def __init__(self, spec, opened):
+    def __init__(self, spec, opened, looted):
         self.id, self.x, self.y = spec
-        self.elapsed = OPEN_TIME if opened else None
+        self.elapsed = OPEN_TIME if opened or looted else None
+        self.looted = looted
 
     def draw(self, sheet, camera):
         elapsed = self.elapsed or 0.0
@@ -30,26 +32,58 @@ class TreasureChests:
         self.map_id = field.layout.get('mapId', 'dungeon_01')
         data = field.app.storage.read('chests.json', {}) if restore else {}
         opened = data.get('opened', []) if data.get('scene') == self.map_id else []
+        looted = data.get('looted', []) if data.get('scene') == self.map_id else []
         if not isinstance(opened, list):
             opened = []
-        self.chests = [TreasureChest(spec, spec[0] in opened) for spec in field.layout.get('chests', [])]
+        if not isinstance(looted, list):
+            looted = []
+        bag = data.get('bag', [])
+        bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
+        self.bag = [POTION if item == POTION else None for item in bag]
+        self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
+        self.chests = [TreasureChest(spec, spec[0] in opened, spec[0] in looted)
+                       for spec in field.layout.get('chests', [])]
+        self.active = None
+        self.message = ''
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
+            self.potion = p2d.load_image(str(ASSETS / 'dungeon' / 'items' / 'health-potion.png'))
 
     def nearby(self):
         player = self.field.player
         if not player.grounded:
             return None
-        candidates = [chest for chest in self.chests if chest.elapsed is None
-                      and abs(player.x - chest.x) <= 42 and abs(player.y - chest.y) <= 16]
+        candidates = [chest for chest in self.chests
+                      if abs(player.x - chest.x) <= 42 and abs(player.y - chest.y) <= 16]
         return min(candidates, key=lambda chest: abs(player.x - chest.x), default=None)
 
     def interact(self):
         chest = self.nearby()
         if chest is None:
             return False
-        chest.elapsed = 0.0
+        if chest.elapsed is None:
+            chest.elapsed = 0.0
+        self.active = chest
+        self.message = '상자가 비어 있습니다.' if chest.looted else '회복 포션  ×1'
         return True
+
+    def take_potion(self, x, y):
+        chest = self.active
+        if (chest is None or chest.elapsed < OPEN_TIME or chest.looted
+                or not drawing.contains(CHEST_SLOT, x, y)):
+            return
+        if None not in self.bag:
+            self.message = '가방에 빈 슬롯이 없습니다.'
+            return
+        self.bag[self.bag.index(None)] = POTION
+        chest.looted = True
+        self.save()
+        self.message = '회복 포션을 가방에 옮겼습니다.'
+
+    def draw_loot(self):
+        if self.active is not None and self.active.elapsed >= OPEN_TIME:
+            draw_loot(self.field.app.resources, self.potion,
+                      not self.active.looted, self.bag, self.message)
 
     def update(self, dt):
         for chest in self.chests:
@@ -59,7 +93,10 @@ class TreasureChests:
     def save(self):
         if self.chests:
             opened = [chest.id for chest in self.chests if chest.elapsed is not None]
-            self.field.app.storage.write('chests.json', {'scene': self.map_id, 'opened': opened})
+            looted = [chest.id for chest in self.chests if chest.looted]
+            self.field.app.storage.write('chests.json', {
+                'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
+            })
 
     def draw(self, camera):
         for chest in self.chests:
@@ -68,10 +105,11 @@ class TreasureChests:
 
     def draw_hint(self, camera):
         chest = self.nearby()
-        if chest is None:
+        if chest is None or self.active is not None:
             return False
         x = min(553, max(3, round(chest.x - camera) - 30))
         y = max(30, round(chest.y) - 46)
         drawing.rectangle((x, y - 9, x + 76, y + 9), (20, 19, 22), filled=True)
-        drawing.text(self.field.app.resources.small, x + 6, y, 'E  상자 열기')
+        label = 'E  상자 열기' if chest.elapsed is None else 'E  상자 보기'
+        drawing.text(self.field.app.resources.small, x + 6, y, label)
         return True

@@ -2,6 +2,7 @@
 import math
 import pico2d as p2d
 from game import drawing
+from game.config import SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime
@@ -71,6 +72,17 @@ class FieldScene:
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
 
     def handle_event(self, event):
+        if self.chests.active is not None:
+            if event.type == p2d.SDL_KEYUP:
+                self.keys.discard(event.key)
+            elif event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
+                self.keys.clear()
+            elif event.type == p2d.SDL_KEYDOWN and event.key == p2d.SDLK_ESCAPE:
+                self.keys.add(event.key)
+                self.chests.active = None
+            elif event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT:
+                self.chests.take_potion(event.x / SCALE, event.y / SCALE)
+            return
         if event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
             self.keys.clear()
         elif event.type == p2d.SDL_KEYDOWN:
@@ -91,8 +103,11 @@ class FieldScene:
                     self.player.dash(self.movement_direction())
                 elif key == p2d.SDLK_c:
                     self.player.attack()
-                elif key == p2d.SDLK_e and not self.chests.interact():
-                    self.passages.interact()
+                elif key == p2d.SDLK_e:
+                    if self.chests.interact():
+                        self.keys.intersection_update({key})
+                    else:
+                        self.passages.interact()
         elif event.type == p2d.SDL_KEYUP:
             self.keys.discard(event.key)
 
@@ -100,10 +115,12 @@ class FieldScene:
         if self.encounter is not None:
             return
         dt = max(0.0, min(1.0, dt))
+        self.chests.update(dt)
+        if self.chests.active is not None:
+            return
         self.scenery_time += dt
         self.map_notice_time = max(0, self.map_notice_time-dt)
         self.passages.update(dt)
-        self.chests.update(dt)
         steps = max(1, math.ceil(dt*120))
         direction = self.movement_direction()
         for _ in range(steps):
@@ -138,3 +155,4 @@ class FieldScene:
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
+        self.chests.draw_loot()
