@@ -87,6 +87,7 @@ class MeleeScene:
         self.enemy_elapsed = None
         self.enemy_attack_evaded = False
         self.debug_dodge_pending = cause == 'debug'
+        self.debug_critical_pending = cause == 'debug'
         self.bag_open = False
         self.item_selection = None
         self.item_message = ''
@@ -126,7 +127,7 @@ class MeleeScene:
         self.attack_elapsed = 0.0
         self.hit_stop_left = 0.0
         self.pointer = None
-        self.attack_blocked = index == randrange(len(DIRECTIONS))
+        self.attack_blocked = not self.debug_critical_pending and index == randrange(len(DIRECTIONS))
         self.player_attack_evaded = False
         self.record(f'{DIRECTIONS[index]} 공격!')
 
@@ -211,18 +212,21 @@ class MeleeScene:
         previous = self.attack_elapsed
         self.attack_elapsed += dt
         if previous < self.impact_time <= self.attack_elapsed:
+            force_critical = self.debug_critical_pending
+            self.debug_critical_pending = False
             if self.attack_blocked:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
-            elif randrange(200) < self.enemy.agility:
+            elif not force_critical and randrange(200) < self.enemy.agility:
                 self.player_attack_evaded = True
                 self.combat_popup = ('MISS', SLIME_HOME_X, FLOOR - 58, 0.0)
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
-                damage, critical = roll_player_damage(self.player.strength, self.player.luck)
+                damage, critical = roll_player_damage(self.player.strength, self.player.luck,
+                                                       force_critical=force_critical)
                 self.enemy.take_damage(damage)
                 damage = hp_before - self.enemy.hp
-                label = f'CRIT -{damage}' if critical else f'-{damage}'
+                label = f'-{damage}!' if critical else f'-{damage}'
                 self.combat_popup = (label, SLIME_HOME_X, FLOOR - 58, 0.0)
                 result = '치명타!' if critical else '공격 성공!'
                 self.record(f'{DIRECTIONS[self.selected]} {result}  슬라임 HP -{damage}')
@@ -497,10 +501,12 @@ class MeleeScene:
             x, y = self.zoom_point(x, y - 20 * progress, zoom)
             alpha = round(255 * min(1.0, (1 - progress) / .75))
             color = (195, 226, 255) if label == 'MISS' else (255, 139, 108)
-            if label.startswith('CRIT'):
-                color = (255, 212, 103)
-            centered(normal, x + 1, y + 1, label, (32, 20, 24, alpha))
-            centered(normal, x, y, label, (*color, alpha))
+            font = normal
+            if label.endswith('!'):
+                color = (255, 72, 65)
+                font = self.app.resources.heading
+            centered(font, x + 1, y + 1, label, (32, 20, 24, alpha))
+            centered(font, x, y, label, (*color, alpha))
         for speed, bounds in SPEED_BUTTONS:
             left, top, right, bottom = bounds
             selected = self.app.battle_speed == speed
