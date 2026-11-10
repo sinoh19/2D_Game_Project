@@ -52,7 +52,6 @@ SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
 SLIME_ZOOM_FOCUS = ((HOME_X + SLIME_STRIKE_X) / 2, FLOOR - 51)
-GUARD_PULSE_SECONDS = .12
 
 
 def centered(font, x, y, label, color=(240, 231, 207)):
@@ -89,7 +88,6 @@ class MeleeScene:
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         character_art = ASSETS / 'dungeon' / 'character'
-        self.guard_shield = p2d.load_image(str(character_art / 'guard-shield.png'))
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
                         pivot)
@@ -273,23 +271,6 @@ class MeleeScene:
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed, guarded=self.attack_blocked)
-        if self.attack_blocked and hit_elapsed is not None:
-            x, y = self.zoom_point(SLIME_HOME_X + 34, FLOOR - 52, zoom)
-            self.draw_guard_shield(x, y, hit_elapsed)
-
-    def draw_guard_shield(self, x, y, elapsed):
-        if elapsed >= MERCENARY_REACTION_DURATION:
-            return
-        pulse = max(0.0, 1 - elapsed / GUARD_PULSE_SECONDS)
-        scale = 1 + .25 * pulse
-        image = self.guard_shield
-        p2d.SDL_SetTextureColorMod(image.texture, round(175 - 65 * pulse),
-                                   round(216 - 31 * pulse), 255)
-        try:
-            image.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
-                       round(image.w * SCALE * scale), round(image.h * SCALE * scale))
-        finally:
-            p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
 
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
@@ -303,8 +284,6 @@ class MeleeScene:
                 x, y = self.zoom_point(HOME_X, FLOOR, zoom)
                 self.field.assets.draw_mercenary_hit(x, y, 1, 0, elapsed,
                                                      actor_scale=2 * zoom, guarded=guarded)
-                if guarded:
-                    self.draw_guard_shield(HOME_X - 42, FLOOR - 79, elapsed)
                 return
         elapsed = self.attack_elapsed
         if elapsed is None:
