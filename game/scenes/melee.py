@@ -21,6 +21,7 @@ STRIKE_X = 350
 WALK_SECONDS = .55
 UPPER_ATTACK = 0
 IMPACT_HIT_STOP = .075
+MERCENARY_HIT_POSE_TAIL = .075
 UPPER_RECOIL_SECONDS = .24
 UPPER_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
@@ -215,7 +216,8 @@ class MeleeScene:
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
     def draw_mercenary(self):
-        if self.player_in_hit_stop():
+        if (self.enemy_elapsed is not None and self.selected != self.enemy_direction
+                and SLIME_IMPACT_TIME <= self.enemy_elapsed < SLIME_IMPACT_TIME + MERCENARY_HIT_POSE_TAIL):
             sprite = self.mercenary_hit
             pivot_x, pivot_y = MERCENARY_HIT_PIVOT
             x = HOME_X + (sprite.w / 2 - pivot_x) * 2
