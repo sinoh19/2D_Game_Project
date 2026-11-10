@@ -89,17 +89,33 @@ class CharacterStatus:
 
     @staticmethod
     def draw_sword_icon(left, top):
-        def pixels(x, y, width, height, color):
-            drawing.rectangle((left + x, top + y, left + x + width - 1,
-                               top + y + height - 1), color, filled=True)
-
-        for step in range(8):
-            pixels(9 + 2 * step, 19 - 2 * step, 4, 4, (151, 160, 174))
-
-        for step in range(6):
-            pixels(5 + step, 27 - step, 4, 3, (108, 73, 44))
-        pixels(4, 27, 5, 3, (108, 73, 44))
-
-        for step in range(7):
-            pixels(6 + step, 17 + step, 2, 2, (158, 115, 62))
-        pixels(12, 23, 2, 2, (158, 115, 62))
+        palette = {
+            '#': (43, 50, 72),
+            'W': (234, 236, 242),
+            'S': (174, 181, 202),
+            'G': (240, 157, 89),
+            'B': (148, 73, 48),
+        }
+        sprite = (
+            "............###",
+            "...........#SW#",
+            "..........#SWS#",
+            ".........#SWS#.",
+            "........#SWS#..",
+            ".......#SWS#...",
+            "......#SWS#....",
+            ".....#SWS#.....",
+            ".##.#SWS#......",
+            ".#G#SWS#.......",
+            "..#GWS#........",
+            "..#BG#.........",
+            ".#B#BG#........",
+            "#G#..##........",
+            "##.............",
+        )
+        for row, pixels in enumerate(sprite):
+            for column, pixel in enumerate(pixels):
+                if pixel == '.':
+                    continue
+                x, y = left + 2 + 2 * column, top + 2 + 2 * row
+                drawing.rectangle((x, y, x + 1, y + 1), palette[pixel], filled=True)
