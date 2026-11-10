@@ -72,13 +72,13 @@ STARTER_SWORD = Weapon(SWORD, '용병의 검', 'mercenary-sword.png', '용병이
 
 STARTER_ARMOR = Armor(LEATHER_ARMOR, '용병의 가죽 갑옷', 'mercenary-leather-armor.png', '낡은 가죽으로 만든 기본 갑옷.', 0, 0)
 STARTING_RINGS = {
-    RING_STRENGTH: Accessory(RING_STRENGTH, '시작의 나무반지 (힘)', 'starting-ring-strength.png',
+    RING_STRENGTH: Accessory(RING_STRENGTH, '시작의 나무반지', 'starting-ring-strength.png',
                              '힘을 2 올려 주는 나무반지.', 'strength'),
-    RING_AGILITY: Accessory(RING_AGILITY, '시작의 나무반지 (민첩)', 'starting-ring-agility.png',
+    RING_AGILITY: Accessory(RING_AGILITY, '시작의 나무반지', 'starting-ring-agility.png',
                             '민첩을 2 올려 주는 나무반지.', 'agility'),
-    RING_INTELLIGENCE: Accessory(RING_INTELLIGENCE, '시작의 나무반지 (지능)', 'starting-ring-intelligence.png',
+    RING_INTELLIGENCE: Accessory(RING_INTELLIGENCE, '시작의 나무반지', 'starting-ring-intelligence.png',
                                  '지능을 2 올려 주는 나무반지.', 'intelligence'),
-    RING_LUCK: Accessory(RING_LUCK, '시작의 나무반지 (행운)', 'starting-ring-luck.png',
+    RING_LUCK: Accessory(RING_LUCK, '시작의 나무반지', 'starting-ring-luck.png',
                          '행운을 2 올려 주는 나무반지.', 'luck'),
 }
 

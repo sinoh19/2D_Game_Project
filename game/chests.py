@@ -72,6 +72,7 @@ class TreasureChests:
         self.press_origin = None
         self.bag_source = None
         self.drag = None
+        self.pointer = None
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
         folder = ASSETS / 'dungeon' / 'items'
@@ -123,6 +124,7 @@ class TreasureChests:
         self.active = None
 
     def mouse_down(self, x, y):
+        self.pointer = (x, y)
         chest = self.active
         if chest is None or chest.elapsed < OPEN_TIME:
             return
@@ -138,6 +140,7 @@ class TreasureChests:
                 self.bag_source = index
 
     def mouse_move(self, x, y):
+        self.pointer = (x, y)
         if self.press_origin is None:
             return
         start_x, start_y = self.press_origin
@@ -188,7 +191,7 @@ class TreasureChests:
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
             draw_loot(self.field.app.resources, self.icons,
                       None if self.active.looted else self.chest_item(self.active),
-                      self.bag, self.message, self.drag, self.bag_source)
+                      self.bag, self.message, self.drag, self.bag_source, self.pointer)
 
     def update(self, dt):
         for chest in self.chests:

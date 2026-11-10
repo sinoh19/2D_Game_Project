@@ -3,7 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
-from game.items import BAG_SIZE, ITEMS, POTION, Equipment
+from game.items import BAG_SIZE, ITEMS, Equipment
 
 CLOSE_BUTTON = (545, 65, 570, 88)
 
@@ -42,7 +42,7 @@ def slots(bounds_list, items, icons, font, hover=None):
                 drawing.text(font, left + 27, top + 29, '1')
 
 
-def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=None):
+def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=None, pointer=None):
     small, normal = resources.small, resources.normal
     drawing.black_overlay(.45)
     panel((52, 54, 587, 265), (25, 25, 34), (92, 80, 68))
@@ -59,8 +59,16 @@ def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')
     chest_slots = (slot_bounds(85, 130, 3, index) for index in range(6))
     chest_visible = chest_item is not None and (drag is None or bag_source is not None)
-    slots(chest_slots, [chest_item if chest_visible else None] + [None] * 5, icons, small)
-    hover = bag_slot_at(*drag) if drag is not None else None
+    chest_items = [chest_item if chest_visible else None] + [None] * 5
+    chest_slot_bounds = tuple(chest_slots)
+    chest_hover = None
+    if pointer is not None and drag is None:
+        chest_hover = next((i for i, bounds in enumerate(chest_slot_bounds)
+                            if drawing.contains(bounds, *pointer) and chest_items[i] is not None), None)
+    slots(chest_slot_bounds, chest_items, icons, small, chest_hover)
+    hover = bag_slot_at(*pointer) if pointer is not None and drag is None else None
+    if hover is not None and bag[hover] is None:
+        hover = None
     visible_bag = bag
     if drag is not None and bag_source is not None:
         visible_bag = bag.copy()
@@ -74,8 +82,33 @@ def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=
         drawing.text(small, 401, 245, '클릭 또는 드래그로 옮기기')
     elif any(bag):
         drawing.text(small, 401, 245, '드래그로 가방 정리')
+    if pointer is not None and drag is None:
+        item_id = None
+        if chest_hover is not None:
+            item_id = chest_items[chest_hover]
+        elif hover is not None:
+            item_id = bag[hover]
+        if item_id is not None:
+            draw_item_tooltip(resources, ITEMS[item_id], pointer)
     if drag is not None:
         draw_drag_icon(icons[chest_item if bag_source is None else bag[bag_source]], *drag)
+
+
+def draw_item_tooltip(resources, item, pointer):
+    description = item.description if isinstance(item, Equipment) else '체력을 최대 10 회복합니다.'
+    stats = item.stats if isinstance(item, Equipment) else ()
+    width = 166
+    height = 38 + 12 * len(stats)
+    px, py = pointer
+    left = px - width - 10 if px + width + 10 > 635 else px + 10
+    top = min(max(8, py + 8), 352 - height)
+    bounds = (left, top, left + width, top + height)
+    panel(bounds, (18, 19, 27), GOLD)
+    drawing.text(resources.small, left + 7, top + 13, item.name, GOLD)
+    drawing.text(resources.small, left + 7, top + 26, description)
+    for index, (label, value) in enumerate(stats):
+        drawing.text(resources.small, left + 7, top + 39 + index * 12,
+                     f'{label}  +{value}', (132, 206, 195))
 
 
 def draw_drag_icon(icon, x, y):
