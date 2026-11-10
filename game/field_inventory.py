@@ -5,7 +5,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE
-from game.items import BAG_SIZE, ITEMS, Weapon
+from game.items import BAG_SIZE, ITEMS, Equipment
 from game.loot_ui import GOLD, draw_drag_icon, panel, slot_bounds, slots
 
 BAG_SLOTS = tuple(slot_bounds(220, 130, 5, i) for i in range(BAG_SIZE))
@@ -60,7 +60,7 @@ class FieldInventory:
                 if index is not None and self.bag[index] is not None:
                     now = monotonic()
                     item_id = self.bag[index]
-                    if (isinstance(ITEMS[item_id], Weapon) and self.last_click is not None
+                    if (isinstance(ITEMS[item_id], Equipment) and self.last_click is not None
                             and self.last_click[:2] == (index, item_id)
                             and now - self.last_click[2] <= .35):
                         self.cancel_drag()
@@ -112,9 +112,10 @@ class FieldInventory:
         if discard:
             self.field.drop_item(item_id)
             message = f'아이템 버림  ·  {item.name}'
-        elif isinstance(item, Weapon):
-            replacement = player.weapon.id if player.weapon else None
-            player.weapon = item
+        elif isinstance(item, Equipment):
+            equipped = getattr(player, item.slot)
+            replacement = equipped.id if equipped else None
+            setattr(player, item.slot, item)
             message = f'장착  ·  {item.name}'
         else:
             consumed, message = item.use(player)
@@ -150,7 +151,7 @@ class FieldInventory:
         drawing.text(resources.small, 214, 245, self.message)
         if self.menu is not None:
             index, use, discard = self.menu
-            action = '장착' if isinstance(ITEMS[self.bag[index]], Weapon) else '사용'
+            action = '장착' if isinstance(ITEMS[self.bag[index]], Equipment) else '사용'
             for bounds, label in ((use, action), (discard, '버리기')):
                 panel(bounds, (41, 34, 38), (115, 89, 68))
                 drawing.text(resources.normal, bounds[0] + 11, bounds[1] + 10, label)

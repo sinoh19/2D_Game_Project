@@ -4,11 +4,11 @@ import math
 from functools import cached_property
 import pico2d as p2d
 from pico2d import pico2d as backend
-from game.items import STARTER_SWORD
+from game.items import STARTER_ARMOR, STARTER_SWORD
 from game.config import ASSETS, WINDOW_WIDTH, WINDOW_HEIGHT
 from game import drawing
 from game.terrain import slope_surfaces, inside_slope
-from game.combat import Vitals
+from game.combat import HIT_DAMAGE, Vitals
 
 REACTION_FRAME_COUNT = 5
 REACTION_FRAME_SECONDS = .06
@@ -266,6 +266,18 @@ class Knight(Vitals):
     def base_attack(self):
         return self.weapon.base_attack if self.weapon else 0
 
+    @property
+    def physical_defense(self):
+        return self.armor.physical_defense if self.armor else 0
+
+    @property
+    def magic_defense(self):
+        return self.armor.magic_defense if self.armor else 0
+
+    def take_damage(self, damage=HIT_DAMAGE, *, damage_type='physical'):
+        defense = {'physical': self.physical_defense, 'magic': self.magic_defense}[damage_type]
+        super().take_damage(max(1, damage - defense) if damage > 0 else 0)
+
     def __init__(self, scene, position):
         super().__init__()
         self.strength = 8
@@ -273,7 +285,7 @@ class Knight(Vitals):
         self.intelligence = 3
         self.luck = 5
         self.weapon = STARTER_SWORD
-        self.armor = None
+        self.armor = STARTER_ARMOR
         self.accessory = None
         self.scene = scene
         self.x, self.y = map(float, position)
