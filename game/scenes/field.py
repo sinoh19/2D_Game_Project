@@ -83,12 +83,17 @@ class FieldScene:
             elif event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
                 self.keys.clear()
                 self.inventory.menu = None
+                self.inventory.cancel_drag()
             elif (event.type == p2d.SDL_KEYDOWN and event.key in (p2d.SDLK_i, p2d.SDLK_ESCAPE)
                   and event.key not in self.keys):
                 self.keys.add(event.key)
                 self.inventory.close()
             elif event.type == p2d.SDL_MOUSEBUTTONDOWN:
                 self.inventory.click(event)
+            elif event.type == p2d.SDL_MOUSEMOTION:
+                self.inventory.mouse_move(event.x / SCALE, event.y / SCALE)
+            elif event.type == p2d.SDL_MOUSEBUTTONUP and event.button == p2d.SDL_BUTTON_LEFT:
+                self.inventory.mouse_up(event.x / SCALE, event.y / SCALE)
             return
         if self.chests.active is not None:
             if event.type == p2d.SDL_KEYUP:

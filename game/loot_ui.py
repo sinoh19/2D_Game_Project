@@ -74,10 +74,12 @@ def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=
     elif any(bag):
         drawing.text(small, 401, 245, '드래그로 가방 정리')
     if drag is not None:
-        x, y = drag
-        icon = icons[POTION if bag_source is None else bag[bag_source]]
-        p2d.SDL_SetTextureAlphaMod(icon.texture, 155)
-        try:
-            icon.draw(x * SCALE, WINDOW_HEIGHT - y * SCALE, 30 * SCALE, 30 * SCALE)
-        finally:
-            p2d.SDL_SetTextureAlphaMod(icon.texture, 255)
+        draw_drag_icon(icons[POTION if bag_source is None else bag[bag_source]], *drag)
+
+
+def draw_drag_icon(icon, x, y):
+    p2d.SDL_SetTextureAlphaMod(icon.texture, 155)
+    try:
+        icon.draw(x * SCALE, WINDOW_HEIGHT - y * SCALE, 30 * SCALE, 30 * SCALE)
+    finally:
+        p2d.SDL_SetTextureAlphaMod(icon.texture, 255)
