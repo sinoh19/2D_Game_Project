@@ -9,6 +9,7 @@ from game import drawing
 from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
+from game.enemies import SlimeArt
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.items import ITEMS
 from game.loot_ui import panel, slots
@@ -77,6 +78,7 @@ class MeleeScene:
         else:
             self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
         self.attack_elapsed = None
+        self.death_elapsed = 0.0 if enemy.hp == 0 else None
         self.attack_blocked = False
         self.player_attack_evaded = False
         self.hit_stop_left = 0.0
@@ -202,11 +204,13 @@ class MeleeScene:
             self.hit_stop_left -= paused
             dt -= paused
         self.idle_elapsed += dt
+        if self.death_elapsed is not None:
+            self.death_elapsed += dt
         if self.enemy_elapsed is not None:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
-            if self.enemy.hp == 0:
+            if self.death_elapsed is not None and self.death_elapsed >= SlimeArt.DEATH_DURATION:
                 if self.cause == 'debug':
                     self.app.show_title()
                 else:
@@ -229,6 +233,8 @@ class MeleeScene:
                 damage, critical = roll_player_damage(self.player.strength, self.player.luck,
                                                        force_critical=force_critical)
                 self.enemy.take_damage(damage)
+                if self.enemy.hp == 0:
+                    self.death_elapsed = -SlimeArt.HIT_DURATION
                 damage = hp_before - self.enemy.hp
                 label = f'-{damage}!' if critical else f'-{damage}'
                 self.combat_popup = (label, SLIME_HOME_X, FLOOR - 58, 0.0)
@@ -283,6 +289,7 @@ class MeleeScene:
 
     def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
+        death_elapsed = self.death_elapsed
         alpha = 255
         if self.attack_elapsed is not None:
             elapsed_since_hit = self.attack_elapsed - self.impact_time
@@ -291,8 +298,13 @@ class MeleeScene:
                 alpha = round(105 + 150 * progress)
             elif 0 <= elapsed_since_hit < art.HIT_DURATION:
                 hit_elapsed = elapsed_since_hit
-        if self.enemy.hp == 0 and hit_elapsed is None:
-            return
+        if death_elapsed is not None:
+            if death_elapsed < 0:
+                death_elapsed = None
+            elif death_elapsed >= art.DEATH_DURATION:
+                return
+            else:
+                hit_elapsed = None
         pose = self.slime_pose
         pose.x, pose.y, pose.frame, pose.facing, pose.scale = SLIME_HOME_X, FLOOR, 0, -1, 2
         pose.x += SLASH_RECOIL_PIXELS * self.slash_impact_strength() ** 2
@@ -323,7 +335,8 @@ class MeleeScene:
         pose.x, pose.y = self.zoom_point(pose.x, pose.y, zoom)
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
-                 attack_elapsed=attack_elapsed, guarded=self.attack_blocked, alpha=alpha)
+                 attack_elapsed=attack_elapsed, death_elapsed=death_elapsed,
+                 guarded=self.attack_blocked, alpha=alpha)
 
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
