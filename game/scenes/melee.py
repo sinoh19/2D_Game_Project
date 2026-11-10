@@ -53,6 +53,7 @@ GUARD_FRAME_SIZE = (80, 64)
 GUARD_FRAME_COUNT = 5
 GUARD_FRAME_SECONDS = .06
 GUARD_PIVOT = (40, 58)
+GUARD_TINT = (165, 200, 255)
 
 
 def centered(font, x, y, label):
@@ -94,6 +95,7 @@ class MeleeScene:
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         character_art = ASSETS / 'dungeon' / 'character'
         self.guard_sheet = simplify(p2d.load_image(str(character_art / 'melee-guard.png')), block=1)
+        self.guard_shield = p2d.load_image(str(character_art / 'guard-shield.png'))
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
                         pivot)
@@ -276,9 +278,18 @@ class MeleeScene:
                     pivot_x, pivot_y = GUARD_PIVOT
                     x = HOME_X + 2 * (width / 2 - pivot_x)
                     y = FLOOR + 2 * (height / 2 - pivot_y)
-                    self.guard_sheet.clip_draw(
-                        frame * width, 0, width, height, round(x * SCALE),
-                        round((NATIVE_HEIGHT - y) * SCALE), 2 * width * SCALE, 2 * height * SCALE)
+                    tint = frame < 2
+                    if tint:
+                        p2d.SDL_SetTextureColorMod(self.guard_sheet.texture, *GUARD_TINT)
+                    try:
+                        self.guard_sheet.clip_draw(
+                            frame * width, 0, width, height, round(x * SCALE),
+                            round((NATIVE_HEIGHT - y) * SCALE), 2 * width * SCALE, 2 * height * SCALE)
+                    finally:
+                        if tint:
+                            p2d.SDL_SetTextureColorMod(self.guard_sheet.texture, 255, 255, 255)
+                    self.guard_shield.draw((HOME_X - 42) * SCALE, (NATIVE_HEIGHT - FLOOR + 79) * SCALE,
+                                           self.guard_shield.w * SCALE, self.guard_shield.h * SCALE)
                     return
             else:
                 hit_elapsed = since_contact + IMPACT_HIT_STOP - self.hit_stop_left
