@@ -15,9 +15,9 @@ def roll_physical_damage(strength):
     return apply_strength(BASE_PHYSICAL_DAMAGE, strength) + randint(-2, 2)
 
 
-def roll_player_damage(strength, luck):
+def roll_player_damage(strength, luck, *, force_critical=False):
     damage = roll_physical_damage(strength)
-    critical = randrange(200) < 10 + luck
+    critical = force_critical or randrange(200) < 10 + luck
     return ((damage * 3 + 1) // 2 if critical else damage), critical
 
 
