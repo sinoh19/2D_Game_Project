@@ -20,7 +20,7 @@ HOME_X = 215
 STRIKE_X = 350
 WALK_SECONDS = .55
 UPPER_ATTACK = 0
-UPPER_HIT_STOP = .075
+IMPACT_HIT_STOP = .075
 UPPER_RECOIL_SECONDS = .24
 UPPER_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
@@ -36,6 +36,7 @@ SLIME_IMPACT_HEIGHT = 24
 SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
+MERCENARY_HIT_PIVOT = (40, 58)
 
 
 def centered(font, x, y, label):
@@ -70,6 +71,7 @@ class MeleeScene:
         self.impact_time = WALK_SECONDS + attack['frames'][hit_frame]['time']
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
+        self.mercenary_hit = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit.png'))
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
     def record(self, message):
@@ -123,6 +125,9 @@ class MeleeScene:
                 hp_before = self.player.hp
                 self.player.take_damage(HIT_DAMAGE)
                 self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{hp_before - self.player.hp}')
+                self.enemy_elapsed = SLIME_IMPACT_TIME
+                self.hit_stop_left = IMPACT_HIT_STOP
+                return
         if self.enemy_elapsed >= SLIME_ATTACK_DURATION:
             self.enemy_elapsed = self.enemy_direction = None
             self.pointer = None
@@ -131,15 +136,15 @@ class MeleeScene:
 
     def update(self, dt):
         dt = max(0.0, dt)
+        if self.hit_stop_left > 0:
+            paused = min(dt, self.hit_stop_left)
+            self.hit_stop_left -= paused
+            dt -= paused
         if self.enemy_elapsed is not None:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
             return
-        if self.hit_stop_left > 0:
-            paused = min(dt, self.hit_stop_left)
-            self.hit_stop_left -= paused
-            dt -= paused
         previous = self.attack_elapsed
         self.attack_elapsed += dt
         if previous < self.impact_time <= self.attack_elapsed:
@@ -152,7 +157,7 @@ class MeleeScene:
                 if self.selected == UPPER_ATTACK:
                     # Present the exact contact pose before advancing the recovery.
                     self.attack_elapsed = self.impact_time
-                    self.hit_stop_left = UPPER_HIT_STOP
+                    self.hit_stop_left = IMPACT_HIT_STOP
                     return
 
         if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
@@ -206,7 +211,18 @@ class MeleeScene:
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed)
 
+    def player_in_hit_stop(self):
+        return self.enemy_elapsed is not None and self.hit_stop_left > 0
+
     def draw_mercenary(self):
+        if self.player_in_hit_stop():
+            sprite = self.mercenary_hit
+            pivot_x, pivot_y = MERCENARY_HIT_PIVOT
+            x = HOME_X + (sprite.w / 2 - pivot_x) * 2
+            y = FLOOR + (sprite.h / 2 - pivot_y) * 2
+            sprite.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
+                        sprite.w * 2 * SCALE, sprite.h * 2 * SCALE)
+            return
         elapsed = self.attack_elapsed
         if elapsed is None:
             clip, time, x, facing = 'idle', 0, HOME_X, 1
@@ -323,14 +339,15 @@ class MeleeScene:
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
         self.background.draw(width // 2, height // 2, width, height)
         assets = self.field.assets
-        impact = self.upper_impact_strength()
+        impact = 1.0 if self.player_in_hit_stop() else self.upper_impact_strength()
         if impact:
             drawing.black_overlay(.38 * impact)
         self.draw_mercenary()
         self.draw_slime(assets.slime_art)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
-            x, y = SLIME_HOME_X - 13, FLOOR - 26
+            x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
+                    else (SLIME_HOME_X - 13, FLOOR - 26))
             for step in range(5):
                 drawing.rectangle((x + 3 * step, y + 3 * step,
                                    x + 3 * step + 4, y + 3 * step + 2),
