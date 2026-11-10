@@ -81,7 +81,8 @@ class MeleeScene:
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
             x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
-        self.field.assets.draw_character(clip, time, x, FLOOR, facing, 0, actor_scale=2)
+        self.field.assets.draw_character(
+            clip, time, x, FLOOR, facing, 0, actor_scale=2, melee_detail=True)
 
     def save(self):
         self.field.save()
