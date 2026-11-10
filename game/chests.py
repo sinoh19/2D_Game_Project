@@ -3,7 +3,8 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
-from game.loot_ui import BAG_SIZE, CHEST_SLOT, CLOSE_BUTTON, POTION, bag_slot_at, draw_loot
+from game.items import BAG_SIZE, ITEMS, POTION
+from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
 FRAME_SIZE = 44
 FRAME_COUNT = 4
@@ -39,7 +40,7 @@ class TreasureChests:
             looted = []
         bag = data.get('bag', [])
         bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
-        self.bag = [POTION if item == POTION else None for item in bag]
+        self.bag = [item if isinstance(item, str) and item in ITEMS else None for item in bag]
         self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
         self.chests = [TreasureChest(spec, spec[0] in opened, spec[0] in looted)
                        for spec in field.layout.get('chests', [])]
@@ -50,7 +51,8 @@ class TreasureChests:
         self.drag = None
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
-            self.potion = p2d.load_image(str(ASSETS / 'dungeon' / 'items' / 'health-potion.png'))
+        folder = ASSETS / 'dungeon' / 'items'
+        self.icons = {item_id: p2d.load_image(str(folder / item.icon)) for item_id, item in ITEMS.items()}
 
     def nearby(self):
         player = self.field.player
@@ -137,7 +139,7 @@ class TreasureChests:
 
     def draw_loot(self):
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
-            draw_loot(self.field.app.resources, self.potion,
+            draw_loot(self.field.app.resources, self.icons,
                       not self.active.looted, self.bag, self.message, self.drag, self.bag_source)
 
     def update(self, dt):
@@ -146,12 +148,11 @@ class TreasureChests:
                 chest.elapsed = min(OPEN_TIME, chest.elapsed + dt)
 
     def save(self):
-        if self.chests:
-            opened = [chest.id for chest in self.chests if chest.elapsed is not None]
-            looted = [chest.id for chest in self.chests if chest.looted]
-            self.field.app.storage.write('chests.json', {
-                'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
-            })
+        opened = [chest.id for chest in self.chests if chest.elapsed is not None]
+        looted = [chest.id for chest in self.chests if chest.looted]
+        self.field.app.storage.write('chests.json', {
+            'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
+        })
 
     def draw(self, camera):
         for chest in self.chests:
