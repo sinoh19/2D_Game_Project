@@ -3,6 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
+from game.items import BAG_SIZE, POTION
 
 CLOSE_BUTTON = (545, 65, 570, 88)
 
@@ -14,8 +15,6 @@ def slot_bounds(x, y, columns, index):
 
 
 CHEST_SLOT = slot_bounds(85, 130, 3, 0)
-POTION = 'health-potion'
-BAG_SIZE = 10
 BAG_SLOTS = tuple(slot_bounds(352, 130, 5, i) for i in range(BAG_SIZE))
 GOLD = (197, 155, 95)
 
@@ -30,19 +29,19 @@ def panel(bounds, fill, border):
     drawing.rectangle(bounds, border)
 
 
-def slots(bounds_list, items, potion, font, hover=None):
+def slots(bounds_list, items, icons, font, hover=None):
     for index, (bounds, item) in enumerate(zip(bounds_list, items)):
         left, top, _, _ = bounds
-        filled = item == POTION
+        filled = item in icons
         panel(bounds, (39, 31, 32) if filled or hover == index else (17, 18, 25),
               GOLD if filled or hover == index else (65, 66, 79))
         if filled:
-            potion.draw((left + 17.5) * SCALE, WINDOW_HEIGHT - (top + 17) * SCALE,
+            icons[item].draw((left + 17.5) * SCALE, WINDOW_HEIGHT - (top + 17) * SCALE,
                         30 * SCALE, 30 * SCALE)
             drawing.text(font, left + 27, top + 29, '1')
 
 
-def draw_loot(resources, potion, has_potion, bag, message, drag=None, bag_source=None):
+def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=None):
     small, normal = resources.small, resources.normal
     drawing.black_overlay(.45)
     panel((52, 54, 587, 265), (25, 25, 34), (92, 80, 68))
@@ -59,7 +58,7 @@ def draw_loot(resources, potion, has_potion, bag, message, drag=None, bag_source
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')
     chest_slots = (slot_bounds(85, 130, 3, index) for index in range(6))
     chest_visible = has_potion and (drag is None or bag_source is not None)
-    slots(chest_slots, [POTION if chest_visible else None] + [None] * 5, potion, small)
+    slots(chest_slots, [POTION if chest_visible else None] + [None] * 5, icons, small)
     hover = bag_slot_at(*drag) if drag is not None else None
     visible_bag = bag
     if drag is not None and bag_source is not None:
@@ -67,7 +66,7 @@ def draw_loot(resources, potion, has_potion, bag, message, drag=None, bag_source
         visible_bag[bag_source] = None
     elif hover is not None and bag[hover] is not None:
         hover = None
-    slots(BAG_SLOTS, visible_bag, potion, small, hover)
+    slots(BAG_SLOTS, visible_bag, icons, small, hover)
     drawing.text(normal, 311, 169, '→', GOLD)
     drawing.text(small, 73, 245, message)
     if has_potion:
@@ -76,8 +75,9 @@ def draw_loot(resources, potion, has_potion, bag, message, drag=None, bag_source
         drawing.text(small, 401, 245, '드래그로 가방 정리')
     if drag is not None:
         x, y = drag
-        p2d.SDL_SetTextureAlphaMod(potion.texture, 155)
+        icon = icons[POTION if bag_source is None else bag[bag_source]]
+        p2d.SDL_SetTextureAlphaMod(icon.texture, 155)
         try:
-            potion.draw(x * SCALE, WINDOW_HEIGHT - y * SCALE, 30 * SCALE, 30 * SCALE)
+            icon.draw(x * SCALE, WINDOW_HEIGHT - y * SCALE, 30 * SCALE, 30 * SCALE)
         finally:
-            p2d.SDL_SetTextureAlphaMod(potion.texture, 255)
+            p2d.SDL_SetTextureAlphaMod(icon.texture, 255)

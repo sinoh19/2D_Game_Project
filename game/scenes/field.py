@@ -8,6 +8,7 @@ from game.gates import SidePassages
 from game.enemies import Slime
 from game.combat import resolve_encounter
 from game.chests import TreasureChests
+from game.field_inventory import FieldInventory
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -37,6 +38,8 @@ class FieldScene:
             position = self.layout['spawn']
         self.player = Knight(self, position)
         self.chests = TreasureChests(self, restore=not new_game)
+        self.inventory = FieldInventory(self)
+        self.dropped_items = []
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
@@ -72,6 +75,19 @@ class FieldScene:
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
 
     def handle_event(self, event):
+        if self.inventory.is_open:
+            if event.type == p2d.SDL_KEYUP:
+                self.keys.discard(event.key)
+            elif event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
+                self.keys.clear()
+                self.inventory.menu = None
+            elif (event.type == p2d.SDL_KEYDOWN and event.key in (p2d.SDLK_i, p2d.SDLK_ESCAPE)
+                  and event.key not in self.keys):
+                self.keys.add(event.key)
+                self.inventory.close()
+            elif event.type == p2d.SDL_MOUSEBUTTONDOWN:
+                self.inventory.click(event)
+            return
         if self.chests.active is not None:
             if event.type == p2d.SDL_KEYUP:
                 self.keys.discard(event.key)
@@ -108,6 +124,9 @@ class FieldScene:
                     self.player.dash(self.movement_direction())
                 elif key == p2d.SDLK_c:
                     self.player.attack()
+                elif key == p2d.SDLK_i:
+                    self.keys.intersection_update({key})
+                    self.inventory.open()
                 elif key == p2d.SDLK_e:
                     if self.chests.interact():
                         self.keys.intersection_update({key})
@@ -117,7 +136,7 @@ class FieldScene:
             self.keys.discard(event.key)
 
     def update(self, dt):
-        if self.encounter is not None:
+        if self.encounter is not None or self.inventory.is_open:
             return
         dt = max(0.0, min(1.0, dt))
         self.chests.update(dt)
@@ -126,6 +145,10 @@ class FieldScene:
         self.scenery_time += dt
         self.map_notice_time = max(0, self.map_notice_time-dt)
         self.passages.update(dt)
+        for item in self.dropped_items:
+            item.update(dt, self)
+        self.dropped_items[:] = [item for item in self.dropped_items
+                                 if item.feet <= self.layout['height'] + 32]
         steps = max(1, math.ceil(dt*120))
         direction = self.movement_direction()
         for _ in range(steps):
@@ -149,6 +172,8 @@ class FieldScene:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         clip, time = self.player.clip
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
+        for item in self.dropped_items:
+            item.draw(self.chests.icons[item.item_id], self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
@@ -156,8 +181,10 @@ class FieldScene:
         drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   F6 맵 새로고침   ESC 저장/메인')
+                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   I 가방   F6 맵 새로고침   ESC 저장/메인')
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
         self.chests.draw_loot()
+        if self.inventory.is_open:
+            self.inventory.draw()
