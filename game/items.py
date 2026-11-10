@@ -1,5 +1,6 @@
 """Item definitions shared by the bag, loot panel and field drops."""
 from dataclasses import dataclass
+from math import sin, tau
 from typing import Callable
 
 import pico2d as p2d
@@ -87,9 +88,10 @@ class DroppedItem:
         else:
             self.feet = next_feet
 
-    def draw(self, icon, camera):
+    def draw(self, icon, camera, elapsed):
         size = 22 if isinstance(ITEMS[self.item_id], Equipment) else 14
-        center_y = self.feet - (size / 2 - 1)
+        hover = 5 + round(2 * sin(tau * elapsed / 1.4)) if self.grounded else 0
+        center_y = self.feet - (size / 2 - 1) - hover
         p2d.SDL_SetTextureColorMod(icon.texture, 176, 196, 202)
         try:
             icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - center_y * SCALE,

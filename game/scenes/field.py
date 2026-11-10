@@ -240,7 +240,7 @@ class FieldScene:
             clip, time = self.player.clip
             self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         for item in self.dropped_items:
-            item.draw(self.chests.icons[item.item_id], self.camera_x)
+            item.draw(self.chests.icons[item.item_id], self.camera_x, self.scenery_time)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
