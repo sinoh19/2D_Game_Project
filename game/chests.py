@@ -11,7 +11,7 @@ from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
 from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
 FRAME_SIZE = 192
-DRAW_SIZE = 44
+DRAW_SIZE = 56
 FRAME_COUNT = 5
 OPEN_TIME = .4
 
