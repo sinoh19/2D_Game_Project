@@ -2,11 +2,13 @@
 import pico2d as p2d
 
 from game import drawing
-from game.config import SCALE
-from game.loot_ui import GOLD, panel
+from game.config import SCALE, WINDOW_HEIGHT
+from game.loot_ui import GOLD, draw_drag_icon, panel
 
 
+PANEL = (70, 46, 569, 319)
 CLOSE = (540, 53, 560, 73)
+DISCARD = (466, 168, 554, 191)
 WEAPON_SLOT = (404, 116, 554, 164)
 CARD = (32, 33, 44)
 BORDER = (66, 65, 77)
@@ -25,11 +27,31 @@ class CharacterStatus:
         self.is_open = False
         self.weapon_hovered = False
         self.idle_elapsed = 0.0
+        self.cancel_pointer()
 
     def open(self):
         self.is_open = True
         self.weapon_hovered = False
         self.idle_elapsed = 0.0
+        self.cancel_pointer()
+
+    def cancel_pointer(self):
+        self.press = self.drag = None
+        self.discard_menu = False
+
+    def drop_weapon(self):
+        player = self.field.player
+        self.field.drop_item(player.weapon.id)
+        player.weapon = None
+        self.field.chests.save()
+        self.cancel_pointer()
+
+    def move_pointer(self, x, y):
+        self.weapon_hovered = drawing.contains(WEAPON_SLOT, x, y)
+        if self.press is not None:
+            start_x, start_y = self.press
+            if self.drag is not None or (x - start_x)**2 + (y - start_y)**2 >= 9:
+                self.drag = (x, y)
 
     def handle_event(self, event):
         keys = self.field.keys
@@ -39,22 +61,41 @@ class CharacterStatus:
               and event.event == p2d.SDL_WINDOWEVENT_FOCUS_LOST):
             keys.clear()
             self.weapon_hovered = False
+            self.cancel_pointer()
         elif event.type == p2d.SDL_MOUSEMOTION:
-            self.weapon_hovered = drawing.contains(WEAPON_SLOT, event.x / SCALE, event.y / SCALE)
+            self.move_pointer(event.x / SCALE, event.y / SCALE)
         elif (event.type == p2d.SDL_KEYDOWN and event.key not in keys
               and event.key in (p2d.SDLK_e, p2d.SDLK_ESCAPE)):
             keys.add(event.key)
             self.is_open = False
-        elif (event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT
-              and drawing.contains(CLOSE, event.x / SCALE, event.y / SCALE)):
-            self.is_open = False
+        elif event.type == p2d.SDL_MOUSEBUTTONDOWN:
+            x, y = event.x / SCALE, event.y / SCALE
+            weapon_slot = self.field.player.weapon is not None and drawing.contains(WEAPON_SLOT, x, y)
+            if event.button == p2d.SDL_BUTTON_RIGHT:
+                self.cancel_pointer()
+                self.discard_menu = weapon_slot
+            elif event.button == p2d.SDL_BUTTON_LEFT:
+                if drawing.contains(CLOSE, x, y):
+                    self.is_open = False
+                elif self.discard_menu:
+                    if drawing.contains(DISCARD, x, y):
+                        self.drop_weapon()
+                    self.discard_menu = False
+                elif weapon_slot:
+                    self.press = (x, y)
+        elif event.type == p2d.SDL_MOUSEBUTTONUP and event.button == p2d.SDL_BUTTON_LEFT:
+            x, y = event.x / SCALE, event.y / SCALE
+            self.move_pointer(x, y)
+            if self.drag is not None and not drawing.contains(PANEL, x, y):
+                self.drop_weapon()
+            self.press = self.drag = None
 
     def draw(self):
         player = self.field.player
         resources = self.field.app.resources
         text = drawing.text
         drawing.black_overlay(.45)
-        panel((70, 46, 569, 319), (23, 24, 34), (140, 112, 74))
+        panel(PANEL, (23, 24, 34), (140, 112, 74))
         drawing.rectangle((71, 47, 568, 80), (37, 35, 43), filled=True)
         drawing.rectangle((71, 81, 568, 81), (95, 78, 60))
         text(resources.heading, 85, 65, '용병 정보')
@@ -81,55 +122,28 @@ class CharacterStatus:
             text(resources.normal, 365, y + 18, str(getattr(player, attr)), GOLD)
 
         for index, (name, item) in enumerate((
-            ('무기', player.weapon.name), ('방어구', player.armor), ('장신구', player.accessory),
+            ('무기', player.weapon.name if player.weapon and self.drag is None else None), ('방어구', player.armor), ('장신구', player.accessory),
         )):
             y = 116 + index * 54
             border = GOLD if index == 0 and self.weapon_hovered else BORDER
             panel((404, y, 554, y + 48), CARD, border)
             panel((412, y + 8, 444, y + 40), (23, 24, 32), (98, 83, 64))
             if index == 0 and item:
-                self.draw_sword_icon(412, y + 8)
+                icon = self.field.chests.icons[player.weapon.id]
+                icon.draw(428.5 * SCALE, WINDOW_HEIGHT - (y + 24.5) * SCALE, 30 * SCALE, 30 * SCALE)
             else:
                 drawing.rectangle((424, y + 24, 432, y + 24), MUTED)
             text(resources.normal, 453, y + 13, name)
             text(resources.small, 453, y + 31, item or '빈 슬롯', MUTED)
 
-        if self.weapon_hovered:
+        if self.drag is not None:
+            draw_drag_icon(self.field.chests.icons[player.weapon.id], *self.drag)
+        elif self.discard_menu:
+            panel(DISCARD, CARD, GOLD)
+            text(resources.normal, 477, 180, '버리기')
+        elif self.weapon_hovered and player.weapon is not None:
             weapon = player.weapon
             panel((235, 116, 395, 190), (20, 20, 29), GOLD)
             text(resources.normal, 246, 132, weapon.name, GOLD)
             text(resources.small, 246, 152, weapon.description, MUTED)
             text(resources.small, 246, 174, f'기본 공격력  {weapon.base_attack}')
-
-    @staticmethod
-    def draw_sword_icon(left, top):
-        palette = {
-            '#': (43, 50, 72),
-            'W': (234, 236, 242),
-            'S': (174, 181, 202),
-            'G': (240, 157, 89),
-            'B': (148, 73, 48),
-        }
-        sprite = (
-            "............###",
-            "...........#SW#",
-            "..........#SWS#",
-            ".........#SWS#.",
-            "........#SWS#..",
-            ".......#SWS#...",
-            "......#SWS#....",
-            ".....#SWS#.....",
-            ".##.#SWS#......",
-            ".#G#SWS#.......",
-            "..#GWS#........",
-            "..#BG#.........",
-            ".#B#BG#........",
-            "#G#..##........",
-            "##.............",
-        )
-        for row, pixels in enumerate(sprite):
-            for column, pixel in enumerate(pixels):
-                if pixel == '.':
-                    continue
-                x, y = left + 2 + 2 * column, top + 2 + 2 * row
-                drawing.rectangle((x, y, x + 1, y + 1), palette[pixel], filled=True)

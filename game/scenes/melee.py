@@ -11,7 +11,7 @@ from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.enemies import SlimeArt
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
-from game.items import ITEMS
+from game.items import ITEMS, Weapon
 from game.loot_ui import panel, slots
 from game.pixel_style import simplify
 
@@ -232,7 +232,7 @@ class MeleeScene:
                 hp_before = self.enemy.hp
                 damage, critical = roll_player_damage(
                     self.player.strength, self.player.luck,
-                    base_attack=self.player.weapon.base_attack, force_critical=force_critical)
+                    base_attack=self.player.base_attack, force_critical=force_critical)
                 self.enemy.take_damage(damage)
                 if self.enemy.hp == 0:
                     self.death_elapsed = -SlimeArt.HIT_DURATION
@@ -402,7 +402,11 @@ class MeleeScene:
             item_id = bag[index]
             if item_id is None:
                 return
-            consumed, message = ITEMS[item_id].use(self.player)
+            item = ITEMS[item_id]
+            if isinstance(item, Weapon):
+                self.item_message = '무기는 횡스크롤 가방에서 장착할 수 있습니다.'
+                return
+            consumed, message = item.use(self.player)
             if not consumed:
                 self.item_message = message
                 return

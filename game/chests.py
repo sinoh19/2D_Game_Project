@@ -1,9 +1,11 @@
 """Field treasure chests and their opening animation."""
+from math import isfinite
+
 import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
-from game.items import BAG_SIZE, ITEMS, POTION
+from game.items import BAG_SIZE, ITEMS, POTION, SWORD, DroppedItem, Weapon
 from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
 FRAME_SIZE = 44
@@ -42,6 +44,15 @@ class TreasureChests:
         bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
         self.bag = [item if isinstance(item, str) and item in ITEMS else None for item in bag]
         self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
+        weapon_id = data.get('weapon', SWORD)
+        weapon = ITEMS.get(weapon_id) if isinstance(weapon_id, str) else None
+        field.player.weapon = weapon if isinstance(weapon, Weapon) else None
+        drops = data.get('dropped_weapons') if data.get('scene') == self.map_id else None
+        if isinstance(drops, list):
+            for position in drops:
+                if (isinstance(position, list) and len(position) == 2
+                        and all(type(value) in (int, float) and isfinite(value) for value in position)):
+                    field.dropped_items.append(DroppedItem(SWORD, *position))
         self.chests = [TreasureChest(spec, spec[0] in opened, spec[0] in looted)
                        for spec in field.layout.get('chests', [])]
         self.active = None
@@ -152,6 +163,9 @@ class TreasureChests:
         looted = [chest.id for chest in self.chests if chest.looted]
         self.field.app.storage.write('chests.json', {
             'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
+            'weapon': self.field.player.weapon.id if self.field.player.weapon else None,
+            'dropped_weapons': [[item.x, item.feet] for item in self.field.dropped_items
+                                if item.item_id == SWORD],
         })
 
     def draw(self, camera):

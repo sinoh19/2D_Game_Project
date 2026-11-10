@@ -10,7 +10,7 @@ from game.combat import resolve_encounter
 from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
 from game.character_status import CharacterStatus
-from game.items import ITEMS
+from game.items import ITEMS, DroppedItem
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -39,10 +39,10 @@ class FieldScene:
         if position is None or not self.valid_position(position):
             position = self.layout['spawn']
         self.player = Knight(self, position)
+        self.dropped_items = []
         self.chests = TreasureChests(self, restore=not new_game)
         self.inventory = FieldInventory(self)
         self.status = CharacterStatus(self)
-        self.dropped_items = []
         self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
@@ -157,6 +157,9 @@ class FieldScene:
                         self.passages.interact()
         elif event.type == p2d.SDL_KEYUP:
             self.keys.discard(event.key)
+
+    def drop_item(self, item_id):
+        self.dropped_items.append(DroppedItem(item_id, self.x, self.y - self.player.HEIGHT / 2))
 
     def start_pickup(self):
         if self.player.pickup_time is not None:

@@ -20,6 +20,8 @@ def roll_critical_damage(damage, luck, *, base_chance, force_critical=False):
 
 
 def roll_player_damage(strength, luck, *, base_attack, force_critical=False):
+    if base_attack == 0:
+        return 0, False
     return roll_critical_damage(roll_physical_damage(base_attack, strength), luck, base_chance=2,
                                 force_critical=force_critical)
 
@@ -101,7 +103,7 @@ def resolve_encounter(scene):
     cause = 'player_attack' if attacked else 'enemy_contact'
     if attacked:
         damage, _ = roll_player_damage(
-            scene.player.strength, scene.player.luck, base_attack=scene.player.weapon.base_attack)
+            scene.player.strength, scene.player.luck, base_attack=scene.player.base_attack)
         enemy.take_damage(damage)
     else:
         damage, _ = enemy.roll_damage()
