@@ -402,8 +402,12 @@ class MeleeScene:
         impact = 1.0 if self.player_in_hit_stop() else self.slash_impact_strength()
         if impact:
             drawing.black_overlay(.38 * impact)
-        self.draw_mercenary(zoom)
-        self.draw_slime(assets.slime_art, zoom)
+        if self.attack_elapsed is not None:
+            self.draw_slime(assets.slime_art, zoom)
+            self.draw_mercenary(zoom)
+        else:
+            self.draw_mercenary(zoom)
+            self.draw_slime(assets.slime_art, zoom)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
