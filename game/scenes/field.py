@@ -202,7 +202,7 @@ class FieldScene:
                 return
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
-    def draw(self, *, hit_enemy=None, hit_elapsed=None):
+    def draw(self, *, hit_enemy=None, hit_elapsed=None, hit_by=None):
         self.assets.draw_world(self.camera_x, self.scenery_time)
         self.passages.draw(self.camera_x)
         self.chests.draw(self.camera_x)
@@ -213,8 +213,12 @@ class FieldScene:
                     hit_elapsed=hit_elapsed, hit_facing=-1 if self.player.x <= enemy.x else 1)
             else:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
-        clip, time = self.player.clip
-        self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
+        if hit_by is not None:
+            facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
+            self.assets.draw_mercenary_hit(self.x, self.y, facing, self.camera_x)
+        else:
+            clip, time = self.player.clip
+            self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         for item in self.dropped_items:
             item.draw(self.chests.icons[item.item_id], self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
