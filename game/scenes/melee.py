@@ -15,7 +15,8 @@ from game.loot_ui import panel, slots
 from game.pixel_style import simplify
 
 DIRECTIONS = ('상단', '중단', '하단')
-DAMAGE_NUMBER_SECONDS = .85
+COMBAT_POPUP_SECONDS = .85
+DODGE_FADE_SECONDS = .24
 BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
@@ -79,10 +80,11 @@ class MeleeScene:
         self.attack_blocked = False
         self.hit_stop_left = 0.0
         self.idle_elapsed = 0.0
-        self.damage_number = None
+        self.combat_popup = None
         self.enemy_direction = None
         self.enemy_elapsed = None
         self.enemy_attack_evaded = False
+        self.debug_dodge_pending = cause == 'debug'
         self.bag_open = False
         self.item_selection = None
         self.item_message = ''
@@ -146,16 +148,21 @@ class MeleeScene:
         self.enemy_elapsed += dt
         if previous < SLIME_IMPACT_TIME <= self.enemy_elapsed:
             direction = DIRECTIONS[self.enemy_direction]
-            if self.selected == self.enemy_direction:
-                self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
-            elif self.player.agility > 0 and randrange(200) < self.player.agility:
+            force_dodge = self.debug_dodge_pending
+            self.debug_dodge_pending = False
+            guarded = self.selected == self.enemy_direction
+            if force_dodge or (not guarded and self.player.agility > 0
+                               and randrange(200) < self.player.agility):
                 self.enemy_attack_evaded = True
+                self.combat_popup = ('MISS', HOME_X, FLOOR - 109, 0.0)
                 self.record(f'슬라임 {direction} 공격 회피  ·  피해 0')
+            elif guarded:
+                self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
                 self.player.take_damage(self.enemy.roll_damage())
                 damage = hp_before - self.player.hp
-                self.damage_number = (damage, HOME_X, FLOOR - 109, 0.0)
+                self.combat_popup = (f'-{damage}', HOME_X, FLOOR - 109, 0.0)
                 self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{damage}')
                 self.enemy_elapsed = SLIME_IMPACT_TIME
                 self.hit_stop_left = IMPACT_HIT_STOP
@@ -168,10 +175,10 @@ class MeleeScene:
 
     def update(self, dt):
         dt = max(0.0, dt) * self.app.battle_speed
-        if self.damage_number is not None:
-            damage, x, y, elapsed = self.damage_number
+        if self.combat_popup is not None:
+            label, x, y, elapsed = self.combat_popup
             elapsed += dt
-            self.damage_number = ((damage, x, y, elapsed) if elapsed < DAMAGE_NUMBER_SECONDS else None)
+            self.combat_popup = ((label, x, y, elapsed) if elapsed < COMBAT_POPUP_SECONDS else None)
         if self.hit_stop_left > 0:
             paused = min(dt, self.hit_stop_left)
             self.hit_stop_left -= paused
@@ -196,7 +203,7 @@ class MeleeScene:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(roll_physical_damage(self.player.strength))
                 damage = hp_before - self.enemy.hp
-                self.damage_number = (damage, SLIME_HOME_X, FLOOR - 58, 0.0)
+                self.combat_popup = (f'-{damage}', SLIME_HOME_X, FLOOR - 58, 0.0)
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{damage}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
@@ -319,8 +326,12 @@ class MeleeScene:
                            round(image.w * scale), round(image.h * scale))
                 return
             time = self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
+        alpha = 255
+        if self.enemy_attack_evaded and self.enemy_elapsed is not None:
+            progress = min(1.0, (self.enemy_elapsed - SLIME_IMPACT_TIME) / DODGE_FADE_SECONDS)
+            alpha = round(105 + 150 * progress)
         self.field.assets.draw_character(
-            clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True)
+            clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True, alpha=alpha)
 
     def save(self):
         if self.cause != 'debug':
@@ -453,13 +464,14 @@ class MeleeScene:
                                   (255, 221, 165), filled=True)
 
         small, normal = self.app.resources.small, self.app.resources.normal
-        if self.damage_number is not None:
-            damage, x, y, elapsed = self.damage_number
-            progress = elapsed / DAMAGE_NUMBER_SECONDS
+        if self.combat_popup is not None:
+            label, x, y, elapsed = self.combat_popup
+            progress = elapsed / COMBAT_POPUP_SECONDS
             x, y = self.zoom_point(x, y - 20 * progress, zoom)
             alpha = round(255 * min(1.0, (1 - progress) / .75))
-            centered(normal, x + 1, y + 1, f'-{damage}', (32, 20, 24, alpha))
-            centered(normal, x, y, f'-{damage}', (255, 139, 108, alpha))
+            color = (195, 226, 255) if label == 'MISS' else (255, 139, 108)
+            centered(normal, x + 1, y + 1, label, (32, 20, 24, alpha))
+            centered(normal, x, y, label, (*color, alpha))
         for speed, bounds in SPEED_BUTTONS:
             left, top, right, bottom = bounds
             selected = self.app.battle_speed == speed

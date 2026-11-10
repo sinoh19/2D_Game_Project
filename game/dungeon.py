@@ -219,7 +219,8 @@ class DungeonAssets:
             if tinted:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
 
-    def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None, melee_detail=False):
+    def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None,
+                       melee_detail=False, alpha=255):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']
         time = time % duration if clip['loop'] else min(time, duration)
@@ -236,10 +237,16 @@ class DungeonAssets:
         offset_x = (width / 2 - px)*actor_scale
         center_x = round(x - camera + (offset_x if facing > 0 else -offset_x))
         center_y = round(feet - (height / 2 - py)*actor_scale)
-        image.clip_composite_draw(sx, sy, width, height, 0,
-                                  'h' if facing < 0 else '',
-                                  center_x*self.scale, WINDOW_HEIGHT-center_y*self.scale,
-                                  round(width*actor_scale*self.scale), round(height*actor_scale*self.scale))
+        if alpha != 255:
+            p2d.SDL_SetTextureAlphaMod(image.texture, alpha)
+        try:
+            image.clip_composite_draw(sx, sy, width, height, 0,
+                                      'h' if facing < 0 else '',
+                                      center_x*self.scale, WINDOW_HEIGHT-center_y*self.scale,
+                                      round(width*actor_scale*self.scale), round(height*actor_scale*self.scale))
+        finally:
+            if alpha != 255:
+                p2d.SDL_SetTextureAlphaMod(image.texture, 255)
 
 
 class Knight(Vitals):
