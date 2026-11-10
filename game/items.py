@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from typing import Callable
 
+import pico2d as p2d
+
 from game.config import SCALE, WINDOW_HEIGHT
 from game.terrain import slope_surfaces
 
@@ -50,5 +52,9 @@ class DroppedItem:
             self.feet = next_feet
 
     def draw(self, icon, camera):
-        icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - (self.feet - 7) * SCALE,
-                  16 * SCALE, 16 * SCALE)
+        p2d.SDL_SetTextureColorMod(icon.texture, 176, 196, 202)
+        try:
+            icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - (self.feet - 6) * SCALE,
+                      14 * SCALE, 14 * SCALE)
+        finally:
+            p2d.SDL_SetTextureColorMod(icon.texture, 255, 255, 255)
