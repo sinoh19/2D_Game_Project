@@ -11,6 +11,11 @@ from game.terrain import slope_surfaces
 POTION = 'health-potion'
 SWORD = 'mercenary-sword'
 LEATHER_ARMOR = 'mercenary-leather-armor'
+RING_STRENGTH = 'starting-wood-ring-strength'
+RING_AGILITY = 'starting-wood-ring-agility'
+RING_INTELLIGENCE = 'starting-wood-ring-intelligence'
+RING_LUCK = 'starting-wood-ring-luck'
+RING_IDS = (RING_STRENGTH, RING_AGILITY, RING_INTELLIGENCE, RING_LUCK)
 BAG_SIZE = 10
 
 
@@ -51,9 +56,31 @@ class Armor(Equipment):
         return (('물리 방어력', self.physical_defense), ('마법 방어력', self.magic_defense))
 
 
+@dataclass(frozen=True)
+class Accessory(Equipment):
+    stat: str
+    bonus: int = 2
+    slot = 'accessory'
+
+    @property
+    def stats(self):
+        return (({'strength': '힘', 'agility': '민첩',
+                  'intelligence': '지능', 'luck': '행운'}[self.stat], self.bonus),)
+
+
 STARTER_SWORD = Weapon(SWORD, '용병의 검', 'mercenary-sword.png', '용병이 처음부터 지닌 검.', 7)
 
 STARTER_ARMOR = Armor(LEATHER_ARMOR, '용병의 가죽 갑옷', 'mercenary-leather-armor.png', '낡은 가죽으로 만든 기본 갑옷.', 0, 0)
+STARTING_RINGS = {
+    RING_STRENGTH: Accessory(RING_STRENGTH, '시작의 나무반지 (힘)', 'starting-ring-strength.png',
+                             '힘을 2 올려 주는 나무반지.', 'strength'),
+    RING_AGILITY: Accessory(RING_AGILITY, '시작의 나무반지 (민첩)', 'starting-ring-agility.png',
+                            '민첩을 2 올려 주는 나무반지.', 'agility'),
+    RING_INTELLIGENCE: Accessory(RING_INTELLIGENCE, '시작의 나무반지 (지능)', 'starting-ring-intelligence.png',
+                                 '지능을 2 올려 주는 나무반지.', 'intelligence'),
+    RING_LUCK: Accessory(RING_LUCK, '시작의 나무반지 (행운)', 'starting-ring-luck.png',
+                         '행운을 2 올려 주는 나무반지.', 'luck'),
+}
 
 def heal(player):
     amount = min(10, player.max_hp - player.hp)
@@ -63,7 +90,8 @@ def heal(player):
     return True, f'회복 포션 사용  ·  HP +{amount}'
 
 
-ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal), SWORD: STARTER_SWORD, LEATHER_ARMOR: STARTER_ARMOR}
+ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal), SWORD: STARTER_SWORD,
+         LEATHER_ARMOR: STARTER_ARMOR, **STARTING_RINGS}
 
 
 @dataclass(eq=False)

@@ -136,7 +136,7 @@ class MeleeScene:
     def start_enemy_turn(self):
         self.pointer = None
         self.enemy_direction = randrange(len(DIRECTIONS))
-        intelligence = max(0, min(20, self.player.intelligence))
+        intelligence = max(0, min(20, self.player.stat_value('intelligence')))
         # 50/150 at intelligence 0, increasing to 90/150 at intelligence 20.
         correct_weight = 50 + 2 * intelligence
         predicted = self.enemy_direction
@@ -166,7 +166,7 @@ class MeleeScene:
             force_dodge = self.debug_dodge_pending
             self.debug_dodge_pending = False
             guarded = self.selected == self.enemy_direction
-            dodge_weight = min(250, 5 * self.player.agility + self.player.luck)
+            dodge_weight = min(250, 5 * self.player.stat_value('agility') + self.player.stat_value('luck'))
             if force_dodge or (not guarded and dodge_weight > 0
                                and randrange(1000) < dodge_weight):
                 self.enemy_attack_evaded = True
@@ -231,7 +231,7 @@ class MeleeScene:
             else:
                 hp_before = self.enemy.hp
                 damage, critical = roll_player_damage(
-                    self.player.strength, self.player.luck,
+                    self.player.stat_value('strength'), self.player.stat_value('luck'),
                     base_attack=self.player.base_attack, force_critical=force_critical)
                 self.enemy.take_damage(damage)
                 if self.enemy.hp == 0:
