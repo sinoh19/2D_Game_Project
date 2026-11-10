@@ -85,6 +85,18 @@ class App:
         from game.scenes.melee_transition import MeleeTransitionScene
         self.scene = MeleeTransitionScene(self, field, MeleeScene(self, field, enemy, cause))
 
+    def start_debug_melee(self):
+        from game.enemies import Slime
+        from game.scenes.field import FieldScene
+        from game.scenes.melee import MeleeScene
+
+        field = FieldScene(self, new_game=True)
+        enemy = Slime({'x': field.x, 'y': field.y, 'patrolLeft': field.x,
+                       'patrolRight': field.x, 'speed': 0, 'scale': 1,
+                       'direction': 'left'}, field.assets.slime_art.motion)
+        self.debug_skip_hovered = False
+        self.scene = MeleeScene(self, field, enemy, 'debug')
+
     def reload_field_map(self):
         previous = self.scene
         previous.save()

@@ -1,6 +1,8 @@
 import pico2d as p2d
-from game.config import MENU_BUTTONS, SCALE
+from game.config import DEBUG_SKIP_ENABLED, MENU_BUTTONS, SCALE
 from game import drawing
+
+DEBUG_MELEE_BOUNDS = (416, 8, 528, 29)
 
 
 class TitleScene:
@@ -10,6 +12,7 @@ class TitleScene:
         self.selected = None
         self.notice = ""
         self.notice_time = 0.0
+        self.debug_melee_hovered = False
 
     @property
     def frame(self):
@@ -38,6 +41,11 @@ class TitleScene:
     def handle_event(self, event):
         if event.type in (p2d.SDL_MOUSEMOTION, p2d.SDL_MOUSEBUTTONDOWN):
             x, y = event.x / SCALE, event.y / SCALE
+            self.debug_melee_hovered = DEBUG_SKIP_ENABLED and drawing.contains(DEBUG_MELEE_BOUNDS, x, y)
+            if (self.debug_melee_hovered and event.type == p2d.SDL_MOUSEBUTTONDOWN
+                    and event.button == p2d.SDL_BUTTON_LEFT):
+                self.app.start_debug_melee()
+                return
             self.selected = next((i for i, bounds in enumerate(MENU_BUTTONS) if drawing.contains(bounds, x, y)), None)
             if event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT and self.selected is not None:
                 self.activate(self.selected)
@@ -54,6 +62,13 @@ class TitleScene:
     def draw(self):
         self.app.resources.draw_title(self.frame)
         self.app.resources.draw_menu()
+        if DEBUG_SKIP_ENABLED:
+            bounds = DEBUG_MELEE_BOUNDS
+            color = (52, 61, 68) if self.debug_melee_hovered else (25, 30, 37)
+            drawing.rectangle(bounds, color, filled=True)
+            drawing.rectangle(bounds, (149, 137, 108))
+            drawing.text(self.app.resources.small, bounds[0] + 8, bounds[1] + 15,
+                         '디버그: 근접 전투', (224, 216, 190))
         if self.selected is not None:
             left, top, right, bottom = MENU_BUTTONS[self.selected]
             drawing.rectangle((left - 1, top - 1, right + 1, bottom + 1), (255, 221, 143))
