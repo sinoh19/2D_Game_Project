@@ -3,7 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
-from game.items import BAG_SIZE, POTION
+from game.items import BAG_SIZE, ITEMS, POTION, Equipment
 
 CLOSE_BUTTON = (545, 65, 570, 88)
 
@@ -38,7 +38,8 @@ def slots(bounds_list, items, icons, font, hover=None):
         if filled:
             icons[item].draw((left + 17.5) * SCALE, WINDOW_HEIGHT - (top + 17) * SCALE,
                         30 * SCALE, 30 * SCALE)
-            drawing.text(font, left + 27, top + 29, '1')
+            if not isinstance(ITEMS[item], Equipment):
+                drawing.text(font, left + 27, top + 29, '1')
 
 
 def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=None):
