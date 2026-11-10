@@ -1,6 +1,7 @@
 """Portable dungeon layout and original Unity sprite animation data."""
 import json
 import math
+from functools import cached_property
 import pico2d as p2d
 from pico2d import pico2d as backend
 from game.config import ASSETS, WINDOW_WIDTH, WINDOW_HEIGHT
@@ -177,7 +178,18 @@ class DungeonAssets:
             self.tile('Ceiling', x, 0, size, size, camera)
 
 
-    def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None):
+    @cached_property
+    def melee_sheets(self):
+        from game.pixel_style import simplify
+
+        clips = self.animations['clips']
+        names = dict.fromkeys(clips[clip]['sheet'] for clip in ('idle', 'walk', 'attack'))
+        return {
+            name: simplify(p2d.load_image(str(ASSETS / 'dungeon' / self.animations['sheets'][name])), block=1)
+            for name in names
+        }
+
+    def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None, melee_detail=False):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']
         time = time % duration if clip['loop'] else min(time, duration)
@@ -186,7 +198,8 @@ class DungeonAssets:
             if candidate['time'] > time + 1e-8:
                 break
             frame = candidate
-        image = self.sheets[clip['sheet']]
+        sheets = self.melee_sheets if melee_detail else self.sheets
+        image = sheets[clip['sheet']]
         sx, sy, width, height = frame['rect']
         px, py = frame['pivot']  # Unity pivot in pixels from lower-left.
         actor_scale = self.character_scale if actor_scale is None else actor_scale
