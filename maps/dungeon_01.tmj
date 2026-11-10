@@ -292,6 +292,18 @@
           "width": 24,
           "x": 192,
           "y": 288
+        },
+        {
+          "gid": 38,
+          "height": 32,
+          "id": 61,
+          "name": "회복 포션 상자",
+          "rotation": 0,
+          "type": "TreasureChest",
+          "visible": true,
+          "width": 32,
+          "x": 160,
+          "y": 288
         }
       ],
       "opacity": 1,
@@ -3676,7 +3688,7 @@
     }
   ],
   "nextlayerid": 16,
-  "nextobjectid": 61,
+  "nextobjectid": 62,
   "orientation": "orthogonal",
   "properties": [
     {
