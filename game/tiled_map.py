@@ -234,8 +234,14 @@ def load_map(map_path,base_layout,asset_root):
                     key='torch_body' if klass=='Torch' else 'armor';spec=layout['unitySprites'][key]
                     px,py=spec['pivot'];sw,sh=spec['rect'][2:]
                     if abs(w/sw-h/sh)>.001:raise ValueError('횃불·갑옷 크기는 가로세로 비율을 유지하세요.')
+                    # Torch tile objects use a bottom-left editor anchor. Its source
+                    # sprite pivot sits 5 px above the image bottom, so compensate when
+                    # Ctrl-snapping a new object to the 32 px map grid. Legacy placements
+                    # offset by 5 px in the map keep their existing visual position.
+                    default_offset = 5 if klass == 'Torch' and abs(y / th - round(y / th)) < 1e-6 else 0
+                    ground_offset = float(props.get('groundOffset', default_offset))
                     layout['props'].append({'kind':'torch' if klass=='Torch' else 'armor','x':x+w*px,
-                        'bottom':y-h*py+float(props.get('groundOffset',0))*h/sh,'unitScale':w/sw*spec['ppu']})
+                        'bottom':y-h*py+ground_offset*h/sh,'unitScale':w/sw*spec['ppu']})
                     layout['tiledDrawOrder'].append({'kind':'prop','index':len(layout['props'])-1});continue
                 if klass=='CeilingDecoration':
                     # Ceiling tilesets use a top-left editor anchor, so their
