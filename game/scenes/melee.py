@@ -70,9 +70,12 @@ class MeleeScene:
     def hovered(self, bounds):
         return self.pointer is not None and drawing.contains(bounds, *self.pointer)
 
-    def can_act(self):
-        return (self.attack_elapsed is None and self.enemy_direction is None
+    def can_choose(self):
+        return (self.attack_elapsed is None and self.enemy_elapsed is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
+
+    def can_act(self):
+        return self.can_choose() and self.enemy_direction is None
 
     def start_attack(self, index):
         if self.bag_open or not self.can_act():
@@ -178,10 +181,15 @@ class MeleeScene:
     def save(self):
         self.field.save()
 
+    def close_bag(self):
+        self.bag_open = False
+        self.item_selection = None
+        self.pointer = None
+
     def click_bag(self, x, y):
         bag = self.field.inventory.bag
         if drawing.contains(CLOSE, x, y):
-            self.bag_open = False
+            self.close_bag()
         elif drawing.contains(USE_BUTTON, x, y):
             index = self.item_selection
             if index is None or not self.can_act():
@@ -195,16 +203,20 @@ class MeleeScene:
                 return
             bag[index] = None
             self.field.chests.save()
-            self.bag_open = False
-            self.item_selection = None
+            self.close_bag()
             self.record(message)
             self.start_enemy_turn()
         else:
             self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
                                         if bag[i] is not None and drawing.contains(bounds, x, y)), None)
-            self.item_message = '사용할 아이템을 선택하세요.'
-            if self.item_selection is not None:
+            if not any(bag):
+                self.item_message = '가방이 비어 있습니다.'
+            elif not self.can_act():
+                self.item_message = '내 턴에 아이템을 사용할 수 있습니다.'
+            elif self.item_selection is not None:
                 self.item_message = ITEMS[bag[self.item_selection]].name
+            else:
+                self.item_message = '사용할 아이템을 선택하세요.'
 
     def handle_event(self, event):
         if event.type == p2d.SDL_MOUSEMOTION:
@@ -215,7 +227,7 @@ class MeleeScene:
         elif event.type == p2d.SDL_KEYDOWN:
             if event.key == p2d.SDLK_ESCAPE:
                 if self.bag_open:
-                    self.bag_open = False
+                    self.close_bag()
                 else:
                     self.save()
                     self.app.show_title()
@@ -229,11 +241,15 @@ class MeleeScene:
             x, y = event.x / SCALE, event.y / SCALE
             if self.bag_open:
                 self.click_bag(x, y)
-            elif drawing.contains(ITEM_BUTTON, x, y) and self.can_act():
+            elif drawing.contains(ITEM_BUTTON, x, y) and self.can_choose():
                 self.bag_open = True
                 self.item_selection = None
-                self.item_message = ('사용할 아이템을 선택하세요.' if any(self.field.inventory.bag)
-                                     else '가방이 비어 있습니다.')
+                if not any(self.field.inventory.bag):
+                    self.item_message = '가방이 비어 있습니다.'
+                elif not self.can_act():
+                    self.item_message = '내 턴에 아이템을 사용할 수 있습니다.'
+                else:
+                    self.item_message = '사용할 아이템을 선택하세요.'
             else:
                 for index, bounds in enumerate(BUTTONS):
                     if drawing.contains(bounds, x, y):
@@ -253,7 +269,7 @@ class MeleeScene:
             left, top, right, bottom = BAG_SLOTS[self.item_selection]
             drawing.rectangle((left - 2, top - 2, right + 2, bottom + 2), (245, 198, 110))
             drawing.rectangle((left, top, right, bottom), (245, 198, 110))
-        enabled = self.item_selection is not None
+        enabled = self.item_selection is not None and self.can_act()
         panel(USE_BUTTON, (66, 48, 37) if enabled else (32, 34, 43),
               GOLD if enabled else (62, 64, 73))
         centered(normal, 394, 240, '사용')
@@ -293,8 +309,7 @@ class MeleeScene:
         else:
             instruction = '내 턴  /  공격 방향 선택'
         centered(small, 339, 263, instruction)
-        can_choose = (not self.bag_open and self.attack_elapsed is None
-                      and self.enemy_elapsed is None and self.player.hp > 0 and self.enemy.hp > 0)
+        can_choose = not self.bag_open and self.can_choose()
         action = '방어' if self.enemy_direction is not None else '공격'
         for index, (bounds, label) in enumerate(zip(BUTTONS, DIRECTIONS)):
             left, top, right, bottom = bounds
@@ -304,7 +319,7 @@ class MeleeScene:
                          GOLD if active else (172, 174, 184))
             centered(small, (left + right) / 2 + 5, (top + bottom) / 2, f'{label} {action}')
 
-        item_hover = not self.bag_open and self.can_act() and self.hovered(ITEM_BUTTON)
+        item_hover = can_choose and self.hovered(ITEM_BUTTON)
         panel(ITEM_BUTTON, (67, 48, 35) if item_hover else (31, 34, 45),
               GOLD if item_hover else line)
         centered(normal, 537, 310, '아이템')
