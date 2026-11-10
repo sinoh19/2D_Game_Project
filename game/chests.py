@@ -163,7 +163,7 @@ class TreasureChests:
         chest = self.nearby()
         if chest is None or self.active is not None:
             return False
-        label = 'E  상자 열기' if chest.elapsed is None else 'E  상자 보기'
+        label = 'F  상자 열기' if chest.elapsed is None else 'F  상자 보기'
         font = self.field.app.resources.small
         width, height = font.measure(label)
         x = max(5, min(NATIVE_WIDTH - width - 5, round(chest.x - camera - width / 2)))

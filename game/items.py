@@ -8,6 +8,7 @@ from game.config import SCALE, WINDOW_HEIGHT
 from game.terrain import slope_surfaces
 
 POTION = 'health-potion'
+STARTER_SWORD = '용병의 검'
 BAG_SIZE = 10
 
 

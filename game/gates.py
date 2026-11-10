@@ -122,7 +122,7 @@ class SidePassages:
         gate=self.nearby()
         if gate is None or gate.state != 'closed':
             return
-        label = 'E  철문 열기'
+        label = 'F  철문 열기'
         font = self.scene.app.resources.small
         width, height = font.measure(label)
         x = max(10, min(630 - width, round(self.scene.x - self.scene.camera_x - 30)))

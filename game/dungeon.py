@@ -4,6 +4,7 @@ import math
 from functools import cached_property
 import pico2d as p2d
 from pico2d import pico2d as backend
+from game.items import STARTER_SWORD
 from game.config import ASSETS, WINDOW_WIDTH, WINDOW_HEIGHT
 from game import drawing
 from game.terrain import slope_surfaces, inside_slope
@@ -267,6 +268,9 @@ class Knight(Vitals):
         self.agility = 8
         self.intelligence = 3
         self.luck = 8
+        self.weapon = STARTER_SWORD
+        self.armor = None
+        self.accessory = None
         self.scene = scene
         self.x, self.y = map(float, position)
         self.vy = 0.0
