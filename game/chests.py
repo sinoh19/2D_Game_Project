@@ -10,7 +10,8 @@ from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
                         DroppedItem, Equipment)
 from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
-FRAME_SIZE = 44
+FRAME_SIZE = 217
+DRAW_SIZE = 44
 FRAME_COUNT = 5
 OPEN_TIME = .4
 
@@ -27,7 +28,7 @@ class TreasureChest:
         sheet.clip_draw(frame * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE,
                         (self.x - camera) * SCALE,
                         WINDOW_HEIGHT - (self.y - 21) * SCALE,
-                        FRAME_SIZE * SCALE, FRAME_SIZE * SCALE)
+                        DRAW_SIZE * SCALE, DRAW_SIZE * SCALE)
 
 
 
