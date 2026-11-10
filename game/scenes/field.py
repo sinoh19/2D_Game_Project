@@ -105,11 +105,16 @@ class FieldScene:
                 return
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
-    def draw(self):
+    def draw(self, *, hit_enemy=None, hit_elapsed=None):
         self.assets.draw_world(self.camera_x, self.scenery_time)
         self.passages.draw(self.camera_x)
         for enemy in self.enemies:
-            self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
+            if enemy is hit_enemy:
+                self.assets.slime_art.draw(
+                    enemy, self.camera_x, self.assets.scale, self.view_width,
+                    hit_elapsed=hit_elapsed, hit_facing=-1 if self.player.x <= enemy.x else 1)
+            else:
+                self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         clip, time = self.player.clip
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)

@@ -2,6 +2,7 @@
 import math
 import pico2d as p2d
 from game import drawing
+from game.enemies import SlimeArt
 
 FREEZE_SECONDS = .16
 COVER_SECONDS = .28
@@ -11,22 +12,25 @@ TILE_SIZE = 32
 
 
 class MeleeTransitionScene:
-    duration = FREEZE_SECONDS+COVER_SECONDS+BLACK_SECONDS+REVEAL_SECONDS
-
     def __init__(self, app, source, destination):
         self.app = app
         self.source = source
         self.destination = destination
         self.elapsed = 0.0
         self.finished = False
+        self.slime_hit = destination.cause == 'player_attack'
+        self.hold_seconds = SlimeArt.HIT_DURATION if self.slime_hit else FREEZE_SECONDS
+        self.cover_end = self.hold_seconds + COVER_SECONDS
+        self.reveal_start = self.cover_end + BLACK_SECONDS
+        self.duration = self.reveal_start + REVEAL_SECONDS
         self.focus = (max(0,min(639,destination.enemy.x-source.camera_x)),
                       max(0,min(359,destination.enemy.y-12)))
 
     @property
     def phase(self):
-        if self.elapsed < FREEZE_SECONDS:return 'freeze'
-        if self.elapsed < FREEZE_SECONDS+COVER_SECONDS:return 'cover'
-        if self.elapsed < FREEZE_SECONDS+COVER_SECONDS+BLACK_SECONDS:return 'black'
+        if self.elapsed < self.hold_seconds:return 'freeze'
+        if self.elapsed < self.cover_end:return 'cover'
+        if self.elapsed < self.reveal_start:return 'black'
         if self.elapsed < self.duration:return 'reveal'
         return 'done'
 
@@ -57,9 +61,9 @@ class MeleeTransitionScene:
                      for x in (0,640) for y in (0,360))
         delay=min(1.0,distance/max(1,farthest))*.45
         if phase=='cover':
-            progress=(self.elapsed-FREEZE_SECONDS)/COVER_SECONDS
+            progress=(self.elapsed-self.hold_seconds)/COVER_SECONDS
             return max(0.0,min(1.0,(progress-delay)/.55))
-        progress=(self.elapsed-FREEZE_SECONDS-COVER_SECONDS-BLACK_SECONDS)/REVEAL_SECONDS
+        progress=(self.elapsed-self.reveal_start)/REVEAL_SECONDS
         return 1-max(0.0,min(1.0,(progress-delay)/.55))
 
     def draw(self):
@@ -68,7 +72,10 @@ class MeleeTransitionScene:
             drawing.rectangle((0,0,639,359),(0,0,0),filled=True)
             return
         if phase in ('freeze','cover'):
-            self.source.draw()
+            if self.slime_hit:
+                self.source.draw(hit_enemy=self.destination.enemy, hit_elapsed=self.elapsed)
+            else:
+                self.source.draw()
         else:
             self.destination.draw()
         if phase in ('freeze','done'):return

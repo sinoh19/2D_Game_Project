@@ -104,8 +104,13 @@ class MeleeScene:
         self.background.draw(width // 2, height // 2, width, height)
         assets = self.field.assets
         self.draw_mercenary()
-        if self.enemy.hp > 0:
-            assets.slime_art.draw(self.slime_pose, 0, SCALE, NATIVE_WIDTH)
+        hit_elapsed = None
+        if self.attack_elapsed is not None:
+            elapsed_since_hit = self.attack_elapsed - self.impact_time
+            if 0 <= elapsed_since_hit < assets.slime_art.HIT_DURATION:
+                hit_elapsed = elapsed_since_hit
+        if self.enemy.hp > 0 or hit_elapsed is not None:
+            assets.slime_art.draw(self.slime_pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed)
 
         small, normal = self.app.resources.small, self.app.resources.normal
         drawing.text(small, 20, 29, f'용병 HP {self.player.hp} / {self.player.max_hp}')
