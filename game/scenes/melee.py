@@ -13,14 +13,15 @@ from game.items import ITEMS
 from game.loot_ui import panel, slots
 
 DIRECTIONS = ('상단', '중단', '하단')
-BUTTONS = ((93, 306, 238, 343), (247, 306, 392, 343), (401, 306, 546, 343))
+BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
 HOME_X = 215
 STRIKE_X = 350
 WALK_SECONDS = .55
 GOLD = (190, 145, 82)
-ITEM_BUTTON = (554, 306, 628, 343)
+ITEM_BUTTON = (471, 292, 603, 328)
+LOG_ROWS = 3
 USE_BUTTON = (359, 228, 429, 252)
 SLIME_IMPACT_TIME = .42
 SLIME_ATTACK_DURATION = .9
@@ -42,7 +43,10 @@ class MeleeScene:
         self.player = field.player
         self.enemy = enemy
         self.cause = cause
-        self.message = '선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격'
+        self.log = []
+        self.log_offset = 0
+        self.pointer = None
+        self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.attack_blocked = False
         self.enemy_direction = None
@@ -58,6 +62,14 @@ class MeleeScene:
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
+    def record(self, message):
+        self.message = message
+        self.log.append(message)
+        self.log_offset = 0
+
+    def hovered(self, bounds):
+        return self.pointer is not None and drawing.contains(bounds, *self.pointer)
+
     def can_act(self):
         return (self.attack_elapsed is None and self.enemy_direction is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
@@ -67,10 +79,12 @@ class MeleeScene:
             return
         self.selected = index
         self.attack_elapsed = 0.0
+        self.pointer = None
         self.attack_blocked = index == randrange(len(DIRECTIONS))
-        self.message = f'{DIRECTIONS[index]} 공격!'
+        self.record(f'{DIRECTIONS[index]} 공격!')
 
     def start_enemy_turn(self):
+        self.pointer = None
         self.enemy_direction = randrange(len(DIRECTIONS))
 
     def choose_direction(self, index):
@@ -81,7 +95,8 @@ class MeleeScene:
         elif self.enemy_elapsed is None:
             self.selected = index
             self.enemy_elapsed = 0.0
-            self.message = f'{DIRECTIONS[index]} 방어!'
+            self.pointer = None
+            self.record(f'{DIRECTIONS[index]} 방어!')
 
     def update_enemy_attack(self, dt):
         previous = self.enemy_elapsed
@@ -89,15 +104,16 @@ class MeleeScene:
         if previous < SLIME_IMPACT_TIME <= self.enemy_elapsed:
             direction = DIRECTIONS[self.enemy_direction]
             if self.selected == self.enemy_direction:
-                self.message = f'슬라임 {direction} 공격 방어 성공  ·  피해 0'
+                self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
                 self.player.take_damage(HIT_DAMAGE)
-                self.message = f'슬라임 {direction} 공격 명중  ·  용병 HP -{hp_before - self.player.hp}'
+                self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{hp_before - self.player.hp}')
         if self.enemy_elapsed >= SLIME_ATTACK_DURATION:
             self.enemy_elapsed = self.enemy_direction = None
+            self.pointer = None
             if self.player.hp == 0:
-                self.message = '용병이 쓰러졌다!'
+                self.record('용병이 쓰러졌다!')
 
     def update(self, dt):
         dt = max(0.0, dt)
@@ -110,16 +126,16 @@ class MeleeScene:
         self.attack_elapsed += dt
         if previous < self.impact_time <= self.attack_elapsed:
             if self.attack_blocked:
-                self.message = f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0'
+                self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(HIT_DAMAGE)
-                self.message = f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}'
+                self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
 
         if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
             self.attack_elapsed = None
             if self.enemy.hp == 0:
-                self.message = '슬라임을 쓰러뜨렸다!'
+                self.record('슬라임을 쓰러뜨렸다!')
             else:
                 self.start_enemy_turn()
 
@@ -181,7 +197,7 @@ class MeleeScene:
             self.field.chests.save()
             self.bag_open = False
             self.item_selection = None
-            self.message = message
+            self.record(message)
             self.start_enemy_turn()
         else:
             self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
@@ -191,13 +207,22 @@ class MeleeScene:
                 self.item_message = ITEMS[bag[self.item_selection]].name
 
     def handle_event(self, event):
-        if event.type == p2d.SDL_KEYDOWN:
+        if event.type == p2d.SDL_MOUSEMOTION:
+            self.pointer = (event.x / SCALE, event.y / SCALE)
+        elif (event.type == p2d.SDL_WINDOWEVENT
+              and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST):
+            self.pointer = None
+        elif event.type == p2d.SDL_KEYDOWN:
             if event.key == p2d.SDLK_ESCAPE:
                 if self.bag_open:
                     self.bag_open = False
                 else:
                     self.save()
                     self.app.show_title()
+            elif not self.bag_open and event.key == p2d.SDLK_PAGEUP:
+                self.log_offset = min(max(0, len(self.log) - LOG_ROWS), self.log_offset + LOG_ROWS)
+            elif not self.bag_open and event.key == p2d.SDLK_PAGEDOWN:
+                self.log_offset = max(0, self.log_offset - LOG_ROWS)
             elif event.key in KEYS:
                 self.choose_direction(KEYS.index(event.key))
         elif event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT:
@@ -243,10 +268,18 @@ class MeleeScene:
 
         small, normal = self.app.resources.small, self.app.resources.normal
         drawing.text(small, 20, 29, f'용병 HP {self.player.hp} / {self.player.max_hp}')
-        centered(small, 320, 29, self.message)
+        centered(small, 320, 29, '근접 전투')
         drawing.text(small, 514, 29, f'슬라임 HP {self.enemy.hp} / {self.enemy.max_hp}')
 
-        panel((231, 272, 408, 295), (24, 25, 31), (75, 76, 91))
+        line = (76, 75, 86)
+        panel((17, 264, 258, 348), (23, 24, 32), line)
+        drawing.text(normal, 29, 277, '전투 로그', GOLD)
+        if len(self.log) > LOG_ROWS:
+            drawing.text(small, 180, 277, 'PgUp / PgDn', (163, 161, 173))
+        drawing.rectangle((28, 288, 247, 288), line, filled=True)
+        end = len(self.log) - self.log_offset
+        for row, entry in enumerate(self.log[max(0, end - LOG_ROWS):end]):
+            drawing.text(small, 29, 299 + row * 16, entry, (228, 216, 187))
         if self.attack_elapsed is not None:
             instruction = '공격 진행 중'
         elif self.enemy_elapsed is not None:
@@ -259,19 +292,21 @@ class MeleeScene:
             instruction = '전투 승리  /  ESC 메인'
         else:
             instruction = '내 턴  /  공격 방향 선택'
-        centered(small, 320, 284, instruction)
+        centered(small, 339, 263, instruction)
+        can_choose = (not self.bag_open and self.attack_elapsed is None
+                      and self.enemy_elapsed is None and self.player.hp > 0 and self.enemy.hp > 0)
+        action = '방어' if self.enemy_direction is not None else '공격'
         for index, (bounds, label) in enumerate(zip(BUTTONS, DIRECTIONS)):
             left, top, right, bottom = bounds
-            active = index == self.selected
-            border = GOLD if active else (82, 89, 105)
-            panel(bounds, (66, 48, 37) if active else (32, 36, 47), border)
-            drawing.rectangle((left + 3, top + 3, right - 3, top + 3), border, filled=True)
-            panel((left + 10, top + 10, left + 28, top + 28), (28, 25, 28), border)
-            centered(small, left + 19, top + 19, str(index + 1))
-            if self.enemy_direction is not None:
-                label += ' 방어'
-            centered(normal, (left + right) / 2 + 10, (top + bottom) / 2, label)
-        panel(ITEM_BUTTON, (32, 36, 47), GOLD if self.can_act() else (62, 64, 73))
-        centered(normal, 591, 324, '아이템')
+            active = can_choose and self.hovered(bounds)
+            panel(bounds, (67, 48, 35) if active else (30, 33, 44), GOLD if active else line)
+            drawing.text(small, left + 11, top + 10, str(index + 1),
+                         GOLD if active else (172, 174, 184))
+            centered(small, (left + right) / 2 + 5, (top + bottom) / 2, f'{label} {action}')
+
+        item_hover = not self.bag_open and self.can_act() and self.hovered(ITEM_BUTTON)
+        panel(ITEM_BUTTON, (67, 48, 35) if item_hover else (31, 34, 45),
+              GOLD if item_hover else line)
+        centered(normal, 537, 310, '아이템')
         if self.bag_open:
             self.draw_bag()
