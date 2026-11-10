@@ -20,15 +20,18 @@ HOME_X = 215
 STRIKE_X = 350
 WALK_SECONDS = .55
 UPPER_ATTACK = 0
-UPPER_PREP_FRAMES = 6
+MIDDLE_ATTACK = 1
+SLASH_ATTACKS = (UPPER_ATTACK, MIDDLE_ATTACK)
+MIDDLE_SLASH_PIVOT = (35, 54)
+SLASH_PREP_FRAMES = 6
 UPPER_HIGHLIGHT_FRAME = 8
-UPPER_HIGHLIGHT_SECONDS = .20
-UPPER_ZOOM_FACTOR = .18
-UPPER_ZOOM_FOCUS = (388, 194)
+SLASH_HIGHLIGHT_SECONDS = .20
+SLASH_ZOOM_FACTOR = .18
+SLASH_ZOOM_FOCUS = (388, 194)
 IMPACT_HIT_STOP = .075
 MERCENARY_HIT_POSE_TAIL = .075
-UPPER_RECOIL_SECONDS = .24
-UPPER_RECOIL_PIXELS = 12
+SLASH_RECOIL_SECONDS = .24
+SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
 ITEM_BUTTON = (471, 292, 603, 328)
 LOG_ROWS = 3
@@ -52,7 +55,7 @@ def centered(font, x, y, label):
 
 
 def zoom_point(x, y, zoom):
-    focus_x, focus_y = UPPER_ZOOM_FOCUS
+    focus_x, focus_y = SLASH_ZOOM_FOCUS
     return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
 
@@ -78,6 +81,7 @@ class MeleeScene:
         self.item_message = ''
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
+        self.middle_slash = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-mid-slash.png'))
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
     def record(self, message):
@@ -101,10 +105,10 @@ class MeleeScene:
         self.selected = index
         attack = self.field.assets.animations['clips']['attack']
         self.attack_frames = attack['frames']
-        if index == UPPER_ATTACK:
-            self.upper_prep_duration = self.attack_frames[UPPER_PREP_FRAMES]['time']
-            self.attack_duration = 2 * self.upper_prep_duration + UPPER_HIGHLIGHT_SECONDS
-            self.impact_time = WALK_SECONDS + self.upper_prep_duration
+        if index in SLASH_ATTACKS:
+            self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
+            self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
+            self.impact_time = WALK_SECONDS + self.slash_prep_duration
         else:
             hit_frame = min(int(frame) for frame in self.field.assets.attack_hitboxes['frames'])
             self.attack_duration = attack['duration']
@@ -171,7 +175,7 @@ class MeleeScene:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(HIT_DAMAGE)
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
-            if self.selected == UPPER_ATTACK:
+            if self.selected in SLASH_ATTACKS:
                 # Render the contact frame even if a slow update crossed its start.
                 self.attack_elapsed = self.impact_time
                 if not self.attack_blocked:
@@ -185,29 +189,29 @@ class MeleeScene:
             else:
                 self.start_enemy_turn()
 
-    def upper_impact_strength(self):
+    def slash_impact_strength(self):
         if (self.attack_elapsed is None or self.attack_blocked
-                or self.selected != UPPER_ATTACK or self.attack_elapsed < self.impact_time):
+                or self.selected not in SLASH_ATTACKS or self.attack_elapsed < self.impact_time):
             return 0.0
-        return max(0.0, 1 - (self.attack_elapsed - self.impact_time) / UPPER_RECOIL_SECONDS)
+        return max(0.0, 1 - (self.attack_elapsed - self.impact_time) / SLASH_RECOIL_SECONDS)
 
-    def upper_attack_time(self, time):
-        if time < self.upper_prep_duration - 1e-8:
+    def slash_attack_time(self, time):
+        if time < self.slash_prep_duration - 1e-8:
             return time
-        recovery = time - self.upper_prep_duration - UPPER_HIGHLIGHT_SECONDS
+        recovery = time - self.slash_prep_duration - SLASH_HIGHLIGHT_SECONDS
         if recovery < -1e-8:
-            return self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
+            return None
         # Sample just below the next frame boundary so the first reverse pose is frame 6.
-        return max(0.0, self.upper_prep_duration - recovery - 1e-6)
+        return max(0.0, self.slash_prep_duration - recovery - 1e-6)
 
-    def upper_zoom(self):
-        if self.attack_elapsed is None or self.selected != UPPER_ATTACK:
+    def slash_zoom(self):
+        if self.attack_elapsed is None or self.selected not in SLASH_ATTACKS:
             return 1.0
         elapsed = self.attack_elapsed - self.impact_time
-        if not 0 <= elapsed < UPPER_HIGHLIGHT_SECONDS:
+        if not 0 <= elapsed < SLASH_HIGHLIGHT_SECONDS:
             return 1.0
-        release = min(1.0, (UPPER_HIGHLIGHT_SECONDS - elapsed) / .10)
-        return 1 + UPPER_ZOOM_FACTOR * release**2
+        release = min(1.0, (SLASH_HIGHLIGHT_SECONDS - elapsed) / .10)
+        return 1 + SLASH_ZOOM_FACTOR * release**2
 
     def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
@@ -219,7 +223,7 @@ class MeleeScene:
             return
         pose = self.slime_pose
         pose.x, pose.y, pose.frame, pose.facing, pose.scale = SLIME_HOME_X, FLOOR, 0, -1, 2
-        pose.x += UPPER_RECOIL_PIXELS * self.upper_impact_strength() ** 2
+        pose.x += SLASH_RECOIL_PIXELS * self.slash_impact_strength() ** 2
         attack_elapsed = None
         if self.enemy_elapsed is not None:
             elapsed = self.enemy_elapsed
@@ -264,14 +268,24 @@ class MeleeScene:
             clip, time, facing = 'walk', elapsed, 1
             x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
         elif elapsed < WALK_SECONDS + self.attack_duration:
-            clip = 'attack' if self.selected == UPPER_ATTACK else 'idle'
+            clip = 'attack' if self.selected in SLASH_ATTACKS else 'idle'
             time, x, facing = elapsed - WALK_SECONDS, STRIKE_X, 1
-            if self.selected == UPPER_ATTACK:
-                time = self.upper_attack_time(time)
+            if self.selected in SLASH_ATTACKS:
+                time = self.slash_attack_time(time)
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
             x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
         x, y = zoom_point(x, FLOOR, zoom)
+        if time is None:
+            if self.selected == MIDDLE_ATTACK:
+                image = self.middle_slash
+                pivot_x, pivot_y = MIDDLE_SLASH_PIVOT
+                scale = 2 * zoom * SCALE
+                image.draw(round(x * SCALE + (image.w / 2 - pivot_x) * scale),
+                           round((NATIVE_HEIGHT - y) * SCALE - (image.h / 2 - pivot_y) * scale),
+                           round(image.w * scale), round(image.h * scale))
+                return
+            time = self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
         self.field.assets.draw_character(
             clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True)
 
@@ -374,12 +388,12 @@ class MeleeScene:
 
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
-        zoom = self.upper_zoom()
+        zoom = self.slash_zoom()
         x, y = zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
         self.background.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
                              round(width * zoom), round(height * zoom))
         assets = self.field.assets
-        impact = 1.0 if self.player_in_hit_stop() else self.upper_impact_strength()
+        impact = 1.0 if self.player_in_hit_stop() else self.slash_impact_strength()
         if impact:
             drawing.black_overlay(.38 * impact)
         self.draw_mercenary(zoom)
