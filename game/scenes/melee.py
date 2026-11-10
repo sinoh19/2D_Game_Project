@@ -61,6 +61,7 @@ class MeleeScene:
         self.attack_elapsed = None
         self.attack_blocked = False
         self.hit_stop_left = 0.0
+        self.idle_elapsed = 0.0
         self.enemy_direction = None
         self.enemy_elapsed = None
         self.bag_open = False
@@ -141,6 +142,7 @@ class MeleeScene:
             paused = min(dt, self.hit_stop_left)
             self.hit_stop_left -= paused
             dt -= paused
+        self.idle_elapsed += dt
         if self.enemy_elapsed is not None:
             self.update_enemy_attack(dt)
             return
@@ -231,7 +233,7 @@ class MeleeScene:
             return
         elapsed = self.attack_elapsed
         if elapsed is None:
-            clip, time, x, facing = 'idle', 0, HOME_X, 1
+            clip, time, x, facing = 'idle', self.idle_elapsed, HOME_X, 1
         elif elapsed < WALK_SECONDS:
             clip, time, facing = 'walk', elapsed, 1
             x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
