@@ -81,14 +81,31 @@ class CharacterStatus:
             panel((404, y, 554, y + 48), CARD, BORDER)
             panel((412, y + 8, 444, y + 40), (23, 24, 32), (98, 83, 64))
             if index == 0 and item:
-                # A small pixel sword in the starter weapon slot.
-                for step in range(9):
-                    x, blade_y = 421 + step * 2, y + 30 - step * 2
-                    drawing.rectangle((x, blade_y, x + 3, blade_y + 3),
-                                      (151, 160, 174), filled=True)
-                drawing.rectangle((419, y + 29, 421, y + 37), (158, 115, 62), filled=True)
-                drawing.rectangle((417, y + 36, 421, y + 38), (108, 73, 44), filled=True)
+                self.draw_sword_icon(412, y + 8)
             else:
                 drawing.rectangle((424, y + 24, 432, y + 24), MUTED)
             text(resources.normal, 453, y + 13, name)
             text(resources.small, 453, y + 31, item or '빈 슬롯', MUTED)
+
+    @staticmethod
+    def draw_sword_icon(left, top):
+        def pixels(x, y, width, height, color):
+            drawing.rectangle((left + x, top + y, left + x + width - 1,
+                               top + y + height - 1), color, filled=True)
+
+        # Diagonal steel blade with a dark edge and a narrow highlight.
+        for step in range(8):
+            x, y = 11 + step * 2, 17 - step * 2
+            pixels(x - 1, y - 1, 6, 7, (23, 25, 32))
+            pixels(x, y, 4, 5, (86, 102, 120))
+            pixels(x, y, 3, 2, (172, 184, 192))
+        pixels(27, 2, 2, 2, (172, 184, 192))
+
+        # Leather grip and an old brass crossguard.
+        for step in range(4):
+            pixels(5 + step, 27 - step, 4, 3, (94, 66, 51))
+        pixels(4, 27, 3, 3, (154, 111, 59))
+        for step in range(7):
+            pixels(7 + step, 17 + step, 3, 2, (148, 103, 51))
+        pixels(7, 17, 2, 2, (204, 156, 81))
+        pixels(14, 23, 2, 2, (204, 156, 81))
