@@ -174,10 +174,13 @@ class MeleeScene:
                 self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
-                self.player.take_damage(self.enemy.roll_damage())
+                damage, critical = self.enemy.roll_damage()
+                self.player.take_damage(damage)
                 damage = hp_before - self.player.hp
-                self.combat_popup = (f'-{damage}', HOME_X, FLOOR - 109, 0.0)
-                self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{damage}')
+                label = f'-{damage}!' if critical else f'-{damage}'
+                self.combat_popup = (label, HOME_X, FLOOR - 109, 0.0)
+                result = '치명타!' if critical else '명중'
+                self.record(f'슬라임 {direction} 공격 {result}  ·  용병 HP -{damage}')
                 self.enemy_elapsed = SLIME_IMPACT_TIME
                 self.hit_stop_left = IMPACT_HIT_STOP
                 return
@@ -216,7 +219,8 @@ class MeleeScene:
             self.debug_critical_pending = False
             if self.attack_blocked:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
-            elif not force_critical and randrange(200) < self.enemy.agility:
+            elif (not force_critical
+                  and randrange(1000) < min(250, 5 * self.enemy.agility + self.enemy.luck)):
                 self.player_attack_evaded = True
                 self.combat_popup = ('MISS', SLIME_HOME_X, FLOOR - 58, 0.0)
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
