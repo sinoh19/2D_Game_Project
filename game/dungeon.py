@@ -267,7 +267,7 @@ class Knight(Vitals):
         self.strength = 8
         self.agility = 8
         self.intelligence = 3
-        self.luck = 8
+        self.luck = 5
         self.weapon = STARTER_SWORD
         self.armor = None
         self.accessory = None
