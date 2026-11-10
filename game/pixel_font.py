@@ -1,4 +1,6 @@
 """Rasterize text at native resolution, then enlarge by the integer display scale."""
+import ctypes
+
 import pico2d as p2d
 from pico2d import pico2d as backend
 from game.config import SCALE
@@ -9,6 +11,13 @@ class PixelFont:
         self.font=p2d.TTF_OpenFont(str(path).encode('utf-8'),size)
         if not self.font:
             raise OSError('한글 폰트 열기 실패')
+
+    def measure(self, message):
+        width, height = ctypes.c_int(), ctypes.c_int()
+        if p2d.TTF_SizeUTF8(self.font, message.encode('utf-8'),
+                           ctypes.byref(width), ctypes.byref(height)) != 0:
+            raise RuntimeError('글씨 크기 계산 실패')
+        return width.value, height.value
 
     def draw(self,x,y,message,color=(240,231,207)):
         if not message:
