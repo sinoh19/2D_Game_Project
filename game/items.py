@@ -65,9 +65,11 @@ class DroppedItem:
             self.feet = next_feet
 
     def draw(self, icon, camera):
+        size = 22 if self.item_id == SWORD else 14
+        center_y = self.feet - (size / 2 - 1)
         p2d.SDL_SetTextureColorMod(icon.texture, 176, 196, 202)
         try:
-            icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - (self.feet - 6) * SCALE,
-                      14 * SCALE, 14 * SCALE)
+            icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - center_y * SCALE,
+                      size * SCALE, size * SCALE)
         finally:
             p2d.SDL_SetTextureColorMod(icon.texture, 255, 255, 255)
