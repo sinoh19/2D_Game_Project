@@ -29,6 +29,7 @@ SLASH_HIGHLIGHT_SECONDS = .20
 SLASH_ZOOM_FACTOR = .18
 SLASH_ZOOM_FOCUS = (388, 194)
 IMPACT_HIT_STOP = .075
+MIDDLE_HIGHLIGHT_STOP = .16
 MERCENARY_HIT_POSE_TAIL = .075
 SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
@@ -178,7 +179,9 @@ class MeleeScene:
             if self.selected in SLASH_ATTACKS:
                 # Render the contact frame even if a slow update crossed its start.
                 self.attack_elapsed = self.impact_time
-                if not self.attack_blocked:
+                if self.selected == MIDDLE_ATTACK:
+                    self.hit_stop_left = MIDDLE_HIGHLIGHT_STOP
+                elif not self.attack_blocked:
                     self.hit_stop_left = IMPACT_HIT_STOP
                 return
 
@@ -398,7 +401,7 @@ class MeleeScene:
             drawing.black_overlay(.38 * impact)
         self.draw_mercenary(zoom)
         self.draw_slime(assets.slime_art, zoom)
-        if self.hit_stop_left > 0:
+        if self.hit_stop_left > 0 and (self.player_in_hit_stop() or not self.attack_blocked):
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
                     else (SLIME_HOME_X - 13, FLOOR - 26))
