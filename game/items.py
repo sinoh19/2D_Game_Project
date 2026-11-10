@@ -120,7 +120,8 @@ class DroppedItem:
         size = 22 if isinstance(ITEMS[self.item_id], Equipment) else 14
         hover = 5 + round(2 * sin(tau * elapsed / 1.4)) if self.grounded else 0
         center_y = self.feet - (size / 2 - 1) - hover
-        p2d.SDL_SetTextureColorMod(icon.texture, 176, 196, 202)
+        tint = (145, 145, 145) if self.item_id in RING_IDS else (176, 196, 202)
+        p2d.SDL_SetTextureColorMod(icon.texture, *tint)
         try:
             icon.draw((self.x - camera) * SCALE, WINDOW_HEIGHT - center_y * SCALE,
                       size * SCALE, size * SCALE)
