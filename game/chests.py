@@ -1,4 +1,4 @@
-"""Field treasure chests and their one-shot potion drops."""
+"""Field treasure chests and their opening animation."""
 import pico2d as p2d
 
 from game import drawing
@@ -7,27 +7,21 @@ from game.config import ASSETS, SCALE, WINDOW_HEIGHT
 FRAME_SIZE = 44
 FRAME_COUNT = 4
 OPEN_TIME = .4
-DROP_TIME = .55
 
 
 class TreasureChest:
     def __init__(self, spec, opened):
         self.id, self.x, self.y = spec
-        self.elapsed = OPEN_TIME + DROP_TIME if opened else None
+        self.elapsed = OPEN_TIME if opened else None
 
-    def draw(self, sheet, potion, camera):
+    def draw(self, sheet, camera):
         elapsed = self.elapsed or 0.0
         frame = min(FRAME_COUNT - 1, int(elapsed * FRAME_COUNT / OPEN_TIME))
         sheet.clip_draw(frame * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE,
                         (self.x - camera) * SCALE,
                         WINDOW_HEIGHT - (self.y - 21) * SCALE,
                         FRAME_SIZE * SCALE, FRAME_SIZE * SCALE)
-        if elapsed >= OPEN_TIME:
-            progress = min(1.0, (elapsed - OPEN_TIME) / DROP_TIME)
-            x = self.x + 12 * progress
-            feet = self.y - 21 * (1 - progress) - 104 * progress * (1 - progress)
-            potion.draw((x - camera) * SCALE, WINDOW_HEIGHT - (feet - 8) * SCALE,
-                        18 * SCALE, 18 * SCALE)
+
 
 
 class TreasureChests:
@@ -41,7 +35,6 @@ class TreasureChests:
         self.chests = [TreasureChest(spec, spec[0] in opened) for spec in field.layout.get('chests', [])]
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
-            self.potion = p2d.load_image(str(ASSETS / 'dungeon' / 'items' / 'health-potion.png'))
 
     def nearby(self):
         player = self.field.player
@@ -61,7 +54,7 @@ class TreasureChests:
     def update(self, dt):
         for chest in self.chests:
             if chest.elapsed is not None:
-                chest.elapsed = min(OPEN_TIME + DROP_TIME, chest.elapsed + dt)
+                chest.elapsed = min(OPEN_TIME, chest.elapsed + dt)
 
     def save(self):
         if self.chests:
@@ -71,7 +64,7 @@ class TreasureChests:
     def draw(self, camera):
         for chest in self.chests:
             if camera - FRAME_SIZE <= chest.x <= camera + self.field.view_width + FRAME_SIZE:
-                chest.draw(self.sheet, self.potion, camera)
+                chest.draw(self.sheet, camera)
 
     def draw_hint(self, camera):
         chest = self.nearby()
