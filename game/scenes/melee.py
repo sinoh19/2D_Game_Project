@@ -78,6 +78,7 @@ class MeleeScene:
             self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.attack_blocked = False
+        self.player_attack_evaded = False
         self.hit_stop_left = 0.0
         self.idle_elapsed = 0.0
         self.combat_popup = None
@@ -125,6 +126,7 @@ class MeleeScene:
         self.hit_stop_left = 0.0
         self.pointer = None
         self.attack_blocked = index == randrange(len(DIRECTIONS))
+        self.player_attack_evaded = False
         self.record(f'{DIRECTIONS[index]} 공격!')
 
     def start_enemy_turn(self):
@@ -199,6 +201,10 @@ class MeleeScene:
         if previous < self.impact_time <= self.attack_elapsed:
             if self.attack_blocked:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
+            elif randrange(200) < self.enemy.agility:
+                self.player_attack_evaded = True
+                self.combat_popup = ('MISS', SLIME_HOME_X, FLOOR - 58, 0.0)
+                self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(roll_physical_damage(self.player.strength))
@@ -207,7 +213,7 @@ class MeleeScene:
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{damage}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
-            if not self.attack_blocked:
+            if not self.attack_blocked and not self.player_attack_evaded:
                 self.hit_stop_left = IMPACT_HIT_STOP
             return
 
@@ -219,7 +225,7 @@ class MeleeScene:
                 self.start_enemy_turn()
 
     def slash_impact_strength(self):
-        if (self.attack_elapsed is None or self.attack_blocked
+        if (self.attack_elapsed is None or self.attack_blocked or self.player_attack_evaded
                 or self.attack_elapsed < self.impact_time):
             return 0.0
         return max(0.0, 1 - (self.attack_elapsed - self.impact_time) / SLASH_RECOIL_SECONDS)
@@ -235,6 +241,8 @@ class MeleeScene:
 
     def impact_zoom(self):
         if self.attack_elapsed is not None:
+            if self.player_attack_evaded:
+                return 1.0
             elapsed = self.attack_elapsed - self.impact_time
         elif (self.enemy_elapsed is not None and self.selected != self.enemy_direction
               and not self.enemy_attack_evaded):
@@ -252,9 +260,13 @@ class MeleeScene:
 
     def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
+        alpha = 255
         if self.attack_elapsed is not None:
             elapsed_since_hit = self.attack_elapsed - self.impact_time
-            if 0 <= elapsed_since_hit < art.HIT_DURATION:
+            if self.player_attack_evaded:
+                progress = min(1.0, elapsed_since_hit / DODGE_FADE_SECONDS)
+                alpha = round(105 + 150 * progress)
+            elif 0 <= elapsed_since_hit < art.HIT_DURATION:
                 hit_elapsed = elapsed_since_hit
         if self.enemy.hp == 0 and hit_elapsed is None:
             return
@@ -288,7 +300,7 @@ class MeleeScene:
         pose.x, pose.y = self.zoom_point(pose.x, pose.y, zoom)
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
-                 attack_elapsed=attack_elapsed, guarded=self.attack_blocked)
+                 attack_elapsed=attack_elapsed, guarded=self.attack_blocked, alpha=alpha)
 
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
