@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pico2d as p2d
 
 from game import drawing
-from game.combat import roll_physical_damage
+from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
@@ -163,8 +163,9 @@ class MeleeScene:
             force_dodge = self.debug_dodge_pending
             self.debug_dodge_pending = False
             guarded = self.selected == self.enemy_direction
-            if force_dodge or (not guarded and self.player.agility > 0
-                               and randrange(200) < self.player.agility):
+            dodge_weight = min(250, 5 * self.player.agility + self.player.luck)
+            if force_dodge or (not guarded and dodge_weight > 0
+                               and randrange(1000) < dodge_weight):
                 self.enemy_attack_evaded = True
                 self.combat_popup = ('MISS', HOME_X, FLOOR - 109, 0.0)
                 self.record(f'슬라임 {direction} 공격 회피  ·  피해 0')
@@ -218,10 +219,13 @@ class MeleeScene:
                 self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
-                self.enemy.take_damage(roll_physical_damage(self.player.strength))
+                damage, critical = roll_player_damage(self.player.strength, self.player.luck)
+                self.enemy.take_damage(damage)
                 damage = hp_before - self.enemy.hp
-                self.combat_popup = (f'-{damage}', SLIME_HOME_X, FLOOR - 58, 0.0)
-                self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{damage}')
+                label = f'CRIT -{damage}' if critical else f'-{damage}'
+                self.combat_popup = (label, SLIME_HOME_X, FLOOR - 58, 0.0)
+                result = '치명타!' if critical else '공격 성공!'
+                self.record(f'{DIRECTIONS[self.selected]} {result}  슬라임 HP -{damage}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
             if not self.attack_blocked and not self.player_attack_evaded:
@@ -493,6 +497,8 @@ class MeleeScene:
             x, y = self.zoom_point(x, y - 20 * progress, zoom)
             alpha = round(255 * min(1.0, (1 - progress) / .75))
             color = (195, 226, 255) if label == 'MISS' else (255, 139, 108)
+            if label.startswith('CRIT'):
+                color = (255, 212, 103)
             centered(normal, x + 1, y + 1, label, (32, 20, 24, alpha))
             centered(normal, x, y, label, (*color, alpha))
         for speed, bounds in SPEED_BUTTONS:
