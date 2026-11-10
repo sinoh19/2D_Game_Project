@@ -16,6 +16,7 @@ from game.pixel_style import simplify
 
 DIRECTIONS = ('상단', '중단', '하단')
 BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
+SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
 HOME_X = 215
@@ -169,7 +170,7 @@ class MeleeScene:
                 self.record('용병이 쓰러졌다!')
 
     def update(self, dt):
-        dt = max(0.0, dt)
+        dt = max(0.0, dt) * self.app.battle_speed
         if self.hit_stop_left > 0:
             paused = min(dt, self.hit_stop_left)
             self.hit_stop_left -= paused
@@ -403,7 +404,12 @@ class MeleeScene:
             x, y = event.x / SCALE, event.y / SCALE
             if self.bag_open:
                 self.click_bag(x, y)
-            elif drawing.contains(ITEM_BUTTON, x, y) and self.can_choose():
+                return
+            for speed, bounds in SPEED_BUTTONS:
+                if drawing.contains(bounds, x, y):
+                    self.app.battle_speed = speed
+                    return
+            if drawing.contains(ITEM_BUTTON, x, y) and self.can_choose():
                 self.bag_open = True
                 self.item_selection = None
                 if not any(self.field.inventory.bag):
@@ -463,6 +469,13 @@ class MeleeScene:
                                   (255, 221, 165), filled=True)
 
         small, normal = self.app.resources.small, self.app.resources.normal
+        for speed, bounds in SPEED_BUTTONS:
+            left, top, right, bottom = bounds
+            selected = self.app.battle_speed == speed
+            highlighted = selected or (not self.bag_open and self.hovered(bounds))
+            panel(bounds, (67, 48, 35) if selected else (30, 33, 44),
+                  GOLD if highlighted else (76, 75, 86))
+            centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         drawing.text(small, 20, 29, f'용병 HP {self.player.hp} / {self.player.max_hp}')
         centered(small, 320, 29, '근접 전투')
         drawing.text(small, 514, 29, f'슬라임 HP {self.enemy.hp} / {self.enemy.max_hp}')

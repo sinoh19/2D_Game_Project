@@ -31,6 +31,7 @@ class App:
         selected_map = Path(map_path) if map_path else DEFAULT_TILED_MAP
         self.map_path = selected_map.resolve() if selected_map.is_absolute() else (ROOT/selected_map).resolve()
         self.animation = self.storage.animation_enabled()
+        self.battle_speed = 1
         self.running = True
         self.debug_skip_hovered = False
         self.scene = None
