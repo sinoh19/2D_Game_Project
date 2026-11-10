@@ -19,6 +19,10 @@ FLOOR = 245
 HOME_X = 215
 STRIKE_X = 350
 WALK_SECONDS = .55
+UPPER_ATTACK = 0
+UPPER_HIT_STOP = .075
+UPPER_RECOIL_SECONDS = .24
+UPPER_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
 ITEM_BUTTON = (471, 292, 603, 328)
 LOG_ROWS = 3
@@ -54,6 +58,7 @@ class MeleeScene:
         self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.attack_blocked = False
+        self.hit_stop_left = 0.0
         self.enemy_direction = None
         self.enemy_elapsed = None
         self.bag_open = False
@@ -87,6 +92,7 @@ class MeleeScene:
             return
         self.selected = index
         self.attack_elapsed = 0.0
+        self.hit_stop_left = 0.0
         self.pointer = None
         self.attack_blocked = index == randrange(len(DIRECTIONS))
         self.record(f'{DIRECTIONS[index]} 공격!')
@@ -130,6 +136,10 @@ class MeleeScene:
             return
         if self.attack_elapsed is None:
             return
+        if self.hit_stop_left > 0:
+            paused = min(dt, self.hit_stop_left)
+            self.hit_stop_left -= paused
+            dt -= paused
         previous = self.attack_elapsed
         self.attack_elapsed += dt
         if previous < self.impact_time <= self.attack_elapsed:
@@ -139,6 +149,11 @@ class MeleeScene:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(HIT_DAMAGE)
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
+                if self.selected == UPPER_ATTACK:
+                    # Present the exact contact pose before advancing the recovery.
+                    self.attack_elapsed = self.impact_time
+                    self.hit_stop_left = UPPER_HIT_STOP
+                    return
 
         if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
             self.attack_elapsed = None
@@ -146,6 +161,12 @@ class MeleeScene:
                 self.record('슬라임을 쓰러뜨렸다!')
             else:
                 self.start_enemy_turn()
+
+    def upper_impact_strength(self):
+        if (self.attack_elapsed is None or self.attack_blocked
+                or self.selected != UPPER_ATTACK or self.attack_elapsed < self.impact_time):
+            return 0.0
+        return max(0.0, 1 - (self.attack_elapsed - self.impact_time) / UPPER_RECOIL_SECONDS)
 
     def draw_slime(self, art):
         hit_elapsed = None
@@ -157,6 +178,7 @@ class MeleeScene:
             return
         pose = self.slime_pose
         pose.x, pose.y, pose.frame, pose.facing = SLIME_HOME_X, FLOOR, 0, -1
+        pose.x += UPPER_RECOIL_PIXELS * self.upper_impact_strength() ** 2
         attack_elapsed = None
         if self.enemy_elapsed is not None:
             elapsed = self.enemy_elapsed
@@ -192,7 +214,8 @@ class MeleeScene:
             clip, time, facing = 'walk', elapsed, 1
             x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
         elif elapsed < WALK_SECONDS + self.attack_duration:
-            clip, time, x, facing = 'attack', elapsed - WALK_SECONDS, STRIKE_X, 1
+            clip = 'attack' if self.selected == UPPER_ATTACK else 'idle'
+            time, x, facing = elapsed - WALK_SECONDS, STRIKE_X, 1
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
             x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
@@ -300,8 +323,18 @@ class MeleeScene:
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
         self.background.draw(width // 2, height // 2, width, height)
         assets = self.field.assets
+        impact = self.upper_impact_strength()
+        if impact:
+            drawing.black_overlay(.38 * impact)
         self.draw_mercenary()
         self.draw_slime(assets.slime_art)
+        if self.hit_stop_left > 0:
+            # Stepped highlight at the point of contact, on the logical pixel grid.
+            x, y = SLIME_HOME_X - 13, FLOOR - 26
+            for step in range(5):
+                drawing.rectangle((x + 3 * step, y + 3 * step,
+                                   x + 3 * step + 4, y + 3 * step + 2),
+                                  (255, 221, 165), filled=True)
 
         small, normal = self.app.resources.small, self.app.resources.normal
         drawing.text(small, 20, 29, f'용병 HP {self.player.hp} / {self.player.max_hp}')
