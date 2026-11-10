@@ -23,8 +23,13 @@ GOLD = (190, 145, 82)
 ITEM_BUTTON = (471, 292, 603, 328)
 LOG_ROWS = 3
 USE_BUTTON = (359, 228, 429, 252)
+SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
-SLIME_ATTACK_DURATION = .9
+SLIME_LAND_TIME = .62
+SLIME_RETURN_TIME = .70
+SLIME_ATTACK_DURATION = 1.40
+SLIME_IMPACT_HEIGHT = 24
+SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
 
@@ -151,21 +156,31 @@ class MeleeScene:
         if self.enemy.hp == 0 and hit_elapsed is None:
             return
         pose = self.slime_pose
-        pose.x, pose.frame, pose.facing = SLIME_HOME_X, 0, -1
+        pose.x, pose.y, pose.frame, pose.facing = SLIME_HOME_X, FLOOR, 0, -1
         attack_elapsed = None
         if self.enemy_elapsed is not None:
             elapsed = self.enemy_elapsed
-            if elapsed < art.ATTACK_DURATION:
-                attack_elapsed = elapsed
-                # Compress in place, then accelerate into the impact frame.
-                progress = min(1.0, max(0.0, (elapsed - .08) / (SLIME_IMPACT_TIME - .08)))
-                pose.x += (SLIME_STRIKE_X - SLIME_HOME_X) * progress**2
+            if elapsed < SLIME_RETURN_TIME:
+                attack_elapsed = min(1.0, elapsed / SLIME_LAND_TIME) * art.ATTACK_DURATION
+                if elapsed < SLIME_IMPACT_TIME:
+                    flight = max(0.0, (elapsed - SLIME_LAUNCH_TIME)
+                                 / (SLIME_IMPACT_TIME - SLIME_LAUNCH_TIME))
+                    pose.x += (SLIME_STRIKE_X - SLIME_HOME_X) * flight
+                    height = SLIME_IMPACT_HEIGHT * flight + 4 * SLIME_ARC_HEIGHT * flight * (1 - flight)
+                else:
+                    pose.x = SLIME_STRIKE_X
+                    fall = min(1.0, (elapsed - SLIME_IMPACT_TIME) / (SLIME_LAND_TIME - SLIME_IMPACT_TIME))
+                    height = SLIME_IMPACT_HEIGHT * (1 - fall**2)
+                pose.y -= height
             else:
-                retreat = elapsed - art.ATTACK_DURATION
-                progress = retreat / (SLIME_ATTACK_DURATION - art.ATTACK_DURATION)
+                retreat = elapsed - SLIME_RETURN_TIME
+                progress = retreat / (SLIME_ATTACK_DURATION - SLIME_RETURN_TIME)
                 pose.x = SLIME_STRIKE_X + (SLIME_HOME_X - SLIME_STRIKE_X) * progress
                 pose.facing = 1
-                pose.frame = int(retreat * art.motion['fps'] * 2) % art.motion['frameCount']
+                motion = art.motion
+                pose.frame = int(retreat * motion['fps'] * 2) % motion['frameCount']
+                # Keep each return frame's actual foot edge on the floor.
+                pose.y += (motion['pivot'][1] - motion['frames'][pose.frame]['footY']) * pose.scale
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed)
 
