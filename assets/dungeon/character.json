@@ -4,7 +4,8 @@
     "walk": "native640/character/walk.png",
     "jump": "native640/character/jump.png",
     "attack": "native640/character/attack.png",
-    "dash": "native640/character/dash.png"
+    "dash": "native640/character/dash.png",
+    "pickup": "native640/character/pickup.png"
   },
   "clips": {
     "idle": {
@@ -757,6 +758,130 @@
         }
       ],
       "duration": 0.5,
+      "loop": false
+    },
+    "pickup": {
+      "sheet": "pickup",
+      "frames": [
+        {
+          "rect": [
+            0,
+            128,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.0
+        },
+        {
+          "rect": [
+            80,
+            128,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.0625
+        },
+        {
+          "rect": [
+            160,
+            128,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.125
+        },
+        {
+          "rect": [
+            0,
+            64,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.1875
+        },
+        {
+          "rect": [
+            80,
+            64,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.25
+        },
+        {
+          "rect": [
+            160,
+            64,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.3125
+        },
+        {
+          "rect": [
+            0,
+            0,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.375
+        },
+        {
+          "rect": [
+            80,
+            0,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.4375
+        },
+        {
+          "rect": [
+            160,
+            0,
+            80,
+            64
+          ],
+          "pivot": [
+            40,
+            6
+          ],
+          "time": 0.5
+        }
+      ],
+      "duration": 0.5625,
       "loop": false
     }
   }

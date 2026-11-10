@@ -9,6 +9,7 @@ from game.enemies import Slime
 from game.combat import resolve_encounter
 from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
+from game.items import ITEMS
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -40,6 +41,7 @@ class FieldScene:
         self.chests = TreasureChests(self, restore=not new_game)
         self.inventory = FieldInventory(self)
         self.dropped_items = []
+        self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
@@ -124,6 +126,8 @@ class FieldScene:
                     self.player.dash(self.movement_direction())
                 elif key == p2d.SDLK_c:
                     self.player.attack()
+                elif key == p2d.SDLK_z:
+                    self.start_pickup()
                 elif key == p2d.SDLK_i:
                     self.keys.intersection_update({key})
                     self.inventory.open()
@@ -134,6 +138,39 @@ class FieldScene:
                         self.passages.interact()
         elif event.type == p2d.SDL_KEYUP:
             self.keys.discard(event.key)
+
+    def start_pickup(self):
+        if self.player.pickup_time is not None:
+            return
+        nearby = [item for item in self.dropped_items if item.grounded
+                  and abs(item.x - self.x) <= 24 and abs(item.feet - self.y) <= 12]
+        target = min(nearby, key=lambda item: abs(item.x - self.x), default=None)
+        if target is None:
+            return
+        if None not in self.inventory.bag:
+            self.map_notice = '가방에 빈 슬롯이 없습니다.'
+            self.map_notice_time = 2.0
+        elif self.player.start_pickup(target.x):
+            self.pickup_target = target
+
+    def update_pickup(self, dt):
+        if self.player.pickup_time is None:
+            self.pickup_target = None
+            return
+        self.player.pickup_time += dt
+        clip = self.assets.animations['clips']['pickup']
+        target = self.pickup_target
+        if target is not None and self.player.pickup_time >= clip['frames'][4]['time']:
+            self.pickup_target = None
+            bag = self.inventory.bag
+            if target in self.dropped_items and target.grounded and None in bag:
+                bag[bag.index(None)] = target.item_id
+                self.dropped_items.remove(target)
+                self.chests.save()
+                self.map_notice = f'획득  ·  {ITEMS[target.item_id].name}'
+                self.map_notice_time = 2.0
+        if self.player.pickup_time >= clip['duration']:
+            self.player.pickup_time = None
 
     def update(self, dt):
         if self.encounter is not None or self.inventory.is_open:
@@ -153,6 +190,7 @@ class FieldScene:
         direction = self.movement_direction()
         for _ in range(steps):
             self.player.step(dt/steps, direction)
+            self.update_pickup(dt/steps)
             for enemy in self.enemies:
                 enemy.update(dt/steps, self)
             if resolve_encounter(self):
@@ -181,7 +219,7 @@ class FieldScene:
         drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   I 가방   F6 맵 새로고침   ESC 저장/메인')
+                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   Z 줍기   I 가방   F6 맵 갱신   ESC 저장/메인')
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))

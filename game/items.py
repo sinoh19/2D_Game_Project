@@ -27,12 +27,13 @@ def heal(player):
 ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal)}
 
 
-@dataclass
+@dataclass(eq=False)
 class DroppedItem:
     item_id: str
     x: float
     feet: float
     velocity: float = 0.0
+    grounded: bool = False
 
     def update(self, dt, field):
         self.velocity = min(350.0, self.velocity + 640 * dt)
@@ -41,7 +42,8 @@ class DroppedItem:
                     if left <= self.x <= right]
         surfaces.extend(slope_surfaces(field, self.x, 0))
         landing = min((y for y in surfaces if self.feet <= y <= next_feet), default=None)
-        if landing is not None:
+        self.grounded = landing is not None
+        if self.grounded:
             self.feet = landing
             self.velocity = 0.0
         else:
