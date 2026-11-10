@@ -63,7 +63,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertEqual((self.player.hp,self.enemy.hp),(100,20))
         self.attack()
         self.assertIsInstance(self.app.scene,MeleeScene)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,10))
         self.assertEqual(self.app.scene.cause,'player_attack')
 
     def test_one_hit_only_and_field_stops(self):
@@ -71,7 +71,7 @@ class MeleeEntryTests(unittest.TestCase):
         for _ in range(30):
             self.field.update(.1);self.app.scene.update(.1)
             resolve_encounter(self.field)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,10))
         self.assertEqual(positions,(self.player.x,self.enemy.x,self.enemy.time))
         self.assertFalse(self.field.keys)
 
@@ -93,7 +93,7 @@ class MeleeEntryTests(unittest.TestCase):
     def test_active_sword_wins_simultaneous_contact(self):
         self.player.x=710;self.player.attack_time=.8
         self.field.update(1/60)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,10))
 
     def test_wall_blocks_opening_attack(self):
         self.field.passages.base_solids.append([717,230,719,288])
@@ -132,7 +132,7 @@ class MeleeEntryTests(unittest.TestCase):
         for _ in range(3):
             self.field.update(1/60)
             if self.field.encounter:break
-        self.assertEqual(self.enemy.hp,13)
+        self.assertEqual(self.enemy.hp,10)
         self.assertIsInstance(self.app.scene,MeleeTransitionScene)
         self.assertEqual(self.app.scene.phase,'freeze')
         self.assertTrue(.79<=self.player.attack_time<1)
