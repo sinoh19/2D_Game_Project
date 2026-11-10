@@ -189,6 +189,26 @@ class DungeonAssets:
             for name in names
         }
 
+    @cached_property
+    def mercenary_hit(self):
+        return p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit.png'))
+
+    def draw_mercenary_hit(self, x, feet, facing, camera, *, actor_scale=None):
+        sprite = self.mercenary_hit
+        actor_scale = self.character_scale if actor_scale is None else actor_scale
+        pivot_x, pivot_y = 40, 58
+        center_x = x - camera + (sprite.w / 2 - pivot_x) * facing * actor_scale
+        center_y = feet + (sprite.h / 2 - pivot_y) * actor_scale
+        p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
+        try:
+            sprite.clip_composite_draw(
+                0, 0, sprite.w, sprite.h, 0, 'h' if facing < 0 else '',
+                round(center_x * self.scale), round(WINDOW_HEIGHT - center_y * self.scale),
+                round(sprite.w * actor_scale * self.scale),
+                round(sprite.h * actor_scale * self.scale))
+        finally:
+            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+
     def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None, melee_detail=False):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']

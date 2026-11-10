@@ -37,7 +37,6 @@ SLIME_IMPACT_HEIGHT = 24
 SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
-MERCENARY_HIT_PIVOT = (40, 58)
 
 
 def centered(font, x, y, label):
@@ -73,7 +72,6 @@ class MeleeScene:
         self.impact_time = WALK_SECONDS + attack['frames'][hit_frame]['time']
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
-        self.mercenary_hit = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit.png'))
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
     def record(self, message):
@@ -220,16 +218,7 @@ class MeleeScene:
     def draw_mercenary(self):
         if (self.enemy_elapsed is not None and self.selected != self.enemy_direction
                 and SLIME_IMPACT_TIME <= self.enemy_elapsed < SLIME_IMPACT_TIME + MERCENARY_HIT_POSE_TAIL):
-            sprite = self.mercenary_hit
-            pivot_x, pivot_y = MERCENARY_HIT_PIVOT
-            x = HOME_X + (sprite.w / 2 - pivot_x) * 2
-            y = FLOOR + (sprite.h / 2 - pivot_y) * 2
-            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
-            try:
-                sprite.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
-                            sprite.w * 2 * SCALE, sprite.h * 2 * SCALE)
-            finally:
-                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+            self.field.assets.draw_mercenary_hit(HOME_X, FLOOR, 1, 0, actor_scale=2)
             return
         elapsed = self.attack_elapsed
         if elapsed is None:

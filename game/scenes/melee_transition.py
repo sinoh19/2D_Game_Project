@@ -75,7 +75,7 @@ class MeleeTransitionScene:
                 self.source.draw(hit_enemy=self.destination.enemy,
                                  hit_elapsed=max(0.0, self.elapsed - self.hold_seconds))
             else:
-                self.source.draw()
+                self.source.draw(hit_by=self.destination.enemy)
         else:
             self.destination.draw()
         if phase in ('freeze','done'):return
