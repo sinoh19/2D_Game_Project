@@ -22,7 +22,7 @@ class PixelFont:
     def draw(self,x,y,message,color=(240,231,207)):
         if not message:
             return
-        surface=p2d.TTF_RenderUTF8_Blended(self.font,message.encode('utf-8'),p2d.SDL_Color(*color,255))
+        surface=p2d.TTF_RenderUTF8_Blended(self.font,message.encode('utf-8'),p2d.SDL_Color(*color[:3],255))
         if not surface:
             raise RuntimeError('글씨 렌더링 실패')
         try:
@@ -32,6 +32,8 @@ class PixelFont:
         if not texture:
             raise RuntimeError('글씨 텍스처 생성 실패')
         image=p2d.Image(texture)
+        if len(color) == 4:
+            p2d.SDL_SetTextureAlphaMod(texture, color[3])
         image.draw(x+image.w*SCALE/2,y,image.w*SCALE,image.h*SCALE)
 
     def close(self):

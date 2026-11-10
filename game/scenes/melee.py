@@ -15,6 +15,7 @@ from game.loot_ui import panel, slots
 from game.pixel_style import simplify
 
 DIRECTIONS = ('상단', '중단', '하단')
+DAMAGE_NUMBER_SECONDS = .85
 BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
@@ -54,11 +55,11 @@ SLIME_ZOOM_FOCUS = ((HOME_X + SLIME_STRIKE_X) / 2, FLOOR - 51)
 GUARD_PULSE_SECONDS = .12
 
 
-def centered(font, x, y, label):
+def centered(font, x, y, label, color=(240, 231, 207)):
     width = ctypes.c_int()
     height = ctypes.c_int()
     p2d.TTF_SizeUTF8(font.font, label.encode('utf-8'), ctypes.byref(width), ctypes.byref(height))
-    drawing.text(font, x - width.value / 2, y, label)
+    drawing.text(font, x - width.value / 2, y, label, color)
 
 
 class MeleeScene:
@@ -79,6 +80,7 @@ class MeleeScene:
         self.attack_blocked = False
         self.hit_stop_left = 0.0
         self.idle_elapsed = 0.0
+        self.damage_number = None
         self.enemy_direction = None
         self.enemy_elapsed = None
         self.bag_open = False
@@ -149,7 +151,9 @@ class MeleeScene:
             else:
                 hp_before = self.player.hp
                 self.player.take_damage(HIT_DAMAGE)
-                self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{hp_before - self.player.hp}')
+                damage = hp_before - self.player.hp
+                self.damage_number = (damage, HOME_X, FLOOR - 109, 0.0)
+                self.record(f'슬라임 {direction} 공격 명중  ·  용병 HP -{damage}')
                 self.enemy_elapsed = SLIME_IMPACT_TIME
                 self.hit_stop_left = IMPACT_HIT_STOP
                 return
@@ -161,6 +165,10 @@ class MeleeScene:
 
     def update(self, dt):
         dt = max(0.0, dt) * self.app.battle_speed
+        if self.damage_number is not None:
+            damage, x, y, elapsed = self.damage_number
+            elapsed += dt
+            self.damage_number = ((damage, x, y, elapsed) if elapsed < DAMAGE_NUMBER_SECONDS else None)
         if self.hit_stop_left > 0:
             paused = min(dt, self.hit_stop_left)
             self.hit_stop_left -= paused
@@ -179,7 +187,9 @@ class MeleeScene:
             else:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(roll_physical_damage(self.player.strength))
-                self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
+                damage = hp_before - self.enemy.hp
+                self.damage_number = (damage, SLIME_HOME_X, FLOOR - 58, 0.0)
+                self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{damage}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
             if not self.attack_blocked:
@@ -452,6 +462,13 @@ class MeleeScene:
                                   (255, 221, 165), filled=True)
 
         small, normal = self.app.resources.small, self.app.resources.normal
+        if self.damage_number is not None:
+            damage, x, y, elapsed = self.damage_number
+            progress = elapsed / DAMAGE_NUMBER_SECONDS
+            x, y = self.zoom_point(x, y - 20 * progress, zoom)
+            alpha = round(255 * min(1.0, (1 - progress) / .75))
+            centered(normal, x + 1, y + 1, f'-{damage}', (32, 20, 24, alpha))
+            centered(normal, x, y, f'-{damage}', (255, 139, 108, alpha))
         for speed, bounds in SPEED_BUTTONS:
             left, top, right, bottom = bounds
             selected = self.app.battle_speed == speed
