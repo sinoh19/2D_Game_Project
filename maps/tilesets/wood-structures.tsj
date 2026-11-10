@@ -25,7 +25,7 @@
     },
     {
       "id": 1,
-      "class": "Decoration",
+      "class": "Platform",
       "image": "images/props/wood-bridge.png",
       "imagewidth": 128,
       "imageheight": 32,
@@ -34,6 +34,11 @@
           "name": "label",
           "type": "string",
           "value": "나무 다리"
+        },
+        {
+          "name": "collisionHeight",
+          "type": "int",
+          "value": 4
         }
       ]
     }
