@@ -50,6 +50,7 @@ SLIME_IMPACT_HEIGHT = 24
 SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
+SLIME_ZOOM_FOCUS = ((HOME_X + SLIME_STRIKE_X) / 2, FLOOR - 51)
 GUARD_PULSE_SECONDS = .12
 
 
@@ -58,11 +59,6 @@ def centered(font, x, y, label):
     height = ctypes.c_int()
     p2d.TTF_SizeUTF8(font.font, label.encode('utf-8'), ctypes.byref(width), ctypes.byref(height))
     drawing.text(font, x - width.value / 2, y, label)
-
-
-def zoom_point(x, y, zoom):
-    focus_x, focus_y = SLASH_ZOOM_FOCUS
-    return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
 
 class MeleeScene:
@@ -212,14 +208,21 @@ class MeleeScene:
         # Sample just below the next frame boundary so the first reverse pose is frame 6.
         return max(0.0, self.slash_prep_duration - recovery - 1e-6)
 
-    def slash_zoom(self):
-        if self.attack_elapsed is None:
+    def impact_zoom(self):
+        if self.attack_elapsed is not None:
+            elapsed = self.attack_elapsed - self.impact_time
+        elif self.enemy_elapsed is not None and self.selected != self.enemy_direction:
+            elapsed = self.enemy_elapsed - SLIME_IMPACT_TIME
+        else:
             return 1.0
-        elapsed = self.attack_elapsed - self.impact_time
         if not 0 <= elapsed < SLASH_HIGHLIGHT_SECONDS:
             return 1.0
         release = min(1.0, (SLASH_HIGHLIGHT_SECONDS - elapsed) / .10)
         return 1 + SLASH_ZOOM_FACTOR * release**2
+
+    def zoom_point(self, x, y, zoom):
+        focus_x, focus_y = SLIME_ZOOM_FOCUS if self.enemy_elapsed is not None else SLASH_ZOOM_FOCUS
+        return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
     def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
@@ -256,12 +259,12 @@ class MeleeScene:
                 pose.frame = int(retreat * motion['fps'] * 2) % motion['frameCount']
                 # Keep each return frame's actual foot edge on the floor.
                 pose.y += (motion['pivot'][1] - motion['frames'][pose.frame]['footY']) * pose.scale
-        pose.x, pose.y = zoom_point(pose.x, pose.y, zoom)
+        pose.x, pose.y = self.zoom_point(pose.x, pose.y, zoom)
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed, guarded=self.attack_blocked)
         if self.attack_blocked and hit_elapsed is not None:
-            x, y = zoom_point(SLIME_HOME_X + 34, FLOOR - 52, zoom)
+            x, y = self.zoom_point(SLIME_HOME_X + 34, FLOOR - 52, zoom)
             self.draw_guard_shield(x, y, hit_elapsed)
 
     def draw_guard_shield(self, x, y, elapsed):
@@ -287,8 +290,9 @@ class MeleeScene:
             guarded = self.selected == self.enemy_direction
             elapsed = since_contact if guarded else since_contact + IMPACT_HIT_STOP - self.hit_stop_left
             if elapsed < MERCENARY_REACTION_DURATION:
-                self.field.assets.draw_mercenary_hit(HOME_X, FLOOR, 1, 0, elapsed,
-                                                     actor_scale=2, guarded=guarded)
+                x, y = self.zoom_point(HOME_X, FLOOR, zoom)
+                self.field.assets.draw_mercenary_hit(x, y, 1, 0, elapsed,
+                                                     actor_scale=2 * zoom, guarded=guarded)
                 if guarded:
                     self.draw_guard_shield(HOME_X - 42, FLOOR - 79, elapsed)
                 return
@@ -304,7 +308,7 @@ class MeleeScene:
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
             x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
-        x, y = zoom_point(x, FLOOR, zoom)
+        x, y = self.zoom_point(x, FLOOR, zoom)
         if time is None:
             if self.selected != UPPER_ATTACK:
                 image, (pivot_x, pivot_y) = self.slash_highlights[self.selected]
@@ -423,12 +427,13 @@ class MeleeScene:
 
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
-        zoom = self.slash_zoom()
-        x, y = zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
+        zoom = self.impact_zoom()
+        x, y = self.zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
         self.background.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
                              round(width * zoom), round(height * zoom))
         assets = self.field.assets
-        impact = 1.0 if self.player_in_hit_stop() else self.slash_impact_strength()
+        impact = ((zoom - 1) / SLASH_ZOOM_FACTOR if self.enemy_elapsed is not None
+                  else self.slash_impact_strength())
         if impact:
             drawing.black_overlay(.38 * impact)
         if self.attack_elapsed is not None:
@@ -442,7 +447,7 @@ class MeleeScene:
             x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
                     else (SLIME_HOME_X - 13, FLOOR - 26))
             for step in range(5):
-                left, top = zoom_point(x + 3 * step, y + 3 * step, zoom)
+                left, top = self.zoom_point(x + 3 * step, y + 3 * step, zoom)
                 drawing.rectangle((left, top, left + 4 * zoom, top + 2 * zoom),
                                   (255, 221, 165), filled=True)
 
