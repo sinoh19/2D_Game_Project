@@ -59,6 +59,9 @@ class Slime(Vitals):
 
 
 class SlimeArt:
+    ATTACK_FPS = 16
+    ATTACK_FRAMES = 9
+    ATTACK_DURATION = ATTACK_FRAMES / ATTACK_FPS
     HIT_FPS = 12
     HIT_FRAMES = 5
     HIT_DURATION = HIT_FRAMES / HIT_FPS
@@ -69,13 +72,16 @@ class SlimeArt:
         self.motion = json.loads((folder/'move.json').read_text(encoding='utf-8'))
         self.image = p2d.load_image(str(folder/self.motion['image']))
         self.hit_image = p2d.load_image(str(folder/'hit.png'))
+        self.attack_image = p2d.load_image(str(folder/'attack.png'))
         m = self.motion
+        if (self.attack_image.w, self.attack_image.h) != (m['frameWidth'] * self.ATTACK_FRAMES, m['frameHeight']):
+            raise ValueError('슬라임 공격 시트 크기가 잘못되었습니다.')
         if (self.hit_image.w, self.hit_image.h) != (m['frameWidth']*self.HIT_FRAMES, m['frameHeight']):
             raise ValueError('슬라임 피격 시트 크기가 잘못되었습니다.')
         if (self.image.w, self.image.h) != (m['frameWidth']*m['frameCount'], m['frameHeight']):
             raise ValueError('슬라임 애니메이션 시트 크기가 잘못되었습니다.')
 
-    def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None):
+    def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None, attack_elapsed=None):
         import pico2d as p2d
         from game.config import WINDOW_HEIGHT
         m = self.motion
@@ -89,6 +95,9 @@ class SlimeArt:
             frame = min(self.HIT_FRAMES - 1, int(hit_elapsed * self.HIT_FPS))
             if hit_facing is not None:
                 facing = hit_facing
+        elif attack_elapsed is not None:
+            image = self.attack_image
+            frame = min(self.ATTACK_FRAMES - 1, int(attack_elapsed * self.ATTACK_FPS))
         tinted = hit_elapsed is not None and 0 <= hit_elapsed < self.HIT_TINT_SECONDS
         if tinted:
             p2d.SDL_SetTextureColorMod(image.texture, 255, 64, 55)
