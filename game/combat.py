@@ -16,8 +16,8 @@ def roll_physical_damage(strength):
 
 
 class Vitals:
-    def __init__(self):
-        self.max_hp = DEFAULT_HP
+    def __init__(self, max_hp=DEFAULT_HP):
+        self.max_hp = max_hp
         self.hp = self.max_hp
 
     def take_damage(self, damage=HIT_DAMAGE):

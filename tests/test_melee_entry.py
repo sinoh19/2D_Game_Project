@@ -51,16 +51,16 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertEqual(self.app.scene.phase,'freeze')
         self.app.scene.update(1)
         self.assertIsInstance(self.app.scene,MeleeScene)
-        self.assertEqual((self.player.hp,self.enemy.hp),(97,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(97,20))
         self.assertEqual(self.app.scene.cause,'enemy_contact')
         self.assertIs(self.app.scene.player,self.player)
         self.assertIs(self.app.scene.enemy,self.enemy)
 
     def test_c_attack_damages_slime_and_enters_melee(self):
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,20))
         self.attack()
         self.assertIsInstance(self.app.scene,MeleeScene)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,93))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
         self.assertEqual(self.app.scene.cause,'player_attack')
 
     def test_one_hit_only_and_field_stops(self):
@@ -68,7 +68,7 @@ class MeleeEntryTests(unittest.TestCase):
         for _ in range(30):
             self.field.update(.1);self.app.scene.update(.1)
             resolve_encounter(self.field)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,93))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
         self.assertEqual(positions,(self.player.x,self.enemy.x,self.enemy.time))
         self.assertFalse(self.field.keys)
 
@@ -77,7 +77,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertIs(self.app.scene,self.field)
         self.setUp();self.player.facing=-1;self.attack()
         self.assertIs(self.app.scene,self.field)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,20))
 
     def test_attack_requires_active_swing(self):
         self.player.attack()
@@ -90,18 +90,18 @@ class MeleeEntryTests(unittest.TestCase):
     def test_active_sword_wins_simultaneous_contact(self):
         self.player.x=710;self.player.attack_time=.8
         self.field.update(1/60)
-        self.assertEqual((self.player.hp,self.enemy.hp),(100,93))
+        self.assertEqual((self.player.hp,self.enemy.hp),(100,13))
 
     def test_wall_blocks_opening_attack(self):
         self.field.passages.base_solids.append([717,230,719,288])
         self.attack()
         self.assertIs(self.app.scene,self.field)
-        self.assertEqual(self.enemy.hp,100)
+        self.assertEqual(self.enemy.hp,20)
 
     def test_vertical_separation_does_not_trigger(self):
         self.player.y=200;self.player.attack_time=.8;self.field.update(1/120)
         self.assertIs(self.app.scene,self.field)
-        self.assertEqual(self.enemy.hp,100)
+        self.assertEqual(self.enemy.hp,20)
 
     def test_dead_enemy_does_not_trigger(self):
         self.enemy.hp=0;self.player.x=710
@@ -125,11 +125,11 @@ class MeleeEntryTests(unittest.TestCase):
         self.player.attack()
         for _ in range(47):self.field.update(1/60)
         self.assertIs(self.app.scene,self.field)
-        self.assertEqual(self.enemy.hp,100)
+        self.assertEqual(self.enemy.hp,20)
         for _ in range(3):
             self.field.update(1/60)
             if self.field.encounter:break
-        self.assertEqual(self.enemy.hp,93)
+        self.assertEqual(self.enemy.hp,13)
         self.assertIsInstance(self.app.scene,MeleeTransitionScene)
         self.assertEqual(self.app.scene.phase,'freeze')
         self.assertTrue(.79<=self.player.attack_time<1)
@@ -161,7 +161,7 @@ class MeleeEntryTests(unittest.TestCase):
         transition.update(.12)
         self.assertEqual(transition.phase,'cover')
         self.assertEqual(state,(self.player.x,self.player.y,self.player.clock,self.enemy.x,self.enemy.time,self.field.scenery_time))
-        self.assertEqual((self.player.hp,self.enemy.hp),(97,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(97,20))
         transition.update(1)
         self.assertIs(self.app.scene,transition.destination)
 
