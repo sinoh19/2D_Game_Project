@@ -1,7 +1,6 @@
 """Portable dungeon layout and original Unity sprite animation data."""
 import json
 import math
-from bisect import bisect_right
 from functools import cached_property
 import pico2d as p2d
 from pico2d import pico2d as backend
@@ -10,8 +9,9 @@ from game import drawing
 from game.terrain import slope_surfaces, inside_slope
 from game.combat import Vitals
 
-HIT_RECOIL_FRAME_ENDS = (.04, .12, .17, .22, .27)
-HIT_RECOIL_DURATION = HIT_RECOIL_FRAME_ENDS[-1]
+REACTION_FRAME_COUNT = 5
+REACTION_FRAME_SECONDS = .06
+MERCENARY_REACTION_DURATION = REACTION_FRAME_COUNT * REACTION_FRAME_SECONDS
 
 
 class DungeonAssets:
@@ -195,18 +195,29 @@ class DungeonAssets:
 
     @cached_property
     def mercenary_hit(self):
-        return p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-hit-recoil.png'))
+        from game.pixel_style import simplify
 
-    def draw_mercenary_hit(self, x, feet, facing, camera, elapsed, *, actor_scale=None):
+        image = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-guard.png'))
+        return simplify(image, block=1)
+
+    def draw_mercenary_hit(self, x, feet, facing, camera, elapsed, *, actor_scale=None, guarded=False):
         sprite = self.mercenary_hit
         actor_scale = self.character_scale if actor_scale is None else actor_scale
-        width, height = 96, 72
-        frame = 1 + bisect_right(HIT_RECOIL_FRAME_ENDS, elapsed)
-        center_y = feet + (height / 2 - 62) * actor_scale
-        sprite.clip_composite_draw(
-            frame * width, 0, width, height, 0, 'h' if facing < 0 else '',
-            round((x - camera) * self.scale), round(WINDOW_HEIGHT - center_y * self.scale),
-            round(width * actor_scale * self.scale), round(height * actor_scale * self.scale))
+        width, height = 80, 64
+        frame = min(REACTION_FRAME_COUNT - 1, int(elapsed / REACTION_FRAME_SECONDS))
+        center_y = feet + (height / 2 - 58) * actor_scale
+        tinted = frame < 2
+        if tinted:
+            tint = (165, 200, 255) if guarded else (255, 64, 55)
+            p2d.SDL_SetTextureColorMod(sprite.texture, *tint)
+        try:
+            sprite.clip_composite_draw(
+                frame * width, 0, width, height, 0, 'h' if facing < 0 else '',
+                round((x - camera) * self.scale), round(WINDOW_HEIGHT - center_y * self.scale),
+                round(width * actor_scale * self.scale), round(height * actor_scale * self.scale))
+        finally:
+            if tinted:
+                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
 
     def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None, melee_detail=False):
         clip = self.animations['clips'][clip_name]
