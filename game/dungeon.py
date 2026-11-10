@@ -236,6 +236,7 @@ class Knight(Vitals):
         self.air_time = 0.0
         self.attack_time = None
         self.dash_time = None
+        self.pickup_time = None
         self.dash_cooldown = 0.0
         self.prepare_time = None
         self.land_time = None
@@ -256,7 +257,7 @@ class Knight(Vitals):
     def dash(self, direction=0):
         if (not self.grounded or self.dash_cooldown > 0 or self.dash_time is not None
                 or self.attack_time is not None or self.prepare_time is not None
-                or self.land_time is not None):
+                or self.land_time is not None or self.pickup_time is not None):
             return
         self.facing = direction or self.facing
         self.dash_time = 0.0
@@ -265,15 +266,29 @@ class Knight(Vitals):
 
     def attack(self):
         if (self.attack_time is None and self.prepare_time is None
-                and self.land_time is None and self.dash_time is None):
+                and self.land_time is None and self.dash_time is None
+                and self.pickup_time is None):
             self.attack_time = 0.0
 
+    def start_pickup(self, item_x):
+        if (not self.grounded or self.pickup_time is not None or self.dash_time is not None
+                or self.attack_time is not None or self.prepare_time is not None
+                or self.land_time is not None):
+            return False
+        if item_x != self.x:
+            self.facing = 1 if item_x > self.x else -1
+        self.pickup_time = 0.0
+        self.jump_buffer = 0.0
+        return True
+
     def jump(self):
-        if self.dash_time is None:
+        if self.dash_time is None and self.pickup_time is None:
             self.jump_buffer = 0.12
 
     @property
     def clip(self):
+        if self.pickup_time is not None:
+            return 'pickup', self.pickup_time
         if self.dash_time is not None:
             return 'dash', self.dash_time
         if self.attack_time is not None:
@@ -305,7 +320,7 @@ class Knight(Vitals):
             if self.land_time >= clips['land']['duration']:
                 self.land_time = None
         locked = (self.attack_time is not None or self.land_time is not None
-                  or self.dash_time is not None)
+                  or self.dash_time is not None or self.pickup_time is not None)
         if self.jump_buffer > 0 and self.coyote > 0 and not locked and self.prepare_time is None:
             self.prepare_time = 0.0
             self.jump_buffer = self.coyote = 0.0
@@ -398,6 +413,7 @@ class Knight(Vitals):
         if self.y > self.scene.layout["height"]+80:
             self.x, self.y = self.scene.layout['spawn']
             self.dash_time = None
+            self.pickup_time = None
             self.vy = 0.0
             self.grounded = True
 
