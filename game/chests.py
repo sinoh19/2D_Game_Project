@@ -1,11 +1,13 @@
 """Field treasure chests and their opening animation."""
 from math import isfinite
+from random import choice
 
 import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
-from game.items import BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, SWORD, DroppedItem, Equipment
+from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
+                        DroppedItem, Equipment)
 from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
 
 FRAME_SIZE = 44
@@ -44,15 +46,27 @@ class TreasureChests:
         bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
         self.bag = [item if isinstance(item, str) and item in ITEMS else None for item in bag]
         self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
-        for slot, starter_id in (('weapon', SWORD), ('armor', LEATHER_ARMOR)):
+        self.contents = data.get('contents', {}) if data.get('scene') == self.map_id else {}
+        if not isinstance(self.contents, dict):
+            self.contents = {}
+        self.contents = {str(key): value for key, value in self.contents.items()
+                         if isinstance(value, str) and value in ITEMS}
+        for slot, starter_id in (('weapon', SWORD), ('armor', LEATHER_ARMOR), ('accessory', None)):
             item_id = data.get(slot, starter_id)
             item = ITEMS.get(item_id) if isinstance(item_id, str) else None
             setattr(field.player, slot, item if isinstance(item, Equipment) and item.slot == slot else None)
         if data.get('scene') == self.map_id:
             self.restore_drops(SWORD, data.get('dropped_weapons'))
             self.restore_drops(LEATHER_ARMOR, data.get('dropped_armor'))
+            for ring_id in RING_IDS:
+                self.restore_drops(ring_id, data.get('dropped_' + ring_id))
         self.chests = [TreasureChest(spec, spec[0] in opened, spec[0] in looted)
                        for spec in field.layout.get('chests', [])]
+        if self.chests and not restore and not self.contents:
+            self.contents[str(self.chests[0].id)] = choice(RING_IDS)
+        elif self.chests and not self.contents and restore:
+            # Keep older saved runs compatible with the chest's previous potion reward.
+            self.contents[str(self.chests[0].id)] = POTION
         self.active = None
         self.message = ''
         self.press_origin = None
@@ -78,6 +92,19 @@ class TreasureChests:
                       if abs(player.x - chest.x) <= 42 and abs(player.y - chest.y) <= 16]
         return min(candidates, key=lambda chest: abs(player.x - chest.x), default=None)
 
+    def chest_item(self, chest):
+        return self.contents.get(str(chest.id))
+
+    def item_label(self, chest):
+        item_id = self.chest_item(chest)
+        if item_id is None:
+            return '상자가 비어 있습니다.'
+        item = ITEMS[item_id]
+        if isinstance(item, Equipment):
+            bonus = ', '.join(f'{name} +{value}' for name, value in item.stats)
+            return f'{item.name}  ·  {bonus}'
+        return f'{item.name}  ×1'
+
     def interact(self):
         chest = self.nearby()
         if chest is None:
@@ -85,7 +112,7 @@ class TreasureChests:
         if chest.elapsed is None:
             chest.elapsed = 0.0
         self.active = chest
-        self.message = '상자가 비어 있습니다.' if chest.looted else '회복 포션  ×1'
+        self.message = '상자가 비어 있습니다.' if chest.looted else self.item_label(chest)
         return True
 
     def cancel_drag(self):
@@ -103,7 +130,7 @@ class TreasureChests:
             self.close()
         elif not chest.looted and drawing.contains(CHEST_SLOT, x, y):
             self.press_origin = (x, y)
-            self.message = '회복 포션  ×1'
+            self.message = self.item_label(chest)
         else:
             index = bag_slot_at(x, y)
             if index is not None and self.bag[index] is not None:
@@ -148,15 +175,20 @@ class TreasureChests:
         chest = self.active
         if chest is None or chest.looted:
             return
-        self.bag[index] = POTION
+        item_id = self.chest_item(chest)
+        if item_id is None:
+            self.message = '상자가 비어 있습니다.'
+            return
+        self.bag[index] = item_id
         chest.looted = True
         self.save()
-        self.message = '회복 포션을 가방에 옮겼습니다.'
+        self.message = f'{ITEMS[item_id].name}을(를) 가방에 옮겼습니다.'
 
     def draw_loot(self):
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
             draw_loot(self.field.app.resources, self.icons,
-                      not self.active.looted, self.bag, self.message, self.drag, self.bag_source)
+                      None if self.active.looted else self.chest_item(self.active),
+                      self.bag, self.message, self.drag, self.bag_source)
 
     def update(self, dt):
         for chest in self.chests:
@@ -168,12 +200,16 @@ class TreasureChests:
         looted = [chest.id for chest in self.chests if chest.looted]
         self.field.app.storage.write('chests.json', {
             'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
+            'contents': self.contents,
+            'accessory': self.field.player.accessory.id if self.field.player.accessory else None,
             'weapon': self.field.player.weapon.id if self.field.player.weapon else None,
             'armor': self.field.player.armor.id if self.field.player.armor else None,
             'dropped_armor': [[item.x, item.feet] for item in self.field.dropped_items
                               if item.item_id == LEATHER_ARMOR],
             'dropped_weapons': [[item.x, item.feet] for item in self.field.dropped_items
                                 if item.item_id == SWORD],
+            **{'dropped_' + ring_id: [[item.x, item.feet] for item in self.field.dropped_items
+                                      if item.item_id == ring_id] for ring_id in RING_IDS},
         })
 
     def draw(self, camera):

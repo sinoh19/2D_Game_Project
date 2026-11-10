@@ -262,6 +262,13 @@ class Knight(Vitals):
     DASH_PUSH_END = .35
     DASH_REUSE_DELAY = .75
 
+    def stat_value(self, name):
+        base = getattr(self, name)
+        accessory = self.accessory
+        if accessory is not None and getattr(accessory, 'stat', None) == name:
+            base += accessory.bonus
+        return base
+
     @property
     def base_attack(self):
         return self.weapon.base_attack if self.weapon else 0

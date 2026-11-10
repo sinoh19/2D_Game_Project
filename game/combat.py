@@ -103,7 +103,8 @@ def resolve_encounter(scene):
     cause = 'player_attack' if attacked else 'enemy_contact'
     if attacked:
         damage, _ = roll_player_damage(
-            scene.player.strength, scene.player.luck, base_attack=scene.player.base_attack)
+            scene.player.stat_value('strength'), scene.player.stat_value('luck'),
+            base_attack=scene.player.base_attack)
         enemy.take_damage(damage)
     else:
         damage, _ = enemy.roll_damage()

@@ -42,7 +42,7 @@ def slots(bounds_list, items, icons, font, hover=None):
                 drawing.text(font, left + 27, top + 29, '1')
 
 
-def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=None):
+def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=None):
     small, normal = resources.small, resources.normal
     drawing.black_overlay(.45)
     panel((52, 54, 587, 265), (25, 25, 34), (92, 80, 68))
@@ -55,11 +55,11 @@ def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=
     panel((338, 95, 568, 223), (29, 29, 39), (75, 73, 83))
     drawing.text(normal, 85, 111, '보물상자')
     drawing.text(normal, 352, 111, '플레이어 가방')
-    drawing.text(small, 255, 111, f'{int(has_potion)} / 6')
+    drawing.text(small, 255, 111, f'{int(chest_item is not None)} / 6')
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')
     chest_slots = (slot_bounds(85, 130, 3, index) for index in range(6))
-    chest_visible = has_potion and (drag is None or bag_source is not None)
-    slots(chest_slots, [POTION if chest_visible else None] + [None] * 5, icons, small)
+    chest_visible = chest_item is not None and (drag is None or bag_source is not None)
+    slots(chest_slots, [chest_item if chest_visible else None] + [None] * 5, icons, small)
     hover = bag_slot_at(*drag) if drag is not None else None
     visible_bag = bag
     if drag is not None and bag_source is not None:
@@ -70,12 +70,12 @@ def draw_loot(resources, icons, has_potion, bag, message, drag=None, bag_source=
     slots(BAG_SLOTS, visible_bag, icons, small, hover)
     drawing.text(normal, 311, 169, '→', GOLD)
     drawing.text(small, 73, 245, message)
-    if has_potion:
+    if chest_item is not None:
         drawing.text(small, 401, 245, '클릭 또는 드래그로 옮기기')
     elif any(bag):
         drawing.text(small, 401, 245, '드래그로 가방 정리')
     if drag is not None:
-        draw_drag_icon(icons[POTION if bag_source is None else bag[bag_source]], *drag)
+        draw_drag_icon(icons[chest_item if bag_source is None else bag[bag_source]], *drag)
 
 
 def draw_drag_icon(icon, x, y):

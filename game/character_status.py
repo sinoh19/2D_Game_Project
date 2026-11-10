@@ -130,7 +130,7 @@ class CharacterStatus:
             y = 116 + index * 40
             panel((225, y, 391, y + 35), CARD, BORDER)
             text(resources.normal, 233, y + 18, name)
-            text(resources.normal, 365, y + 18, str(getattr(player, attr)), GOLD)
+            text(resources.normal, 365, y + 18, str(player.stat_value(attr)), GOLD)
 
         dragged_slot = self.press[0] if self.drag is not None else None
         icons = self.field.chests.icons
