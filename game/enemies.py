@@ -8,7 +8,7 @@ from game.combat import Vitals, apply_strength
 
 class Slime(Vitals):
     def __init__(self, spec, motion):
-        super().__init__()
+        super().__init__(max_hp=20)
         self.strength = randint(0, 20)
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
