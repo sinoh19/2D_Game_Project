@@ -54,7 +54,8 @@ class CharacterStatus:
             text(resources.normal, x, 101, label, GOLD)
         panel((85, 116, 212, 275), CARD, BORDER)
         drawing.rectangle((94, 240, 203, 240), BORDER)
-        self.field.assets.draw_character('idle', 0, 149, 240, 1, 0, actor_scale=2)
+        self.field.assets.draw_character(
+            'idle', 0, 149, 240, 1, 0, actor_scale=2, melee_detail=True)
         text(resources.small, 85, 290, 'HP')
         text(resources.small, 148, 290, f'{player.hp} / {player.max_hp}')
         panel((85, 302, 212, 308), (48, 34, 41), (84, 54, 50))
