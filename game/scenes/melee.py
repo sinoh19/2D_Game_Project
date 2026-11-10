@@ -11,7 +11,7 @@ from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.enemies import SlimeArt
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
-from game.items import ITEMS, Weapon
+from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
 from game.pixel_style import simplify
 
@@ -403,8 +403,8 @@ class MeleeScene:
             if item_id is None:
                 return
             item = ITEMS[item_id]
-            if isinstance(item, Weapon):
-                self.item_message = '무기는 횡스크롤 가방에서 장착할 수 있습니다.'
+            if isinstance(item, Equipment):
+                self.item_message = '장비는 횡스크롤 가방에서 장착할 수 있습니다.'
                 return
             consumed, message = item.use(self.player)
             if not consumed:
