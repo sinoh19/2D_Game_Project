@@ -33,6 +33,9 @@ class MeleeEntryTests(unittest.TestCase):
         self.app.scene=self.field
         self.player=self.field.player
         self.enemy=self.field.enemies[0]
+        slime_roll = patch.object(self.enemy, 'roll_damage', return_value=3)
+        slime_roll.start()
+        self.addCleanup(slime_roll.stop)
         self.enemy.speed=0
         self.player.x=690;self.player.y=288;self.player.facing=1
 
@@ -48,7 +51,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.assertEqual(self.app.scene.phase,'freeze')
         self.app.scene.update(1)
         self.assertIsInstance(self.app.scene,MeleeScene)
-        self.assertEqual((self.player.hp,self.enemy.hp),(90,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(97,100))
         self.assertEqual(self.app.scene.cause,'enemy_contact')
         self.assertIs(self.app.scene.player,self.player)
         self.assertIs(self.app.scene.enemy,self.enemy)
@@ -158,7 +161,7 @@ class MeleeEntryTests(unittest.TestCase):
         transition.update(.12)
         self.assertEqual(transition.phase,'cover')
         self.assertEqual(state,(self.player.x,self.player.y,self.player.clock,self.enemy.x,self.enemy.time,self.field.scenery_time))
-        self.assertEqual((self.player.hp,self.enemy.hp),(90,100))
+        self.assertEqual((self.player.hp,self.enemy.hp),(97,100))
         transition.update(1)
         self.assertIs(self.app.scene,transition.destination)
 
