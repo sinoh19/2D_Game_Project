@@ -220,8 +220,12 @@ class MeleeScene:
             pivot_x, pivot_y = MERCENARY_HIT_PIVOT
             x = HOME_X + (sprite.w / 2 - pivot_x) * 2
             y = FLOOR + (sprite.h / 2 - pivot_y) * 2
-            sprite.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
-                        sprite.w * 2 * SCALE, sprite.h * 2 * SCALE)
+            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
+            try:
+                sprite.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
+                            sprite.w * 2 * SCALE, sprite.h * 2 * SCALE)
+            finally:
+                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
             return
         elapsed = self.attack_elapsed
         if elapsed is None:
