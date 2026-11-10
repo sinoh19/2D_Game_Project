@@ -73,6 +73,12 @@ class FieldScene:
         self.passages.save()
         self.chests.save()
 
+    def resume_after_victory(self, enemy):
+        self.enemies.remove(enemy)
+        self.encounter = None
+        self.player.attack_time = None
+        self.app.scene = self
+
     def movement_direction(self):
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
 
