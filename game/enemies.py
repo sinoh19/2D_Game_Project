@@ -75,6 +75,9 @@ class SlimeArt:
     HIT_FRAMES = 5
     HIT_DURATION = HIT_FRAMES / HIT_FPS
     HIT_TINT_SECONDS = 2 / HIT_FPS
+    DEATH_FPS = 12
+    DEATH_FRAMES = 10
+    DEATH_DURATION = (DEATH_FRAMES - 1) / DEATH_FPS
 
     def __init__(self, folder):
         import pico2d as p2d
@@ -82,7 +85,10 @@ class SlimeArt:
         self.image = p2d.load_image(str(folder/self.motion['image']))
         self.hit_image = p2d.load_image(str(folder/'hit.png'))
         self.attack_image = p2d.load_image(str(folder/'attack.png'))
+        self.death_image = p2d.load_image(str(folder/'death.png'))
         m = self.motion
+        if (self.death_image.w, self.death_image.h) != (m['frameWidth'] * self.DEATH_FRAMES, m['frameHeight']):
+            raise ValueError('슬라임 사망 시트 크기가 잘못되었습니다.')
         if (self.attack_image.w, self.attack_image.h) != (m['frameWidth'] * self.ATTACK_FRAMES, m['frameHeight']):
             raise ValueError('슬라임 공격 시트 크기가 잘못되었습니다.')
         if (self.hit_image.w, self.hit_image.h) != (m['frameWidth']*self.HIT_FRAMES, m['frameHeight']):
@@ -91,7 +97,7 @@ class SlimeArt:
             raise ValueError('슬라임 애니메이션 시트 크기가 잘못되었습니다.')
 
     def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None,
-             attack_elapsed=None, guarded=False, alpha=255):
+             attack_elapsed=None, death_elapsed=None, guarded=False, alpha=255):
         import pico2d as p2d
         from game.config import WINDOW_HEIGHT
         m = self.motion
@@ -100,7 +106,10 @@ class SlimeArt:
             return
         top = enemy.y-m['pivot'][1]*enemy.scale
         image, frame, facing = self.image, enemy.frame, enemy.facing
-        if hit_elapsed is not None:
+        if death_elapsed is not None:
+            image = self.death_image
+            frame = min(self.DEATH_FRAMES - 1, int(death_elapsed * self.DEATH_FPS))
+        elif hit_elapsed is not None:
             image = self.hit_image
             frame = min(self.HIT_FRAMES - 1, int(hit_elapsed * self.HIT_FPS))
             if hit_facing is not None:
