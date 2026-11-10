@@ -73,8 +73,6 @@ def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=
     if drag is not None and bag_source is not None:
         visible_bag = bag.copy()
         visible_bag[bag_source] = None
-    elif hover is not None and bag[hover] is not None:
-        hover = None
     slots(BAG_SLOTS, visible_bag, icons, small, hover)
     drawing.text(normal, 311, 169, '→', GOLD)
     drawing.text(small, 73, 245, message)
