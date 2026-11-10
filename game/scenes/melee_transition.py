@@ -2,7 +2,6 @@
 import math
 import pico2d as p2d
 from game import drawing
-from game.enemies import SlimeArt
 
 FREEZE_SECONDS = .16
 COVER_SECONDS = .28
@@ -19,7 +18,7 @@ class MeleeTransitionScene:
         self.elapsed = 0.0
         self.finished = False
         self.slime_hit = destination.cause == 'player_attack'
-        self.hold_seconds = SlimeArt.HIT_DURATION if self.slime_hit else FREEZE_SECONDS
+        self.hold_seconds = FREEZE_SECONDS
         self.cover_end = self.hold_seconds + COVER_SECONDS
         self.reveal_start = self.cover_end + BLACK_SECONDS
         self.duration = self.reveal_start + REVEAL_SECONDS
@@ -73,7 +72,8 @@ class MeleeTransitionScene:
             return
         if phase in ('freeze','cover'):
             if self.slime_hit:
-                self.source.draw(hit_enemy=self.destination.enemy, hit_elapsed=self.elapsed)
+                self.source.draw(hit_enemy=self.destination.enemy,
+                                 hit_elapsed=max(0.0, self.elapsed - self.hold_seconds))
             else:
                 self.source.draw()
         else:
