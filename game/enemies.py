@@ -81,7 +81,8 @@ class SlimeArt:
         if (self.image.w, self.image.h) != (m['frameWidth']*m['frameCount'], m['frameHeight']):
             raise ValueError('슬라임 애니메이션 시트 크기가 잘못되었습니다.')
 
-    def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None, attack_elapsed=None):
+    def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None,
+             attack_elapsed=None, guarded=False):
         import pico2d as p2d
         from game.config import WINDOW_HEIGHT
         m = self.motion
@@ -98,7 +99,7 @@ class SlimeArt:
         elif attack_elapsed is not None:
             image = self.attack_image
             frame = min(self.ATTACK_FRAMES - 1, int(attack_elapsed * self.ATTACK_FPS))
-        tinted = hit_elapsed is not None and 0 <= hit_elapsed < self.HIT_TINT_SECONDS
+        tinted = not guarded and hit_elapsed is not None and 0 <= hit_elapsed < self.HIT_TINT_SECONDS
         if tinted:
             p2d.SDL_SetTextureColorMod(image.texture, 255, 64, 55)
         try:
