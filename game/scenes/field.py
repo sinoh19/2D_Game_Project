@@ -6,6 +6,7 @@ from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime
 from game.combat import resolve_encounter
+from game.chests import TreasureChests
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -34,6 +35,7 @@ class FieldScene:
         if position is None or not self.valid_position(position):
             position = self.layout['spawn']
         self.player = Knight(self, position)
+        self.chests = TreasureChests(self, restore=not new_game)
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
@@ -63,6 +65,7 @@ class FieldScene:
     def save(self):
         self.app.storage.save_position(self.x, self.y)
         self.passages.save()
+        self.chests.save()
 
     def movement_direction(self):
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
@@ -88,7 +91,7 @@ class FieldScene:
                     self.player.dash(self.movement_direction())
                 elif key == p2d.SDLK_c:
                     self.player.attack()
-                elif key == p2d.SDLK_e:
+                elif key == p2d.SDLK_e and not self.chests.interact():
                     self.passages.interact()
         elif event.type == p2d.SDL_KEYUP:
             self.keys.discard(event.key)
@@ -100,6 +103,7 @@ class FieldScene:
         self.scenery_time += dt
         self.map_notice_time = max(0, self.map_notice_time-dt)
         self.passages.update(dt)
+        self.chests.update(dt)
         steps = max(1, math.ceil(dt*120))
         direction = self.movement_direction()
         for _ in range(steps):
@@ -113,6 +117,7 @@ class FieldScene:
     def draw(self, *, hit_enemy=None, hit_elapsed=None):
         self.assets.draw_world(self.camera_x, self.scenery_time)
         self.passages.draw(self.camera_x)
+        self.chests.draw(self.camera_x)
         for enemy in self.enemies:
             if enemy is hit_enemy:
                 self.assets.slime_art.draw(
@@ -123,7 +128,8 @@ class FieldScene:
         clip, time = self.player.clip
         self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
-        self.passages.draw_hint()
+        if not self.chests.draw_hint(self.camera_x):
+            self.passages.draw_hint()
         drawing.rectangle((6,6,126,26),(20,19,22),filled=True)
         drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)

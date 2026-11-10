@@ -58,7 +58,7 @@ def load_map(map_path,base_layout,asset_root):
     mp=properties(data);layout=copy.deepcopy(base_layout)
     layout.update(width=data['width']*tw,height=int(mp.get('worldHeight',data['height']*th)),
                   name=mp.get('displayName',path.stem),mapId=path.stem,tiledSource=str(path),
-                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],tiledVisuals=[],tiledDrawOrder=[])
+                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],chests=[],tiledVisuals=[],tiledDrawOrder=[])
     if layout['width']<640 or layout['height']<360:raise ValueError('맵은 최소 640×360이어야 합니다.')
     layout['characterScale']=float(mp.get('characterScale',layout['characterScale']))
     layout['terrainInteriorShading']=bool(mp.get('terrainInteriorShading',True))
@@ -191,6 +191,10 @@ def load_map(map_path,base_layout,asset_root):
                 w,h=obj.get('width',rect[2]),obj.get('height',rect[3])
                 rotation=obj.get('rotation',0)
                 if klass=='Spawn':spawns.append([x,y]);continue
+                if klass=='TreasureChest':
+                    if shown:
+                        layout['chests'].append((obj['id'],x+w/2,y))
+                    continue
                 if klass=='Slime':
                     if not shown:continue
                     if rotation or gid&(V|D) or w<=0 or abs(w-h)>.001:
