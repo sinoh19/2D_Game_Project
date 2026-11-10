@@ -54,6 +54,7 @@ GUARD_FRAME_COUNT = 5
 GUARD_FRAME_SECONDS = .06
 GUARD_PIVOT = (40, 58)
 GUARD_TINT = (165, 200, 255)
+GUARD_PULSE_SECONDS = .12
 
 
 def centered(font, x, y, label):
@@ -227,7 +228,7 @@ class MeleeScene:
 
     def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
-        if self.attack_elapsed is not None and not self.attack_blocked:
+        if self.attack_elapsed is not None:
             elapsed_since_hit = self.attack_elapsed - self.impact_time
             if 0 <= elapsed_since_hit < art.HIT_DURATION:
                 hit_elapsed = elapsed_since_hit
@@ -263,7 +264,24 @@ class MeleeScene:
         pose.x, pose.y = zoom_point(pose.x, pose.y, zoom)
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
-                 attack_elapsed=attack_elapsed)
+                 attack_elapsed=attack_elapsed, guarded=self.attack_blocked)
+        if self.attack_blocked and hit_elapsed is not None:
+            x, y = zoom_point(SLIME_HOME_X + 34, FLOOR - 52, zoom)
+            self.draw_guard_shield(x, y, hit_elapsed)
+
+    def draw_guard_shield(self, x, y, elapsed):
+        if elapsed >= GUARD_FRAME_COUNT * GUARD_FRAME_SECONDS:
+            return
+        pulse = max(0.0, 1 - elapsed / GUARD_PULSE_SECONDS)
+        scale = 1 + .25 * pulse
+        image = self.guard_shield
+        p2d.SDL_SetTextureColorMod(image.texture, round(175 - 65 * pulse),
+                                   round(216 - 31 * pulse), 255)
+        try:
+            image.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
+                       round(image.w * SCALE * scale), round(image.h * SCALE * scale))
+        finally:
+            p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
 
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
@@ -288,8 +306,7 @@ class MeleeScene:
                     finally:
                         if tint:
                             p2d.SDL_SetTextureColorMod(self.guard_sheet.texture, 255, 255, 255)
-                    self.guard_shield.draw((HOME_X - 42) * SCALE, (NATIVE_HEIGHT - FLOOR + 79) * SCALE,
-                                           self.guard_shield.w * SCALE, self.guard_shield.h * SCALE)
+                    self.draw_guard_shield(HOME_X - 42, FLOOR - 79, since_contact)
                     return
             else:
                 hit_elapsed = since_contact + IMPACT_HIT_STOP - self.hit_stop_left
