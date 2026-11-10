@@ -9,6 +9,7 @@ from game.enemies import Slime
 from game.combat import resolve_encounter
 from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
+from game.character_status import CharacterStatus
 from game.items import ITEMS
 from game.terrain import slope_surfaces, inside_slope
 
@@ -40,6 +41,7 @@ class FieldScene:
         self.player = Knight(self, position)
         self.chests = TreasureChests(self, restore=not new_game)
         self.inventory = FieldInventory(self)
+        self.status = CharacterStatus(self)
         self.dropped_items = []
         self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
@@ -83,6 +85,9 @@ class FieldScene:
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
 
     def handle_event(self, event):
+        if self.status.is_open:
+            self.status.handle_event(event)
+            return
         if self.inventory.is_open:
             if event.type == p2d.SDL_KEYUP:
                 self.keys.discard(event.key)
@@ -143,6 +148,9 @@ class FieldScene:
                     self.keys.intersection_update({key})
                     self.inventory.open()
                 elif key == p2d.SDLK_e:
+                    self.keys.intersection_update({key})
+                    self.status.is_open = True
+                elif key == p2d.SDLK_f:
                     if self.chests.interact():
                         self.keys.intersection_update({key})
                     else:
@@ -184,7 +192,7 @@ class FieldScene:
             self.player.pickup_time = None
 
     def update(self, dt):
-        if self.encounter is not None or self.inventory.is_open:
+        if self.encounter is not None or self.inventory.is_open or self.status.is_open:
             return
         dt = max(0.0, min(1.0, dt))
         self.chests.update(dt)
@@ -234,10 +242,12 @@ class FieldScene:
         drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   E 상호작용   Z 줍기   I 가방   F6 맵 갱신   ESC 저장/메인')
+                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 용병 정보   I 가방   ESC 저장/메인')
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
         self.chests.draw_loot()
         if self.inventory.is_open:
             self.inventory.draw()
+        if self.status.is_open:
+            self.status.draw()
