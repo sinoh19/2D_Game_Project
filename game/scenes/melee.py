@@ -20,6 +20,11 @@ HOME_X = 215
 STRIKE_X = 350
 WALK_SECONDS = .55
 UPPER_ATTACK = 0
+UPPER_PREP_FRAMES = 6
+UPPER_HIGHLIGHT_FRAME = 8
+UPPER_HIGHLIGHT_SECONDS = .20
+UPPER_ZOOM_FACTOR = .18
+UPPER_ZOOM_FOCUS = (388, 194)
 IMPACT_HIT_STOP = .075
 MERCENARY_HIT_POSE_TAIL = .075
 UPPER_RECOIL_SECONDS = .24
@@ -46,6 +51,11 @@ def centered(font, x, y, label):
     drawing.text(font, x - width.value / 2, y, label)
 
 
+def zoom_point(x, y, zoom):
+    focus_x, focus_y = UPPER_ZOOM_FOCUS
+    return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
+
+
 class MeleeScene:
     def __init__(self, app, field, enemy, cause):
         self.app = app
@@ -66,10 +76,6 @@ class MeleeScene:
         self.bag_open = False
         self.item_selection = None
         self.item_message = ''
-        attack = field.assets.animations['clips']['attack']
-        hit_frame = min(int(index) for index in field.assets.attack_hitboxes['frames'])
-        self.attack_duration = attack['duration']
-        self.impact_time = WALK_SECONDS + attack['frames'][hit_frame]['time']
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
@@ -93,6 +99,16 @@ class MeleeScene:
         if self.bag_open or not self.can_act():
             return
         self.selected = index
+        attack = self.field.assets.animations['clips']['attack']
+        self.attack_frames = attack['frames']
+        if index == UPPER_ATTACK:
+            self.upper_prep_duration = self.attack_frames[UPPER_PREP_FRAMES]['time']
+            self.attack_duration = 2 * self.upper_prep_duration + UPPER_HIGHLIGHT_SECONDS
+            self.impact_time = WALK_SECONDS + self.upper_prep_duration
+        else:
+            hit_frame = min(int(frame) for frame in self.field.assets.attack_hitboxes['frames'])
+            self.attack_duration = attack['duration']
+            self.impact_time = WALK_SECONDS + self.attack_frames[hit_frame]['time']
         self.attack_elapsed = 0.0
         self.hit_stop_left = 0.0
         self.pointer = None
@@ -155,11 +171,12 @@ class MeleeScene:
                 hp_before = self.enemy.hp
                 self.enemy.take_damage(HIT_DAMAGE)
                 self.record(f'{DIRECTIONS[self.selected]} 공격 성공!  슬라임 HP -{hp_before - self.enemy.hp}')
-                if self.selected == UPPER_ATTACK:
-                    # Present the exact contact pose before advancing the recovery.
-                    self.attack_elapsed = self.impact_time
+            if self.selected == UPPER_ATTACK:
+                # Render the contact frame even if a slow update crossed its start.
+                self.attack_elapsed = self.impact_time
+                if not self.attack_blocked:
                     self.hit_stop_left = IMPACT_HIT_STOP
-                    return
+                return
 
         if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
             self.attack_elapsed = None
@@ -174,7 +191,25 @@ class MeleeScene:
             return 0.0
         return max(0.0, 1 - (self.attack_elapsed - self.impact_time) / UPPER_RECOIL_SECONDS)
 
-    def draw_slime(self, art):
+    def upper_attack_time(self, time):
+        if time < self.upper_prep_duration - 1e-8:
+            return time
+        recovery = time - self.upper_prep_duration - UPPER_HIGHLIGHT_SECONDS
+        if recovery < -1e-8:
+            return self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
+        # Sample just below the next frame boundary so the first reverse pose is frame 6.
+        return max(0.0, self.upper_prep_duration - recovery - 1e-6)
+
+    def upper_zoom(self):
+        if self.attack_elapsed is None or self.selected != UPPER_ATTACK:
+            return 1.0
+        elapsed = self.attack_elapsed - self.impact_time
+        if not 0 <= elapsed < UPPER_HIGHLIGHT_SECONDS:
+            return 1.0
+        release = min(1.0, (UPPER_HIGHLIGHT_SECONDS - elapsed) / .10)
+        return 1 + UPPER_ZOOM_FACTOR * release**2
+
+    def draw_slime(self, art, zoom=1.0):
         hit_elapsed = None
         if self.attack_elapsed is not None and not self.attack_blocked:
             elapsed_since_hit = self.attack_elapsed - self.impact_time
@@ -183,7 +218,7 @@ class MeleeScene:
         if self.enemy.hp == 0 and hit_elapsed is None:
             return
         pose = self.slime_pose
-        pose.x, pose.y, pose.frame, pose.facing = SLIME_HOME_X, FLOOR, 0, -1
+        pose.x, pose.y, pose.frame, pose.facing, pose.scale = SLIME_HOME_X, FLOOR, 0, -1, 2
         pose.x += UPPER_RECOIL_PIXELS * self.upper_impact_strength() ** 2
         attack_elapsed = None
         if self.enemy_elapsed is not None:
@@ -209,13 +244,15 @@ class MeleeScene:
                 pose.frame = int(retreat * motion['fps'] * 2) % motion['frameCount']
                 # Keep each return frame's actual foot edge on the floor.
                 pose.y += (motion['pivot'][1] - motion['frames'][pose.frame]['footY']) * pose.scale
+        pose.x, pose.y = zoom_point(pose.x, pose.y, zoom)
+        pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed)
 
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
-    def draw_mercenary(self):
+    def draw_mercenary(self, zoom=1.0):
         if (self.enemy_elapsed is not None and self.selected != self.enemy_direction
                 and SLIME_IMPACT_TIME <= self.enemy_elapsed < SLIME_IMPACT_TIME + MERCENARY_HIT_POSE_TAIL):
             self.field.assets.draw_mercenary_hit(HOME_X, FLOOR, 1, 0, actor_scale=2)
@@ -229,11 +266,14 @@ class MeleeScene:
         elif elapsed < WALK_SECONDS + self.attack_duration:
             clip = 'attack' if self.selected == UPPER_ATTACK else 'idle'
             time, x, facing = elapsed - WALK_SECONDS, STRIKE_X, 1
+            if self.selected == UPPER_ATTACK:
+                time = self.upper_attack_time(time)
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
             x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
+        x, y = zoom_point(x, FLOOR, zoom)
         self.field.assets.draw_character(
-            clip, time, x, FLOOR, facing, 0, actor_scale=2, melee_detail=True)
+            clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True)
 
     def save(self):
         self.field.save()
@@ -334,20 +374,23 @@ class MeleeScene:
 
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
-        self.background.draw(width // 2, height // 2, width, height)
+        zoom = self.upper_zoom()
+        x, y = zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
+        self.background.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
+                             round(width * zoom), round(height * zoom))
         assets = self.field.assets
         impact = 1.0 if self.player_in_hit_stop() else self.upper_impact_strength()
         if impact:
             drawing.black_overlay(.38 * impact)
-        self.draw_mercenary()
-        self.draw_slime(assets.slime_art)
+        self.draw_mercenary(zoom)
+        self.draw_slime(assets.slime_art, zoom)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
                     else (SLIME_HOME_X - 13, FLOOR - 26))
             for step in range(5):
-                drawing.rectangle((x + 3 * step, y + 3 * step,
-                                   x + 3 * step + 4, y + 3 * step + 2),
+                left, top = zoom_point(x + 3 * step, y + 3 * step, zoom)
+                drawing.rectangle((left, top, left + 4 * zoom, top + 2 * zoom),
                                   (255, 221, 165), filled=True)
 
         small, normal = self.app.resources.small, self.app.resources.normal
