@@ -177,7 +177,7 @@ class DungeonAssets:
             self.tile('Ceiling', x, 0, size, size, camera)
 
 
-    def draw_character(self, clip_name, time, x, feet, facing, camera):
+    def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']
         time = time % duration if clip['loop'] else min(time, duration)
@@ -189,7 +189,7 @@ class DungeonAssets:
         image = self.sheets[clip['sheet']]
         sx, sy, width, height = frame['rect']
         px, py = frame['pivot']  # Unity pivot in pixels from lower-left.
-        actor_scale = self.character_scale
+        actor_scale = self.character_scale if actor_scale is None else actor_scale
         offset_x = (width / 2 - px)*actor_scale
         center_x = round(x - camera + (offset_x if facing > 0 else -offset_x))
         center_y = round(feet - (height / 2 - py)*actor_scale)
