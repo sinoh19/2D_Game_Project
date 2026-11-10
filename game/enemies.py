@@ -10,6 +10,7 @@ class Slime(Vitals):
     def __init__(self, spec, motion):
         super().__init__(max_hp=20)
         self.strength = randint(0, 20)
+        self.agility = randint(20, 40)
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed, self.scale = spec['speed'], spec['scale']
@@ -87,7 +88,7 @@ class SlimeArt:
             raise ValueError('슬라임 애니메이션 시트 크기가 잘못되었습니다.')
 
     def draw(self, enemy, camera, world_scale, view_width, *, hit_elapsed=None, hit_facing=None,
-             attack_elapsed=None, guarded=False):
+             attack_elapsed=None, guarded=False, alpha=255):
         import pico2d as p2d
         from game.config import WINDOW_HEIGHT
         m = self.motion
@@ -109,6 +110,8 @@ class SlimeArt:
         if tinted:
             tint = (100, 105, 255) if guarded else (255, 64, 55)
             p2d.SDL_SetTextureColorMod(image.texture, *tint)
+        if alpha != 255:
+            p2d.SDL_SetTextureAlphaMod(image.texture, alpha)
         try:
             image.clip_composite_draw(
                 frame*m['frameWidth'], 0, m['frameWidth'], m['frameHeight'],
@@ -119,3 +122,5 @@ class SlimeArt:
         finally:
             if tinted:
                 p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
+            if alpha != 255:
+                p2d.SDL_SetTextureAlphaMod(image.texture, 255)
