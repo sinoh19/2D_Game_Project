@@ -149,7 +149,7 @@ class FieldScene:
                     self.inventory.open()
                 elif key == p2d.SDLK_e:
                     self.keys.intersection_update({key})
-                    self.status.is_open = True
+                    self.status.open()
                 elif key == p2d.SDLK_f:
                     if self.chests.interact():
                         self.keys.intersection_update({key})
@@ -192,7 +192,10 @@ class FieldScene:
             self.player.pickup_time = None
 
     def update(self, dt):
-        if self.encounter is not None or self.inventory.is_open or self.status.is_open:
+        if self.status.is_open:
+            self.status.idle_elapsed += max(0.0, dt)
+            return
+        if self.encounter is not None or self.inventory.is_open:
             return
         dt = max(0.0, min(1.0, dt))
         self.chests.update(dt)
