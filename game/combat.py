@@ -1,6 +1,15 @@
 """Field encounter rules, independent of the eventual turn-based battle UI."""
+from random import randint
+
 DEFAULT_HP = 100
 HIT_DAMAGE = 10
+BASE_PHYSICAL_DAMAGE = 7
+
+
+def roll_physical_damage(strength):
+    # Strength adds 1/20 of base damage per point. Round halves up before rolling.
+    scaled = (BASE_PHYSICAL_DAMAGE * (20 + strength) + 10) // 20
+    return scaled + randint(-2, 2)
 
 
 class Vitals:
@@ -78,8 +87,10 @@ def resolve_encounter(scene):
         return False
     enemy = min(targets,key=lambda e:abs(e.x-scene.player.x))
     cause = 'player_attack' if attacked else 'enemy_contact'
-    victim = enemy if attacked else scene.player
-    victim.take_damage()
+    if attacked:
+        enemy.take_damage(roll_physical_damage(scene.player.strength))
+    else:
+        scene.player.take_damage()
     scene.encounter = (enemy,cause)
     scene.keys.clear()
     scene.app.start_melee(scene,enemy,cause)
