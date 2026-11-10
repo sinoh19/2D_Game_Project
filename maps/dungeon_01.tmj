@@ -3425,6 +3425,18 @@
       "name": "기존 충돌·발판",
       "objects": [
         {
+          "height": 4,
+          "id": 62,
+          "name": "나무 다리 발판",
+          "opacity": 1,
+          "rotation": 0,
+          "type": "Platform",
+          "visible": true,
+          "width": 96,
+          "x": 1104,
+          "y": 288
+        },
+        {
           "height": 72,
           "id": 24,
           "name": "지형-1",
@@ -3688,7 +3700,7 @@
     }
   ],
   "nextlayerid": 16,
-  "nextobjectid": 62,
+  "nextobjectid": 63,
   "orientation": "orthogonal",
   "properties": [
     {
