@@ -15,10 +15,14 @@ def roll_physical_damage(strength):
     return apply_strength(BASE_PHYSICAL_DAMAGE, strength) + randint(-2, 2)
 
 
-def roll_player_damage(strength, luck, *, force_critical=False):
-    damage = roll_physical_damage(strength)
-    critical = force_critical or randrange(200) < 4 + luck
+def roll_critical_damage(damage, luck, *, base_chance, force_critical=False):
+    critical = force_critical or randrange(200) < 2 * base_chance + luck
     return ((damage * 3 + 1) // 2 if critical else damage), critical
+
+
+def roll_player_damage(strength, luck, *, force_critical=False):
+    return roll_critical_damage(roll_physical_damage(strength), luck, base_chance=2,
+                                force_critical=force_critical)
 
 
 class Vitals:
@@ -100,7 +104,8 @@ def resolve_encounter(scene):
         damage, _ = roll_player_damage(scene.player.strength, scene.player.luck)
         enemy.take_damage(damage)
     else:
-        scene.player.take_damage(enemy.roll_damage())
+        damage, _ = enemy.roll_damage()
+        scene.player.take_damage(damage)
     scene.encounter = (enemy,cause)
     scene.keys.clear()
     scene.app.start_melee(scene,enemy,cause)

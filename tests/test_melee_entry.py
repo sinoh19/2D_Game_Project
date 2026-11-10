@@ -36,7 +36,7 @@ class MeleeEntryTests(unittest.TestCase):
         self.app.scene=self.field
         self.player=self.field.player
         self.enemy=self.field.enemies[0]
-        slime_roll = patch.object(self.enemy, 'roll_damage', return_value=3)
+        slime_roll = patch.object(self.enemy, 'roll_damage', return_value=(3, False))
         slime_roll.start()
         self.addCleanup(slime_roll.stop)
         self.enemy.speed=0

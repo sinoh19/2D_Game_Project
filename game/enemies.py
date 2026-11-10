@@ -3,7 +3,7 @@ import json
 import math
 from random import randint
 from game.terrain import slope_height
-from game.combat import Vitals, apply_strength
+from game.combat import Vitals, apply_strength, roll_critical_damage
 
 
 class Slime(Vitals):
@@ -11,6 +11,8 @@ class Slime(Vitals):
         super().__init__(max_hp=20)
         self.strength = randint(0, 20)
         self.agility = randint(20, 40)
+        self.intelligence = 0
+        self.luck = randint(0, 5)
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed, self.scale = spec['speed'], spec['scale']
@@ -19,7 +21,8 @@ class Slime(Vitals):
         self.time = 0.0
 
     def roll_damage(self):
-        return apply_strength(randint(1, 5), self.strength)
+        damage = apply_strength(randint(1, 5), self.strength)
+        return roll_critical_damage(damage, self.luck, base_chance=4)
 
     @property
     def frame(self):
