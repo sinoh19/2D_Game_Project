@@ -49,6 +49,10 @@ SLIME_IMPACT_HEIGHT = 24
 SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
+GUARD_FRAME_SIZE = (80, 64)
+GUARD_FRAME_COUNT = 5
+GUARD_FRAME_SECONDS = .06
+GUARD_PIVOT = (40, 58)
 
 
 def centered(font, x, y, label):
@@ -89,6 +93,7 @@ class MeleeScene:
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         character_art = ASSETS / 'dungeon' / 'character'
+        self.guard_sheet = simplify(p2d.load_image(str(character_art / 'melee-guard.png')), block=1)
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
                         pivot)
@@ -262,12 +267,24 @@ class MeleeScene:
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
     def draw_mercenary(self, zoom=1.0):
-        if (self.enemy_elapsed is not None and self.selected != self.enemy_direction
-                and self.enemy_elapsed >= SLIME_IMPACT_TIME):
-            hit_elapsed = self.enemy_elapsed - SLIME_IMPACT_TIME + IMPACT_HIT_STOP - self.hit_stop_left
-            if hit_elapsed < HIT_RECOIL_DURATION:
-                self.field.assets.draw_mercenary_hit(HOME_X, FLOOR, 1, 0, hit_elapsed, actor_scale=2)
-                return
+        if self.enemy_elapsed is not None and self.enemy_elapsed >= SLIME_IMPACT_TIME:
+            since_contact = self.enemy_elapsed - SLIME_IMPACT_TIME
+            if self.selected == self.enemy_direction:
+                frame = int(since_contact / GUARD_FRAME_SECONDS)
+                if frame < GUARD_FRAME_COUNT:
+                    width, height = GUARD_FRAME_SIZE
+                    pivot_x, pivot_y = GUARD_PIVOT
+                    x = HOME_X + 2 * (width / 2 - pivot_x)
+                    y = FLOOR + 2 * (height / 2 - pivot_y)
+                    self.guard_sheet.clip_draw(
+                        frame * width, 0, width, height, round(x * SCALE),
+                        round((NATIVE_HEIGHT - y) * SCALE), 2 * width * SCALE, 2 * height * SCALE)
+                    return
+            else:
+                hit_elapsed = since_contact + IMPACT_HIT_STOP - self.hit_stop_left
+                if hit_elapsed < HIT_RECOIL_DURATION:
+                    self.field.assets.draw_mercenary_hit(HOME_X, FLOOR, 1, 0, hit_elapsed, actor_scale=2)
+                    return
         elapsed = self.attack_elapsed
         if elapsed is None:
             clip, time, x, facing = 'idle', self.idle_elapsed, HOME_X, 1
