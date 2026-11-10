@@ -151,17 +151,23 @@ class MeleeScene:
         if self.enemy.hp == 0 and hit_elapsed is None:
             return
         pose = self.slime_pose
-        pose.x, pose.frame = SLIME_HOME_X, 0
+        pose.x, pose.frame, pose.facing = SLIME_HOME_X, 0, -1
+        attack_elapsed = None
         if self.enemy_elapsed is not None:
-            progress = min(self.enemy_elapsed / SLIME_IMPACT_TIME,
-                           (SLIME_ATTACK_DURATION - self.enemy_elapsed)
-                           / (SLIME_ATTACK_DURATION - SLIME_IMPACT_TIME))
-            pose.x += (SLIME_STRIKE_X - SLIME_HOME_X) * progress
-            pose.facing = -1 if self.enemy_elapsed <= SLIME_IMPACT_TIME else 1
-            pose.frame = int(self.enemy_elapsed * art.motion['fps'] * 2) % art.motion['frameCount']
-        else:
-            pose.facing = -1
-        art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed)
+            elapsed = self.enemy_elapsed
+            if elapsed < art.ATTACK_DURATION:
+                attack_elapsed = elapsed
+                # Compress in place, then accelerate into the impact frame.
+                progress = min(1.0, max(0.0, (elapsed - .08) / (SLIME_IMPACT_TIME - .08)))
+                pose.x += (SLIME_STRIKE_X - SLIME_HOME_X) * progress**2
+            else:
+                retreat = elapsed - art.ATTACK_DURATION
+                progress = retreat / (SLIME_ATTACK_DURATION - art.ATTACK_DURATION)
+                pose.x = SLIME_STRIKE_X + (SLIME_HOME_X - SLIME_STRIKE_X) * progress
+                pose.facing = 1
+                pose.frame = int(retreat * art.motion['fps'] * 2) % art.motion['frameCount']
+        art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
+                 attack_elapsed=attack_elapsed)
 
     def draw_mercenary(self):
         elapsed = self.attack_elapsed
