@@ -3,7 +3,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import ASSETS, SCALE, WINDOW_HEIGHT
-from game.loot_ui import BAG_SIZE, CHEST_SLOT, POTION, draw_loot
+from game.loot_ui import BAG_SIZE, BAG_SLOTS, CHEST_SLOT, CLOSE_BUTTON, POTION, draw_loot
 
 FRAME_SIZE = 44
 FRAME_COUNT = 4
@@ -45,6 +45,8 @@ class TreasureChests:
                        for spec in field.layout.get('chests', [])]
         self.active = None
         self.message = ''
+        self.press_origin = None
+        self.drag = None
         if self.chests:
             self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'chest-open-sheet.png'))
             self.potion = p2d.load_image(str(ASSETS / 'dungeon' / 'items' / 'health-potion.png'))
@@ -67,15 +69,55 @@ class TreasureChests:
         self.message = '상자가 비어 있습니다.' if chest.looted else '회복 포션  ×1'
         return True
 
-    def take_potion(self, x, y):
+    def cancel_drag(self):
+        self.press_origin = self.drag = None
+
+    def close(self):
+        self.cancel_drag()
+        self.active = None
+
+    def mouse_down(self, x, y):
         chest = self.active
-        if (chest is None or chest.elapsed < OPEN_TIME or chest.looted
-                or not drawing.contains(CHEST_SLOT, x, y)):
+        if chest is None or chest.elapsed < OPEN_TIME:
             return
-        if None not in self.bag:
-            self.message = '가방에 빈 슬롯이 없습니다.'
+        if drawing.contains(CLOSE_BUTTON, x, y):
+            self.close()
+        elif not chest.looted and drawing.contains(CHEST_SLOT, x, y):
+            self.press_origin = (x, y)
+            self.message = '회복 포션  ×1'
+
+    def mouse_move(self, x, y):
+        if self.press_origin is None:
             return
-        self.bag[self.bag.index(None)] = POTION
+        start_x, start_y = self.press_origin
+        if self.drag is not None or (x - start_x)**2 + (y - start_y)**2 >= 9:
+            self.drag = (x, y)
+
+    def mouse_up(self, x, y):
+        if self.press_origin is None:
+            return
+        self.mouse_move(x, y)
+        dragging = self.drag is not None
+        self.cancel_drag()
+        if dragging:
+            index = next((i for i, bounds in enumerate(BAG_SLOTS)
+                          if drawing.contains(bounds, x, y)), None)
+            if index is None:
+                return
+            if self.bag[index] is not None:
+                self.message = '빈 슬롯에 놓아 주세요.'
+                return
+        elif drawing.contains(CHEST_SLOT, x, y):
+            if None not in self.bag:
+                self.message = '가방에 빈 슬롯이 없습니다.'
+                return
+            index = self.bag.index(None)
+        else:
+            return
+        chest = self.active
+        if chest is None or chest.looted:
+            return
+        self.bag[index] = POTION
         chest.looted = True
         self.save()
         self.message = '회복 포션을 가방에 옮겼습니다.'
@@ -83,7 +125,7 @@ class TreasureChests:
     def draw_loot(self):
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
             draw_loot(self.field.app.resources, self.potion,
-                      not self.active.looted, self.bag, self.message)
+                      not self.active.looted, self.bag, self.message, self.drag)
 
     def update(self, dt):
         for chest in self.chests:

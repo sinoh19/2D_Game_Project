@@ -1,10 +1,22 @@
 """Temporary side-by-side chest and bag panel."""
+import pico2d as p2d
+
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
 
-CHEST_SLOT = (85, 130, 120, 165)
+CLOSE_BUTTON = (545, 65, 570, 88)
+
+
+def slot_bounds(x, y, columns, index):
+    left = x + index % columns * 41
+    top = y + index // columns * 41
+    return left, top, left + 35, top + 35
+
+
+CHEST_SLOT = slot_bounds(85, 130, 3, 0)
 POTION = 'health-potion'
 BAG_SIZE = 10
+BAG_SLOTS = tuple(slot_bounds(352, 130, 5, i) for i in range(BAG_SIZE))
 GOLD = (197, 155, 95)
 
 
@@ -13,36 +25,47 @@ def panel(bounds, fill, border):
     drawing.rectangle(bounds, border)
 
 
-def slots(x, y, columns, items, potion, font):
-    for index, item in enumerate(items):
-        left = x + index % columns * 41
-        top = y + index // columns * 41
+def slots(bounds_list, items, potion, font, hover=None):
+    for index, (bounds, item) in enumerate(zip(bounds_list, items)):
+        left, top, _, _ = bounds
         filled = item == POTION
-        panel((left, top, left + 35, top + 35),
-              (39, 31, 32) if filled else (17, 18, 25),
-              GOLD if filled else (65, 66, 79))
+        panel(bounds, (39, 31, 32) if filled or hover == index else (17, 18, 25),
+              GOLD if filled or hover == index else (65, 66, 79))
         if filled:
             potion.draw((left + 17.5) * SCALE, WINDOW_HEIGHT - (top + 17) * SCALE,
                         30 * SCALE, 30 * SCALE)
             drawing.text(font, left + 27, top + 29, '1')
 
 
-def draw_loot(resources, potion, has_potion, bag, message):
+def draw_loot(resources, potion, has_potion, bag, message, drag=None):
     small, normal = resources.small, resources.normal
     drawing.black_overlay(.45)
     panel((52, 54, 587, 265), (25, 25, 34), (92, 80, 68))
     drawing.rectangle((57, 59, 582, 260), (59, 53, 54))
     drawing.text(normal, 74, 77, '보물상자 루팅', GOLD)
-    drawing.text(small, 496, 77, 'ESC  닫기')
+    drawing.text(small, 488, 77, 'ESC  닫기')
+    panel(CLOSE_BUTTON, (41, 34, 38), (115, 89, 68))
+    drawing.text(normal, 553, 77, '×', GOLD)
     panel((71, 95, 302, 223), (29, 29, 39), (75, 73, 83))
     panel((338, 95, 568, 223), (29, 29, 39), (75, 73, 83))
     drawing.text(normal, 85, 111, '보물상자')
     drawing.text(normal, 352, 111, '플레이어 가방')
     drawing.text(small, 255, 111, f'{int(has_potion)} / 6')
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')
-    slots(85, 130, 3, [POTION if has_potion else None] + [None] * 5, potion, small)
-    slots(352, 130, 5, bag, potion, small)
+    chest_slots = (slot_bounds(85, 130, 3, index) for index in range(6))
+    slots(chest_slots, [POTION if has_potion and drag is None else None] + [None] * 5,
+          potion, small)
+    hover = next((i for i, bounds in enumerate(BAG_SLOTS)
+                  if drag is not None and bag[i] is None and drawing.contains(bounds, *drag)), None)
+    slots(BAG_SLOTS, bag, potion, small, hover)
     drawing.text(normal, 311, 169, '→', GOLD)
     drawing.text(small, 73, 245, message)
     if has_potion:
-        drawing.text(small, 409, 245, '상자 슬롯 클릭  ·  가방으로 옮기기')
+        drawing.text(small, 401, 245, '클릭 또는 드래그로 옮기기')
+    if drag is not None:
+        x, y = drag
+        p2d.SDL_SetTextureAlphaMod(potion.texture, 155)
+        try:
+            potion.draw(x * SCALE, WINDOW_HEIGHT - y * SCALE, 30 * SCALE, 30 * SCALE)
+        finally:
+            p2d.SDL_SetTextureAlphaMod(potion.texture, 255)
