@@ -8,6 +8,7 @@ from game.config import SCALE, WINDOW_HEIGHT
 from game.terrain import slope_surfaces
 
 POTION = 'health-potion'
+SWORD = 'mercenary-sword'
 BAG_SIZE = 10
 
 
@@ -20,12 +21,14 @@ class Item:
 
 @dataclass(frozen=True)
 class Weapon:
+    id: str
     name: str
+    icon: str
     description: str
     base_attack: int
 
 
-STARTER_SWORD = Weapon('용병의 검', '용병이 처음부터 지닌 검.', 7)
+STARTER_SWORD = Weapon(SWORD, '용병의 검', 'mercenary-sword.png', '용병이 처음부터 지닌 검.', 7)
 
 
 def heal(player):
@@ -36,7 +39,7 @@ def heal(player):
     return True, f'회복 포션 사용  ·  HP +{amount}'
 
 
-ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal)}
+ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal), SWORD: STARTER_SWORD}
 
 
 @dataclass(eq=False)

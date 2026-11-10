@@ -1,9 +1,11 @@
 """Standalone field bag and its right-click actions."""
+from time import monotonic
+
 import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE
-from game.items import BAG_SIZE, ITEMS, DroppedItem
+from game.items import BAG_SIZE, ITEMS, Weapon
 from game.loot_ui import GOLD, draw_drag_icon, panel, slot_bounds, slots
 
 BAG_SLOTS = tuple(slot_bounds(220, 130, 5, i) for i in range(BAG_SIZE))
@@ -20,6 +22,7 @@ class FieldInventory:
         self.message = ''
         self.press = None
         self.drag = None
+        self.last_click = None
 
     def open(self):
         self.is_open = True
@@ -55,7 +58,18 @@ class FieldInventory:
             else:
                 index = self.slot_at(x, y)
                 if index is not None and self.bag[index] is not None:
-                    self.press = (index, x, y)
+                    now = monotonic()
+                    item_id = self.bag[index]
+                    if (isinstance(ITEMS[item_id], Weapon) and self.last_click is not None
+                            and self.last_click[:2] == (index, item_id)
+                            and now - self.last_click[2] <= .35):
+                        self.cancel_drag()
+                        self.apply(index, discard=False)
+                    else:
+                        self.last_click = (index, item_id, now)
+                        self.press = (index, x, y)
+                else:
+                    self.last_click = None
 
     @staticmethod
     def slot_at(x, y):
@@ -63,7 +77,7 @@ class FieldInventory:
                      if drawing.contains(bounds, x, y)), None)
 
     def cancel_drag(self):
-        self.press = self.drag = None
+        self.press = self.drag = self.last_click = None
 
     def mouse_move(self, x, y):
         if self.press is None:
@@ -78,9 +92,10 @@ class FieldInventory:
         self.mouse_move(x, y)
         source = self.press[0]
         dragging = self.drag is not None
-        self.cancel_drag()
+        self.press = self.drag = None
         if not dragging:
             return
+        self.last_click = None
         target = self.slot_at(x, y)
         if target is not None and target != source:
             self.bag[source], self.bag[target] = self.bag[target], self.bag[source]
@@ -93,15 +108,20 @@ class FieldInventory:
         item_id = self.bag[index]
         item = ITEMS[item_id]
         player = self.field.player
+        replacement = None
         if discard:
-            self.field.dropped_items.append(DroppedItem(item_id, player.x, player.y - player.HEIGHT / 2))
+            self.field.drop_item(item_id)
             message = f'아이템 버림  ·  {item.name}'
+        elif isinstance(item, Weapon):
+            replacement = player.weapon.id if player.weapon else None
+            player.weapon = item
+            message = f'장착  ·  {item.name}'
         else:
             consumed, message = item.use(player)
             if not consumed:
                 self.message = message
                 return
-        self.bag[index] = None
+        self.bag[index] = replacement
         self.field.chests.save()
         self.message = message
         if discard:
@@ -129,8 +149,9 @@ class FieldInventory:
         slots(BAG_SLOTS, visible_bag, icons, resources.small, selected)
         drawing.text(resources.small, 214, 245, self.message)
         if self.menu is not None:
-            _, use, discard = self.menu
-            for bounds, label in ((use, '사용'), (discard, '버리기')):
+            index, use, discard = self.menu
+            action = '장착' if isinstance(ITEMS[self.bag[index]], Weapon) else '사용'
+            for bounds, label in ((use, action), (discard, '버리기')):
                 panel(bounds, (41, 34, 38), (115, 89, 68))
                 drawing.text(resources.normal, bounds[0] + 11, bounds[1] + 10, label)
         if self.drag is not None:

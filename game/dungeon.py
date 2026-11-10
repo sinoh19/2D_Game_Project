@@ -262,6 +262,10 @@ class Knight(Vitals):
     DASH_PUSH_END = .35
     DASH_REUSE_DELAY = .75
 
+    @property
+    def base_attack(self):
+        return self.weapon.base_attack if self.weapon else 0
+
     def __init__(self, scene, position):
         super().__init__()
         self.strength = 8
