@@ -265,6 +265,7 @@ class Knight(Vitals):
         super().__init__()
         self.strength = 0
         self.agility = 8
+        self.intelligence = 3
         self.scene = scene
         self.x, self.y = map(float, position)
         self.vy = 0.0

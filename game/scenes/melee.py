@@ -83,6 +83,7 @@ class MeleeScene:
         self.idle_elapsed = 0.0
         self.combat_popup = None
         self.enemy_direction = None
+        self.enemy_forecast = None
         self.enemy_elapsed = None
         self.enemy_attack_evaded = False
         self.debug_dodge_pending = cause == 'debug'
@@ -132,6 +133,15 @@ class MeleeScene:
     def start_enemy_turn(self):
         self.pointer = None
         self.enemy_direction = randrange(len(DIRECTIONS))
+        intelligence = max(0, min(20, self.player.intelligence))
+        # 50/150 at intelligence 0, increasing to 90/150 at intelligence 20.
+        correct_weight = 50 + 2 * intelligence
+        predicted = self.enemy_direction
+        if randrange(150) >= correct_weight:
+            predicted = (predicted + randrange(1, len(DIRECTIONS))) % len(DIRECTIONS)
+        chance = correct_weight / 150
+        self.enemy_forecast = tuple(chance if i == predicted else (1 - chance) / 2
+                                    for i in range(len(DIRECTIONS)))
 
     def choose_direction(self, index):
         if self.bag_open or self.enemy.hp == 0 or self.player.hp == 0:
@@ -171,6 +181,7 @@ class MeleeScene:
                 return
         if self.enemy_elapsed >= SLIME_ATTACK_DURATION:
             self.enemy_elapsed = self.enemy_direction = None
+            self.enemy_forecast = None
             self.pointer = None
             if self.player.hp == 0:
                 self.record('용병이 쓰러졌다!')
@@ -525,7 +536,10 @@ class MeleeScene:
             panel(bounds, (67, 48, 35) if active else (30, 33, 44), GOLD if active else line)
             drawing.text(small, left + 11, top + 10, str(index + 1),
                          GOLD if active else (172, 174, 184))
-            centered(small, (left + right) / 2 + 5, (top + bottom) / 2, f'{label} {action}')
+            caption = f'{label} {action}'
+            if can_choose and self.enemy_forecast is not None:
+                caption += f'  {self.enemy_forecast[index]:.1%}'
+            centered(small, (left + right) / 2 + 5, (top + bottom) / 2, caption)
 
         item_hover = can_choose and self.hovered(ITEM_BUTTON)
         panel(ITEM_BUTTON, (67, 48, 35) if item_hover else (31, 34, 45),
