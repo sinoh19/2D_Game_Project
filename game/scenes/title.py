@@ -3,6 +3,7 @@ from game.config import DEBUG_SKIP_ENABLED, MENU_BUTTONS, SCALE
 from game import drawing
 
 DEBUG_MELEE_BOUNDS = (416, 8, 528, 29)
+DEBUG_RANGED_BOUNDS = (284, 8, 408, 29)
 
 
 class TitleScene:
@@ -13,6 +14,7 @@ class TitleScene:
         self.notice = ""
         self.notice_time = 0.0
         self.debug_melee_hovered = False
+        self.debug_ranged_hovered = False
 
     @property
     def frame(self):
@@ -42,6 +44,11 @@ class TitleScene:
         if event.type in (p2d.SDL_MOUSEMOTION, p2d.SDL_MOUSEBUTTONDOWN):
             x, y = event.x / SCALE, event.y / SCALE
             self.debug_melee_hovered = DEBUG_SKIP_ENABLED and drawing.contains(DEBUG_MELEE_BOUNDS, x, y)
+            self.debug_ranged_hovered = DEBUG_SKIP_ENABLED and drawing.contains(DEBUG_RANGED_BOUNDS, x, y)
+            if (self.debug_ranged_hovered and event.type == p2d.SDL_MOUSEBUTTONDOWN
+                    and event.button == p2d.SDL_BUTTON_LEFT):
+                self.app.start_debug_ranged()
+                return
             if (self.debug_melee_hovered and event.type == p2d.SDL_MOUSEBUTTONDOWN
                     and event.button == p2d.SDL_BUTTON_LEFT):
                 self.app.start_debug_melee()
@@ -63,6 +70,12 @@ class TitleScene:
         self.app.resources.draw_title(self.frame)
         self.app.resources.draw_menu()
         if DEBUG_SKIP_ENABLED:
+            bounds = DEBUG_RANGED_BOUNDS
+            color = (52, 61, 68) if self.debug_ranged_hovered else (25, 30, 37)
+            drawing.rectangle(bounds, color, filled=True)
+            drawing.rectangle(bounds, (149, 137, 108))
+            drawing.text(self.app.resources.small, bounds[0] + 8, bounds[1] + 15,
+                         '디버그: 원거리 전투', (224, 216, 190))
             bounds = DEBUG_MELEE_BOUNDS
             color = (52, 61, 68) if self.debug_melee_hovered else (25, 30, 37)
             drawing.rectangle(bounds, color, filled=True)

@@ -9,7 +9,7 @@ import pico2d as p2d
 from game import drawing
 from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
-from game.enemies import Lich, LichImpact
+from game.enemies import Lich, LichImpact, LichProjectile
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.hp_ui import draw_hp_bar
 from game.items import ITEMS, Equipment
@@ -26,14 +26,17 @@ MELEE_DIRECTIONS = ('상단', '중단', '하단')
 FLOOR = 245
 CONTACT_TIME = .48
 TURN_SECONDS = .92
+MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
 
 class RangedScene:
-    def __init__(self, app, field, enemy):
+    def __init__(self, app, field, enemy, *, distance_cells=None, debug=False):
         self.app, self.field, self.enemy = app, field, enemy
         self.player = field.player
+        self.debug = debug
         self.cause = 'lich_projectile'
-        self.initial_cells = max(1, math.ceil(abs(enemy.x - field.x) / 32))
+        self.initial_cells = max(1, distance_cells if distance_cells is not None
+                                 else math.ceil(abs(enemy.x - field.x) / 32))
         self.distance = self.initial_cells
         self.cell_width = min(32, 420 / self.initial_cells)
         self.phase = 'ranged'
@@ -202,7 +205,10 @@ class RangedScene:
         if self.victory_wait is not None:
             self.victory_wait -= dt
             if self.victory_wait <= 0:
-                self.field.resume_after_victory(self.enemy)
+                if self.debug:
+                    self.app.show_title()
+                else:
+                    self.field.resume_after_victory(self.enemy)
             return
         if self.resolving is None:
             return
@@ -223,7 +229,8 @@ class RangedScene:
             self.finish_action()
 
     def save(self):
-        self.field.save()
+        if not self.debug:
+            self.field.save()
 
     def close_bag(self):
         self.bag_open = False
@@ -250,7 +257,8 @@ class RangedScene:
                 self.item_message = message
                 return
             bag[index] = None
-            self.field.chests.save()
+            if not self.debug:
+                self.field.chests.save()
             self.close_bag()
             self.record(message)
             if self.phase == 'ranged':
@@ -387,11 +395,25 @@ class RangedScene:
         else:
             sprite = art.cast_image if casting else art.image
         center_x = lich_x - 12 * scale if casting else lich_x
-        sprite.clip_composite_draw(
-            frame * width, 0, width, art.FRAME_HEIGHT, 0, '',
-            round(center_x * SCALE),
-            round((NATIVE_HEIGHT - (FLOOR - 8 - 32 * scale)) * SCALE),
-            round(width * scale * SCALE), round(art.FRAME_HEIGHT * scale * SCALE))
+        hit_elapsed = self.action_elapsed - self.contact_time
+        red_hit = (self.resolving == 'melee_player' and self.hit
+                   and 0 <= hit_elapsed < .18)
+        if red_hit:
+            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
+        try:
+            sprite.clip_composite_draw(
+                frame * width, 0, width, art.FRAME_HEIGHT, 0, '',
+                round(center_x * SCALE),
+                round((NATIVE_HEIGHT - (FLOOR - 8 - 32 * scale)) * SCALE),
+                round(width * scale * SCALE), round(art.FRAME_HEIGHT * scale * SCALE))
+        finally:
+            if red_hit:
+                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+        if red_hit:
+            spread = 1 + hit_elapsed / .18
+            for dx, dy in ((-7, -5), (5, -9), (-3, 6), (8, 4)):
+                x, y = lich_x - 23 + dx * spread, FLOOR - 65 + dy * spread
+                drawing.rectangle((x, y, x + 3, y + 3), (255, 78, 65), filled=True)
         if casting and .18 <= self.action_elapsed < CONTACT_TIME:
             progress = (self.action_elapsed - .18) / (CONTACT_TIME - .18)
             orb_x = lich_x - 28 - (lich_x - player_x - 40) * progress

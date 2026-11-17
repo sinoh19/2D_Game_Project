@@ -103,6 +103,19 @@ class App:
         self.debug_skip_hovered = False
         self.scene = MeleeScene(self, field, enemy, 'debug')
 
+    def start_debug_ranged(self):
+        from game.scenes.field import FieldScene
+        from game.scenes.ranged import MAX_DISTANCE_CELLS, RangedScene
+
+        field = FieldScene(self, new_game=True)
+        if not field.liches:
+            self.scene.notice = '맵에 리치가 배치되지 않았습니다.'
+            self.scene.notice_time = 2.5
+            return
+        self.debug_skip_hovered = False
+        self.scene = RangedScene(self, field, field.liches[0],
+                                 distance_cells=MAX_DISTANCE_CELLS, debug=True)
+
     def reload_field_map(self):
         previous = self.scene
         previous.save()
