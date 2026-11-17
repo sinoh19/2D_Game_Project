@@ -59,6 +59,7 @@ class FieldScene:
         self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.liches = [Lich(spec) for spec in self.layout.get('liches', [])]
+        self.lich_projectiles = []
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     @property
@@ -240,8 +241,12 @@ class FieldScene:
             self.update_pickup(dt/steps)
             for enemy in self.enemies:
                 enemy.update(dt/steps, self)
+            self.lich_projectiles[:] = [projectile for projectile in self.lich_projectiles
+                                       if projectile.update(dt/steps, self)]
             for lich in self.liches:
-                lich.update(dt/steps)
+                projectile = lich.update(dt/steps, self)
+                if projectile is not None:
+                    self.lich_projectiles.append(projectile)
             if resolve_encounter(self):
                 return
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
@@ -260,6 +265,9 @@ class FieldScene:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         for lich in self.liches:
             self.assets.lich_art.draw(lich, self.camera_x, self.assets.scale, self.view_width)
+        for projectile in self.lich_projectiles:
+            self.assets.lich_art.draw_projectile(
+                projectile, self.camera_x, self.assets.scale, self.view_width)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
             self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)

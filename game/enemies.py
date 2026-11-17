@@ -6,6 +6,22 @@ from game.terrain import slope_height
 from game.combat import Vitals, apply_strength, roll_critical_damage
 
 
+def segment_box_time(x1, y1, x2, y2, box):
+    """First contact of a moving point with an axis-aligned box, or None."""
+    near, far = 0.0, 1.0
+    for start, distance, low, high in ((x1, x2-x1, box[0], box[2]),
+                                       (y1, y2-y1, box[1], box[3])):
+        if abs(distance) < 1e-9:
+            if start < low or start > high:
+                return None
+            continue
+        a, b = (low-start)/distance, (high-start)/distance
+        near, far = max(near, min(a, b)), min(far, max(a, b))
+        if near > far:
+            return None
+    return near
+
+
 class Slime(Vitals):
     def __init__(self, spec, motion):
         super().__init__(max_hp=20)
@@ -139,7 +155,13 @@ class SlimeArt:
 
 
 class Lich:
-    """A floating field patrol; battle behavior can be added separately."""
+    """Floating patrol that charges and fires when the player enters range."""
+
+    ATTACK_RANGE = 200
+    CAST_FPS = 12
+    CAST_FRAMES = 13
+    CAST_DURATION = CAST_FRAMES / CAST_FPS
+    ATTACK_COOLDOWN = 2.2
 
     def __init__(self, spec):
         self.x, self.y = spec['x'], spec['y']
@@ -153,16 +175,45 @@ class Lich:
         self.time = 0.0
         self.distance_left = self.move_distance
         self.pause_left = 0.0
+        self.cast_elapsed = None
+        self.attack_cooldown = 0.0
+        self.aim = None
 
     @property
     def frame(self):
         return int(self.time * 10) % 16
 
-    def update(self, dt):
+    def sees_player(self, scene):
+        player = scene.player
+        dx = player.x - self.x
+        if (player.hp <= 0 or abs(dx) > self.ATTACK_RANGE
+                or abs(player.y - self.y) > 64):
+            return False
+        muzzle_x = self.x + (28 if dx > 0 else -28)
+        muzzle_y = self.y - 48
+        target_y = player.y - player.HEIGHT / 2
+        return not any(segment_box_time(muzzle_x, muzzle_y, player.x, target_y, rect)
+                       is not None for rect in scene.solids)
+
+    def update(self, dt, scene=None):
         dt = max(0.0, dt)
         self.time += dt
+        self.attack_cooldown = max(0.0, self.attack_cooldown - dt)
+        if self.cast_elapsed is not None:
+            self.cast_elapsed += dt
+            if self.cast_elapsed >= self.CAST_DURATION:
+                self.cast_elapsed = None
+                self.attack_cooldown = self.ATTACK_COOLDOWN
+                return LichProjectile(self, *self.aim)
+            return None
+        if scene is not None and self.sees_player(scene):
+            self.facing = 1 if scene.player.x > self.x else -1
+            if self.attack_cooldown == 0:
+                self.aim = (scene.player.x, scene.player.y - scene.player.HEIGHT / 2)
+                self.cast_elapsed = 0.0
+            return None
         if not self.speed:
-            return
+            return None
         while dt > 1e-9:
             if self.pause_left > 0:
                 step = min(dt, self.pause_left)
@@ -189,19 +240,77 @@ class Lich:
             elif self.distance_left <= 1e-8:
                 self.distance_left = self.move_distance
                 self.pause_left = self.move_pause
+        return None
+
+
+class LichProjectile:
+    SPEED = 190.0
+    RANGE = 260.0
+    DAMAGE = 6
+    HALF_WIDTH = 7
+    HALF_HEIGHT = 5
+
+    def __init__(self, lich, target_x, target_y):
+        self.facing = lich.facing
+        self.x = lich.x + self.facing * 28
+        self.y = lich.y - 48
+        dx = target_x - self.x
+        if dx * self.facing <= 0:
+            dx = self.facing * 80
+        dy = target_y - self.y
+        length = math.hypot(dx, dy)
+        self.vx = self.SPEED * dx / length
+        self.vy = self.SPEED * dy / length
+        self.distance = 0.0
+        self.age = 0.0
+
+    def update(self, dt, scene):
+        if self.distance >= self.RANGE:
+            return False
+        dt = min(max(0.0, dt), (self.RANGE-self.distance)/self.SPEED)
+        end_x, end_y = self.x + self.vx*dt, self.y + self.vy*dt
+        walls = [segment_box_time(self.x, self.y, end_x, end_y,
+                                 (left-self.HALF_WIDTH, top-self.HALF_HEIGHT,
+                                  right+self.HALF_WIDTH, bottom+self.HALF_HEIGHT))
+                 for left, top, right, bottom in scene.solids]
+        wall_hit = min((hit for hit in walls if hit is not None), default=None)
+        player = scene.player
+        player_hit = None
+        if player.hp > 0:
+            player_hit = segment_box_time(
+                self.x, self.y, end_x, end_y,
+                (player.x-player.HALF_WIDTH-self.HALF_WIDTH,
+                 player.y-player.HEIGHT-self.HALF_HEIGHT,
+                 player.x+player.HALF_WIDTH+self.HALF_WIDTH,
+                 player.y+self.HALF_HEIGHT))
+        if player_hit is not None and (wall_hit is None or player_hit < wall_hit):
+            player.take_damage(self.DAMAGE, damage_type='magic')
+            scene.trap_hit_time = .30
+            return False
+        if wall_hit is not None:
+            return False
+        self.x, self.y = end_x, end_y
+        self.distance += self.SPEED * dt
+        self.age += dt
+        return self.distance < self.RANGE
 
 
 class LichArt:
     FRAME_WIDTH = 48
     FRAME_HEIGHT = 64
     FRAME_COUNT = 16
+    CAST_WIDTH = 72
+    CAST_FRAMES = 13
+    PROJECTILE_WIDTH = 28
+    PROJECTILE_HEIGHT = 14
+    PROJECTILE_FRAMES = 9
     # Keep the game's muted palette while retaining the lich's plum robe and blue eye.
     PALETTE = (
         (22, 24, 30), (34, 37, 43), (48, 52, 59), (65, 70, 78),
         (83, 90, 100), (105, 113, 124), (132, 140, 149),
         (39, 31, 43), (58, 43, 61), (79, 58, 81), (103, 76, 105),
         (128, 101, 127), (157, 148, 140), (188, 180, 168),
-        (50, 85, 105), (82, 140, 158),
+        (50, 85, 105), (82, 140, 158), (71, 219, 225),
     )
 
     def __init__(self, folder):
@@ -212,17 +321,46 @@ class LichArt:
         if (source.w, source.h) != (self.FRAME_WIDTH * self.FRAME_COUNT, self.FRAME_HEIGHT):
             raise ValueError('리치 이동 시트 크기가 잘못되었습니다.')
         self.image = simplify(source, block=2, palette=self.PALETTE)
+        cast = p2d.load_image(str(folder / 'cast.png'))
+        if (cast.w, cast.h) != (self.CAST_WIDTH * self.CAST_FRAMES, self.FRAME_HEIGHT):
+            raise ValueError('리치 공격 시트 크기가 잘못되었습니다.')
+        self.cast_image = simplify(cast, block=2, palette=self.PALETTE)
+        projectile = p2d.load_image(str(folder / 'projectile.png'))
+        if (projectile.w, projectile.h) != (self.PROJECTILE_WIDTH * self.PROJECTILE_FRAMES,
+                                           self.PROJECTILE_HEIGHT):
+            raise ValueError('리치 투사체 시트 크기가 잘못되었습니다.')
+        self.projectile_image = simplify(projectile, block=2, palette=self.PALETTE)
 
     def draw(self, lich, camera, world_scale, view_width):
         from game.config import WINDOW_HEIGHT
 
-        if lich.x + lich.width / 2 < camera or lich.x - lich.width / 2 > camera + view_width:
+        if lich.x + self.CAST_WIDTH < camera or lich.x - self.CAST_WIDTH > camera + view_width:
             return
         bob = round(2 * math.sin(lich.time * 2 * math.pi * 10 / self.FRAME_COUNT))
         center_y = lich.y - 8 - bob - lich.height / 2
-        self.image.clip_composite_draw(
-            lich.frame * self.FRAME_WIDTH, 0, self.FRAME_WIDTH, self.FRAME_HEIGHT,
+        casting = lich.cast_elapsed is not None
+        frame = min(self.CAST_FRAMES-1, int(lich.cast_elapsed * Lich.CAST_FPS)) if casting else lich.frame
+        width = self.CAST_WIDTH if casting else self.FRAME_WIDTH
+        image = self.cast_image if casting else self.image
+        center_x = lich.x + 12 * lich.facing if casting else lich.x
+        image.clip_composite_draw(
+            frame * width, 0, width, self.FRAME_HEIGHT,
             0, 'h' if lich.facing > 0 else '',
-            round((lich.x - camera) * world_scale),
+            round((center_x - camera) * world_scale),
             round((WINDOW_HEIGHT - center_y * world_scale)),
-            round(lich.width * world_scale), round(lich.height * world_scale))
+            round(width * world_scale), round(lich.height * world_scale))
+
+    def draw_projectile(self, projectile, camera, world_scale, view_width):
+        from game.config import WINDOW_HEIGHT
+
+        if projectile.x + 14 < camera or projectile.x - 14 > camera + view_width:
+            return
+        frame = int(projectile.age * 12) % self.PROJECTILE_FRAMES
+        self.projectile_image.clip_composite_draw(
+            frame * self.PROJECTILE_WIDTH, 0,
+            self.PROJECTILE_WIDTH, self.PROJECTILE_HEIGHT,
+            0, 'h' if projectile.facing < 0 else '',
+            round((projectile.x-camera) * world_scale),
+            round(WINDOW_HEIGHT-projectile.y * world_scale),
+            round(self.PROJECTILE_WIDTH * world_scale),
+            round(self.PROJECTILE_HEIGHT * world_scale))
