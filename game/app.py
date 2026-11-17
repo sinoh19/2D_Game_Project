@@ -86,6 +86,11 @@ class App:
         from game.scenes.melee_transition import MeleeTransitionScene
         self.scene = MeleeTransitionScene(self, field, MeleeScene(self, field, enemy, cause))
 
+    def start_ranged(self, field, lich):
+        from game.scenes.ranged import RangedScene
+        from game.scenes.melee_transition import MeleeTransitionScene
+        self.scene = MeleeTransitionScene(self, field, RangedScene(self, field, lich))
+
     def start_debug_melee(self):
         from game.enemies import Slime
         from game.scenes.field import FieldScene

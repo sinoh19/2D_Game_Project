@@ -154,7 +154,7 @@ class SlimeArt:
                 p2d.SDL_SetTextureAlphaMod(image.texture, 255)
 
 
-class Lich:
+class Lich(Vitals):
     """Floating patrol that charges and fires when the player enters range."""
 
     ATTACK_RANGE = 200
@@ -164,6 +164,7 @@ class Lich:
     ATTACK_COOLDOWN = 2.2
 
     def __init__(self, spec):
+        super().__init__(max_hp=35)
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed = spec['speed']
@@ -299,6 +300,10 @@ class LichProjectile:
                 self.y + (end_y - self.y) * player_hit))
             player.take_damage(self.DAMAGE, damage_type='magic')
             scene.trap_hit_time = .30
+            if scene.encounter is None:
+                scene.encounter = (self.owner, 'lich_projectile')
+                scene.keys.clear()
+                scene.app.start_ranged(scene, self.owner)
             return False
         if obstacle_hit is not None:
             scene.lich_impacts.append(LichImpact(

@@ -116,7 +116,10 @@ class FieldScene:
         self.chests.save()
 
     def resume_after_victory(self, enemy):
-        self.enemies.remove(enemy)
+        if enemy in self.enemies:
+            self.enemies.remove(enemy)
+        elif enemy in self.liches:
+            self.liches.remove(enemy)
         self.encounter = None
         self.player.attack_time = None
         self.app.scene = self
@@ -270,6 +273,8 @@ class FieldScene:
                 enemy.update(dt/steps, self)
             self.lich_projectiles[:] = [projectile for projectile in self.lich_projectiles
                                        if projectile.update(dt/steps, self)]
+            if self.app.scene is not self:
+                return
             for lich in self.liches:
                 projectile = lich.update(dt/steps, self)
                 if projectile is not None:
