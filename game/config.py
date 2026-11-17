@@ -47,8 +47,8 @@ TILE_FLIP_SECONDS = 0.65
 TILE_FLIP_STAGGER_SECONDS = 0.55
 TILE_FLIP_BLACK_SECONDS = 0.3
 
-# 발표 중 메인/인트로의 디버그 진입 버튼을 숨깁니다.
-DEBUG_SKIP_ENABLED = False
+# 개발 중 메인/인트로에서 디버그 진입 버튼을 표시합니다.
+DEBUG_SKIP_ENABLED = True
 DEBUG_SKIP_BOUNDS = (536, 8, 631, 29)
 
 # Tiled에서 저장한 맵을 실행 시 직접 읽습니다.

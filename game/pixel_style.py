@@ -62,6 +62,12 @@ def simplify(image, block=2, *, preserve_white=False):
 
 def apply(assets):
     assets.sheets={key:simplify(image) for key,image in assets.sheets.items()}
-    keys=('door','armor','torch_body',*(f'torch_flame_{i}' for i in range(6)))
-    for key in keys:
-        if key in assets.images:assets.images[key]=simplify(assets.images[key])
+    keys={'door','armor','torch_body',*(f'torch_flame_{i}' for i in range(6))}
+    keys.update(item['image'] for item in assets.layout.get('tiledVisuals',())
+                if item.get('terrainInterior'))
+    # Passage walls still use the legacy terrain images beside Tiled floor tiles.
+    for name in ('Floor','Fill','Ceiling'):
+        spec=assets.layout.get('unitySprites',{}).get(name)
+        if spec:keys.add(spec['image'])
+    for key in sorted(keys):
+        if key in assets.images:assets.images[key]=simplify(assets.images[key],block=2)
