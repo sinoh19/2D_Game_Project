@@ -220,8 +220,15 @@ class DungeonAssets:
             if tinted:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
 
+    def draw_field_hit(self, x, feet, facing, camera, elapsed):
+        # Reuse the field sprite's crouched frames for the encounter impact.
+        elapsed = max(0.0, elapsed)
+        offset = (0, 2, 4, 3, 1)[min(4, int(elapsed / .06))]
+        tint = (255, 95, 85) if elapsed < .12 else None
+        self.draw_character('field_hit', elapsed, x-facing*offset, feet, facing, camera, tint=tint)
+
     def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None,
-                       melee_detail=False, alpha=255):
+                       melee_detail=False, alpha=255, tint=None):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']
         time = time % duration if clip['loop'] else min(time, duration)
@@ -240,6 +247,8 @@ class DungeonAssets:
         center_y = round(feet - (height / 2 - py)*actor_scale)
         if alpha != 255:
             p2d.SDL_SetTextureAlphaMod(image.texture, alpha)
+        if tint is not None:
+            p2d.SDL_SetTextureColorMod(image.texture, *tint)
         try:
             image.clip_composite_draw(sx, sy, width, height, 0,
                                       'h' if facing < 0 else '',
@@ -248,6 +257,8 @@ class DungeonAssets:
         finally:
             if alpha != 255:
                 p2d.SDL_SetTextureAlphaMod(image.texture, 255)
+            if tint is not None:
+                p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
 
 
 class Knight(Vitals):

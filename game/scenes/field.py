@@ -235,12 +235,14 @@ class FieldScene:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
-            self.assets.draw_mercenary_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
+            self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
         else:
             clip, time = self.player.clip
             self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
         for item in self.dropped_items:
             item.draw(self.chests.icons[item.item_id], self.camera_x, self.scenery_time)
+        # Dim the dungeon world while keeping its local fire and player light visible.
+        drawing.black_overlay(.20)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
