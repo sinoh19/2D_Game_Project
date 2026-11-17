@@ -193,7 +193,7 @@ def load_map(map_path,base_layout,asset_root):
                 if klass=='Spawn':spawns.append([x,y]);continue
                 if klass=='TreasureChest':
                     if shown:
-                        layout['chests'].append((obj['id'],x+w/2,y))
+                        layout['chests'].append((obj['id'],x+w/2,y,w,h))
                     continue
                 if klass=='SpikeTrap':
                     if shown:

@@ -11,24 +11,29 @@ from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
 from game.loot_ui import CLOSE_BUTTON, bag_slot_at, chest_slot_at, draw_loot
 
 FRAME_SIZE = 192
-DRAW_SIZE = 56
+DRAW_SIZE = 56  # Sheet canvas size that matches a 32px Tiled chest object.
+TILED_SIZE = 32
 FRAME_COUNT = 5
 OPEN_TIME = .4
 
 
 class TreasureChest:
     def __init__(self, spec, opened, looted):
-        self.id, self.x, self.y = spec
+        self.id, self.x, self.y = spec[:3]
+        self.width, self.height = spec[3:] if len(spec) == 5 else (TILED_SIZE, TILED_SIZE)
         self.elapsed = OPEN_TIME if opened or looted else None
         self.looted = looted
 
     def draw(self, sheet, camera):
         elapsed = self.elapsed or 0.0
         frame = min(FRAME_COUNT - 1, int(elapsed * FRAME_COUNT / OPEN_TIME))
+        # Keep the sheet's visible pixels aligned with the Tiled preview's
+        # 24x16 art inside its 32x32 object, including the floor contact.
         sheet.clip_draw(frame * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE,
                         (self.x - camera) * SCALE,
-                        WINDOW_HEIGHT - (self.y - 29) * SCALE,
-                        DRAW_SIZE * SCALE, DRAW_SIZE * SCALE)
+                        WINDOW_HEIGHT - (self.y - self.height * 28 / TILED_SIZE) * SCALE,
+                        DRAW_SIZE * self.width / TILED_SIZE * SCALE,
+                        DRAW_SIZE * self.height / TILED_SIZE * SCALE)
 
 
 
