@@ -264,6 +264,12 @@ class LichProjectile:
         self.distance = 0.0
         self.age = 0.0
 
+    @property
+    def draw_angle(self):
+        # Game coordinates grow downward; pico2d angles grow counterclockwise.
+        # Each sprite faces its own horizontal travel direction before rotation.
+        return -self.facing * math.atan2(self.vy, abs(self.vx))
+
     def update(self, dt, scene):
         if self.distance >= self.RANGE:
             return False
@@ -330,6 +336,10 @@ class LichArt:
                                            self.PROJECTILE_HEIGHT):
             raise ValueError('리치 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_image = simplify(projectile, block=2, palette=self.PALETTE)
+        left_projectile = p2d.load_image(str(folder / 'projectile-left.png'))
+        if (left_projectile.w, left_projectile.h) != (projectile.w, projectile.h):
+            raise ValueError('리치 왼쪽 투사체 시트 크기가 잘못되었습니다.')
+        self.projectile_left_image = simplify(left_projectile, block=2, palette=self.PALETTE)
 
     def draw(self, lich, camera, world_scale, view_width):
         from game.config import WINDOW_HEIGHT
@@ -339,7 +349,9 @@ class LichArt:
         bob = round(2 * math.sin(lich.time * 2 * math.pi * 10 / self.FRAME_COUNT))
         center_y = lich.y - 8 - bob - lich.height / 2
         casting = lich.cast_elapsed is not None
-        frame = min(self.CAST_FRAMES-1, int(lich.cast_elapsed * Lich.CAST_FPS)) if casting else lich.frame
+        # The final source frames contain a horizontal bolt. Hold the charged
+        # orb until the direction-aware projectile draws the release.
+        frame = min(self.CAST_FRAMES-3, int(lich.cast_elapsed * Lich.CAST_FPS)) if casting else lich.frame
         width = self.CAST_WIDTH if casting else self.FRAME_WIDTH
         image = self.cast_image if casting else self.image
         center_x = lich.x + 12 * lich.facing if casting else lich.x
@@ -353,13 +365,14 @@ class LichArt:
     def draw_projectile(self, projectile, camera, world_scale, view_width):
         from game.config import WINDOW_HEIGHT
 
-        if projectile.x + 14 < camera or projectile.x - 14 > camera + view_width:
+        if projectile.x + 16 < camera or projectile.x - 16 > camera + view_width:
             return
         frame = int(projectile.age * 12) % self.PROJECTILE_FRAMES
-        self.projectile_image.clip_composite_draw(
+        image = self.projectile_image if projectile.facing > 0 else self.projectile_left_image
+        image.clip_composite_draw(
             frame * self.PROJECTILE_WIDTH, 0,
             self.PROJECTILE_WIDTH, self.PROJECTILE_HEIGHT,
-            0, 'h' if projectile.facing < 0 else '',
+            projectile.draw_angle, '',
             round((projectile.x-camera) * world_scale),
             round(WINDOW_HEIGHT-projectile.y * world_scale),
             round(self.PROJECTILE_WIDTH * world_scale),
