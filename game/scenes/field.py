@@ -2,6 +2,7 @@
 import math
 import pico2d as p2d
 from game import drawing
+from game.hp_ui import draw_hp_bar
 from game.config import SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
@@ -246,8 +247,7 @@ class FieldScene:
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
-        drawing.rectangle((6,6,126,26),(20,19,22),filled=True)
-        drawing.text(self.app.resources.small,12,21,f'HP {self.player.hp} / {self.player.max_hp}')
+        draw_hp_bar(self.app.resources.small, 6, 6, self.player.hp, self.player.max_hp)
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
                      '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 용병 정보   I 가방   ESC 저장/메인')

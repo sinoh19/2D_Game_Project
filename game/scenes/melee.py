@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pico2d as p2d
 
 from game import drawing
+from game.hp_ui import draw_hp_bar
 from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
@@ -536,7 +537,7 @@ class MeleeScene:
             panel(bounds, (67, 48, 35) if selected else (30, 33, 44),
                   GOLD if highlighted else (76, 75, 86))
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
-        drawing.text(small, 20, 29, f'용병 HP {self.player.hp} / {self.player.max_hp}')
+        draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
         centered(small, 320, 29, '근접 전투')
         drawing.text(small, 514, 29, f'슬라임 HP {self.enemy.hp} / {self.enemy.max_hp}')
 
