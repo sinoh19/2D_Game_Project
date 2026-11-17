@@ -27,7 +27,7 @@ class TreasureChest:
         frame = min(FRAME_COUNT - 1, int(elapsed * FRAME_COUNT / OPEN_TIME))
         sheet.clip_draw(frame * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE,
                         (self.x - camera) * SCALE,
-                        WINDOW_HEIGHT - (self.y - 21) * SCALE,
+                        WINDOW_HEIGHT - (self.y - 29) * SCALE,
                         DRAW_SIZE * SCALE, DRAW_SIZE * SCALE)
 
 
