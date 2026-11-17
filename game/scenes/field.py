@@ -60,6 +60,7 @@ class FieldScene:
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.liches = [Lich(spec) for spec in self.layout.get('liches', [])]
         self.lich_projectiles = []
+        self.lich_impacts = []
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     @property
@@ -254,6 +255,8 @@ class FieldScene:
         steps = max(1, math.ceil(dt*120))
         direction = self.movement_direction()
         for _ in range(steps):
+            self.lich_impacts[:] = [impact for impact in self.lich_impacts
+                                   if impact.update(dt/steps)]
             self.player.step(dt/steps, direction)
             if self.passages.reached_exit():
                 from game.scenes.stage_end import StageEndScene
@@ -300,6 +303,9 @@ class FieldScene:
         else:
             clip, time = self.player.clip
             self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
+        for impact in self.lich_impacts:
+            self.assets.lich_art.draw_impact(
+                impact, self.camera_x, self.assets.scale, self.view_width)
         for item in self.dropped_items:
             item.draw(self.chests.icons[item.item_id], self.camera_x, self.scenery_time)
         # Dim the dungeon world while keeping its local fire and player light visible.

@@ -291,15 +291,33 @@ class LichProjectile:
                  player.x+player.HALF_WIDTH+self.HALF_WIDTH,
                  player.y+self.HALF_HEIGHT))
         if player_hit is not None and (obstacle_hit is None or player_hit < obstacle_hit):
+            scene.lich_impacts.append(LichImpact(
+                self.x + (end_x - self.x) * player_hit,
+                self.y + (end_y - self.y) * player_hit))
             player.take_damage(self.DAMAGE, damage_type='magic')
             scene.trap_hit_time = .30
             return False
         if obstacle_hit is not None:
+            scene.lich_impacts.append(LichImpact(
+                self.x + (end_x - self.x) * obstacle_hit,
+                self.y + (end_y - self.y) * obstacle_hit))
             return False
         self.x, self.y = end_x, end_y
         self.distance += self.SPEED * dt
         self.age += dt
         return self.distance < self.RANGE
+
+
+class LichImpact:
+    DURATION = .22
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        self.elapsed = 0.0
+
+    def update(self, dt):
+        self.elapsed += dt
+        return self.elapsed < self.DURATION
 
 
 class LichArt:
@@ -341,6 +359,9 @@ class LichArt:
         if (left_projectile.w, left_projectile.h) != (projectile.w, projectile.h):
             raise ValueError('리치 왼쪽 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_left_image = simplify(left_projectile, block=2, palette=self.PALETTE)
+        self.impact_image = simplify(
+            p2d.load_image(str(folder / 'impact-concept.png')),
+            block=32, palette=self.PALETTE)
 
     def draw(self, lich, camera, world_scale, view_width):
         from game.config import WINDOW_HEIGHT
@@ -378,3 +399,20 @@ class LichArt:
             round(WINDOW_HEIGHT-projectile.y * world_scale),
             round(self.PROJECTILE_WIDTH * world_scale),
             round(self.PROJECTILE_HEIGHT * world_scale))
+
+    def draw_impact(self, impact, camera, world_scale, view_width):
+        import pico2d as p2d
+        from game.config import WINDOW_HEIGHT
+
+        if impact.x + 24 < camera or impact.x - 24 > camera + view_width:
+            return
+        progress = min(1.0, impact.elapsed / impact.DURATION)
+        size = 0.8 + 0.3 * progress
+        image = self.impact_image
+        p2d.SDL_SetTextureAlphaMod(image.texture, round(255 * (1 - progress) ** 1.5))
+        try:
+            image.draw(round((impact.x - camera) * world_scale),
+                       round(WINDOW_HEIGHT - impact.y * world_scale),
+                       round(72 * size * world_scale), round(48 * size * world_scale))
+        finally:
+            p2d.SDL_SetTextureAlphaMod(image.texture, 255)
