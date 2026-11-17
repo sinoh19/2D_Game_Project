@@ -1,13 +1,15 @@
-"""A one-shot ceiling spike trap placed as a Tiled object."""
-import pico2d as p2d
+"""A repeating ceiling spike trap placed as a Tiled object."""
 
 from game import drawing
-from game.config import ASSETS, SCALE, WINDOW_HEIGHT
+from game.config import SCALE, WINDOW_HEIGHT
 
 
 class SpikeTrap:
     WARNING_SECONDS = .45
     FALL_SPEED = 310.0
+    LANDED_SECONDS = .8
+    SHAKE_SECONDS = .35
+    RISE_SPEED = 180.0
     DAMAGE = 5
 
     def __init__(self, spec, solids):
@@ -35,15 +37,27 @@ class SpikeTrap:
                 self.state = 'falling'
         elif self.state == 'falling':
             self.y = min(self.landing_y, self.y + self.FALL_SPEED * dt)
-            if not self.hit and self.collides(player):
-                player.take_damage(self.DAMAGE)
-                self.hit = True
-                if self.y >= self.landing_y:
-                    self.state = 'landed'
-                return True
             if self.y >= self.landing_y:
                 self.state = 'landed'
-        elif self.state == 'landed' and not self.hit and self.collides(player):
+                self.clock = 0.0
+        elif self.state == 'landed':
+            self.clock += dt
+            if self.clock >= self.LANDED_SECONDS:
+                self.state = 'shaking'
+                self.clock = 0.0
+        elif self.state == 'shaking':
+            self.clock += dt
+            if self.clock >= self.SHAKE_SECONDS:
+                self.state = 'rising'
+                self.clock = 0.0
+        elif self.state == 'rising':
+            self.clock += dt
+            self.y = max(self.start_y, self.y - self.RISE_SPEED * dt)
+            if self.y <= self.start_y:
+                self.state = 'idle'
+                self.clock = 0.0
+                self.hit = False
+        if self.state in ('falling', 'landed', 'shaking') and not self.hit and self.collides(player):
             player.take_damage(self.DAMAGE)
             self.hit = True
             return True
@@ -63,6 +77,7 @@ class SpikeTrap:
             drawing.rectangle((screen_x - self.width / 2, self.start_y,
                                screen_x + self.width / 2, self.start_y + 2),
                               (170, 53, 51), filled=True)
-        image.draw(round(screen_x * SCALE),
+        shake_x = (-2, 1, 2, -1)[int(self.clock * 24) % 4] if self.state in ('shaking', 'rising') else 0
+        image.draw(round((screen_x + shake_x) * SCALE),
                    round(WINDOW_HEIGHT - (self.y + self.height / 2) * SCALE),
                    round(self.width * SCALE), round(self.height * SCALE))
