@@ -46,9 +46,11 @@ class FieldScene:
         self.chests = TreasureChests(self, restore=not new_game)
         self.spike_traps = [SpikeTrap(spec, self.solids + self.platforms)
                             for spec in self.layout.get('spikeTraps', [])]
+        # The 2172px source shrinks to a 48px trap in the field. A 90px
+        # source block becomes roughly a 2px game pixel at that size.
         self.spike_image = (
             simplify(p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-chunky.png')),
-                     block=2)
+                     block=90)
             if self.spike_traps else None
         )
         self.trap_hit_time = 0.0
