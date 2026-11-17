@@ -26,10 +26,10 @@ MELEE_DIRECTIONS = ('상단', '중단', '하단')
 FLOOR = 245
 CONTACT_TIME = .48
 TURN_SECONDS = .92
-MELEE_CAST_CONTACT_TIME = .90
-MELEE_CAST_DURATION = 1.40
-MELEE_PROJECTILE_LAUNCH_TIME = .30
-MELEE_PROJECTILE_SIZE = 1.25
+MELEE_CAST_CONTACT_TIME = 1.50
+MELEE_CAST_DURATION = 2.05
+MELEE_PROJECTILE_LAUNCH_TIME = .35
+MELEE_PROJECTILE_SIZE = 2.0
 MELEE_ENTRY_DISTANCE = 2
 MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
@@ -403,9 +403,15 @@ class RangedScene:
                  if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
         width = art.CAST_WIDTH if casting else art.FRAME_WIDTH
         if self.phase == 'melee':
-            sprite = art.melee_cast_image if casting else art.melee_image
+            hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
+            sprite = (art.melee_cast_frames[frame] if casting
+                      else art.melee_frames[hover_frame])
+            source_x, source_width, source_height = 0, sprite.w, sprite.h
+            core_x = lich_x - 17.5 * scale
+            core_y = FLOOR - 8 - 40 * scale
         else:
             sprite = art.cast_image if casting else art.image
+            source_x, source_width, source_height = frame * width, width, art.FRAME_HEIGHT
         center_x = lich_x - 12 * scale if casting else lich_x
         hit_elapsed = self.action_elapsed - self.contact_time
         red_hit = (self.resolving == 'melee_player' and self.hit
@@ -414,22 +420,13 @@ class RangedScene:
             p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
         try:
             sprite.clip_composite_draw(
-                frame * width, 0, width, art.FRAME_HEIGHT, 0, '',
+                source_x, 0, source_width, source_height, 0, '',
                 round(center_x * SCALE),
                 round((NATIVE_HEIGHT - (FLOOR - 8 - 32 * scale)) * SCALE),
                 round(width * scale * SCALE), round(art.FRAME_HEIGHT * scale * SCALE))
         finally:
             if red_hit:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
-        if self.phase == 'melee':
-            core_x = lich_x - 17.5 * scale
-            core_y = FLOOR - 8 - 40 * scale
-            drawing.rectangle((core_x - 2 * scale, core_y - 2 * scale,
-                               core_x + 2 * scale, core_y + 2 * scale),
-                              (45, 103, 126), filled=True)
-            drawing.rectangle((core_x - scale, core_y - scale,
-                               core_x + scale, core_y + scale),
-                              (111, 235, 239), filled=True)
         if red_hit:
             spread = 1 + hit_elapsed / .18
             for dx, dy in ((-7, -5), (5, -9), (-3, 6), (8, 4)):
@@ -438,8 +435,14 @@ class RangedScene:
         launch_time = (MELEE_PROJECTILE_LAUNCH_TIME if self.phase == 'melee' else .18)
         if casting and launch_time <= self.action_elapsed < self.contact_time:
             progress = (self.action_elapsed - launch_time) / (self.contact_time - launch_time)
-            orb_x = lich_x - 28 - (lich_x - player_x - 40) * progress
-            orb = SimpleNamespace(x=orb_x, y=FLOOR - 54 * scale,
+            if self.phase == 'melee':
+                launch_x, launch_y = core_x - 8, core_y
+                target_x, target_y = player_x + 8, core_y
+            else:
+                launch_x, launch_y = lich_x - 28, FLOOR - 54 * scale
+                target_x, target_y = player_x + 12, launch_y
+            orb = SimpleNamespace(x=launch_x + (target_x - launch_x) * progress,
+                                  y=launch_y + (target_y - launch_y) * progress,
                                   age=self.action_elapsed, facing=-1, draw_angle=0)
             art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH,
                                 melee_detail=self.phase == 'melee',
@@ -455,7 +458,8 @@ class RangedScene:
                                                  1, 0, actor_scale=scale,
                                                  melee_detail=self.phase == 'melee')
             if elapsed < LichImpact.DURATION:
-                art.draw_impact(SimpleNamespace(x=player_x + 8, y=FLOOR - 54 * scale,
+                impact_y = core_y if self.phase == 'melee' else FLOOR - 54 * scale
+                art.draw_impact(SimpleNamespace(x=player_x + 8, y=impact_y,
                                                 elapsed=elapsed, DURATION=LichImpact.DURATION),
                                 0, SCALE, NATIVE_WIDTH)
         else:

@@ -358,26 +358,31 @@ class LichArt:
         if (source.w, source.h) != (self.FRAME_WIDTH * self.FRAME_COUNT, self.FRAME_HEIGHT):
             raise ValueError('리치 이동 시트 크기가 잘못되었습니다.')
         self.image = simplify(source, block=2, palette=self.PALETTE)
-        self.melee_image = simplify(source, block=1, palette=self.PALETTE)
         cast = p2d.load_image(str(folder / 'cast.png'))
         if (cast.w, cast.h) != (self.CAST_WIDTH * self.CAST_FRAMES, self.FRAME_HEIGHT):
             raise ValueError('리치 공격 시트 크기가 잘못되었습니다.')
         self.cast_image = simplify(cast, block=2, palette=self.PALETTE)
-        self.melee_cast_image = simplify(cast, block=1, palette=self.PALETTE)
+        # The original PixelLab frames retain the purple staff crystal that
+        # becomes gray in the reduced field sheet.
+        self.melee_frames = [p2d.load_image(str(path)) for path in
+                             sorted((folder / 'source_frames').glob('frame-*.png'))]
+        self.melee_cast_frames = [p2d.load_image(str(path)) for path in
+                                  sorted((folder / 'cast_source_frames').glob('frame-*.png'))]
+        self.melee_projectile_frames = [p2d.load_image(str(path)) for path in
+                                        sorted((folder / 'projectile_source_frames').glob('frame-*.png'))]
+        if (len(self.melee_frames), len(self.melee_cast_frames),
+                len(self.melee_projectile_frames)) != (9, self.CAST_FRAMES, self.PROJECTILE_FRAMES):
+            raise ValueError('리치 원본 애니메이션 프레임 수가 잘못되었습니다.')
         projectile = p2d.load_image(str(folder / 'projectile.png'))
         if (projectile.w, projectile.h) != (self.PROJECTILE_WIDTH * self.PROJECTILE_FRAMES,
                                            self.PROJECTILE_HEIGHT):
             raise ValueError('리치 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_image = simplify(projectile, block=2, palette=self.PROJECTILE_PALETTE)
-        self.melee_projectile_image = simplify(projectile, block=1,
-                                               palette=self.PROJECTILE_PALETTE)
         left_projectile = p2d.load_image(str(folder / 'projectile-left.png'))
         if (left_projectile.w, left_projectile.h) != (projectile.w, projectile.h):
             raise ValueError('리치 왼쪽 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_left_image = simplify(left_projectile, block=2,
                                               palette=self.PROJECTILE_PALETTE)
-        self.melee_projectile_left_image = simplify(left_projectile, block=1,
-                                                    palette=self.PROJECTILE_PALETTE)
         self.impact_image = simplify(
             p2d.load_image(str(folder / 'impact-concept.png')),
             block=32, palette=self.PROJECTILE_PALETTE)
@@ -411,14 +416,16 @@ class LichArt:
             return
         frame = int(projectile.age * 12) % self.PROJECTILE_FRAMES
         if melee_detail:
-            image = (self.melee_projectile_image if projectile.facing > 0
-                     else self.melee_projectile_left_image)
+            image = self.melee_projectile_frames[frame]
+            source_x, source_width, source_height = 0, image.w, image.h
+            flip = 'h' if projectile.facing < 0 else ''
         else:
             image = self.projectile_image if projectile.facing > 0 else self.projectile_left_image
+            source_x, source_width, source_height = frame * self.PROJECTILE_WIDTH, self.PROJECTILE_WIDTH, self.PROJECTILE_HEIGHT
+            flip = ''
         image.clip_composite_draw(
-            frame * self.PROJECTILE_WIDTH, 0,
-            self.PROJECTILE_WIDTH, self.PROJECTILE_HEIGHT,
-            projectile.draw_angle, '',
+            source_x, 0, source_width, source_height,
+            projectile.draw_angle, flip,
             round((projectile.x-camera) * world_scale),
             round(WINDOW_HEIGHT-projectile.y * world_scale),
             round(self.PROJECTILE_WIDTH * world_scale * size_scale),
