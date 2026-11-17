@@ -229,6 +229,10 @@ class FieldScene:
         direction = self.movement_direction()
         for _ in range(steps):
             self.player.step(dt/steps, direction)
+            if self.passages.reached_exit():
+                from game.scenes.stage_end import StageEndScene
+                self.app.scene = StageEndScene(self.app)
+                return
             for trap in self.spike_traps:
                 if trap.update(dt/steps, self.player):
                     self.trap_hit_time = .30

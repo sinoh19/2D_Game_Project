@@ -68,6 +68,16 @@ class SidePassages:
         for gate in self.gates:gate.update(dt)
         self.sync()
 
+    def reached_exit(self):
+        player = self.scene.player
+        return any(
+            gate.spec['id'] == 'exit' and gate.spec['side'] == 'right'
+            and gate.state == 'open'
+            and player.x >= gate.spec['gateX'] + gate.spec['gateWidth'] / 2
+            and gate.spec['openingTop'] + player.HEIGHT <= player.y <= gate.spec['bottom'] + 16
+            for gate in self.gates
+        )
+
     def save(self):
         # A gate already being opened resumes fully open, rather than trapping
         # a player who saved while standing in its opening.
