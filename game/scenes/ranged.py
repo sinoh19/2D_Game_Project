@@ -29,7 +29,8 @@ TURN_SECONDS = .92
 MELEE_CAST_CONTACT_TIME = .90
 MELEE_CAST_DURATION = 1.40
 MELEE_PROJECTILE_LAUNCH_TIME = .30
-MELEE_PROJECTILE_SIZE = .65
+MELEE_PROJECTILE_SIZE = 1.25
+MELEE_ENTRY_DISTANCE = 2
 MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
 
@@ -43,8 +44,8 @@ class RangedScene:
                                  else math.ceil(abs(enemy.x - field.x) / 32))
         self.distance = self.initial_cells
         self.cell_width = min(32, 420 / self.initial_cells)
-        self.phase = 'ranged'
-        self.turn = 'enemy'
+        self.phase = 'melee' if self.distance <= MELEE_ENTRY_DISTANCE else 'ranged'
+        self.turn = 'player' if self.phase == 'melee' else 'enemy'
         self.enemy_direction = None
         self.enemy_forecast = None
         self.selected = 1
@@ -76,7 +77,10 @@ class RangedScene:
         self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
         self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
         self.record(f'리치 투사체 적중  ·  거리 {self.distance}칸')
-        self.prepare_enemy_attack()
+        if self.phase == 'ranged':
+            self.prepare_enemy_attack()
+        else:
+            self.record('가까운 거리  ·  근접 전투 시작')
 
     def record(self, message):
         self.log.append(message)
@@ -173,9 +177,9 @@ class RangedScene:
         if action == 'ranged':
             if self.advance:
                 self.distance -= 1
-            if self.distance <= 0:
+            if self.distance <= MELEE_ENTRY_DISTANCE:
                 frozen = copy(self)
-                frozen.distance = 1
+                frozen.distance = self.distance
                 frozen.popup = None
                 frozen.enemy_forecast = None
                 frozen.log = list(self.log)
