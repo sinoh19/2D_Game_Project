@@ -201,8 +201,16 @@ class DungeonAssets:
         image = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-guard.png'))
         return simplify(image, block=1)
 
-    def draw_mercenary_hit(self, x, feet, facing, camera, elapsed, *, actor_scale=None, guarded=False):
-        sprite = self.mercenary_hit
+    @cached_property
+    def field_mercenary_hit(self):
+        from game.pixel_style import simplify
+
+        image = p2d.load_image(str(ASSETS / 'dungeon' / 'character' / 'melee-guard.png'))
+        return simplify(image, block=2)
+
+    def draw_mercenary_hit(self, x, feet, facing, camera, elapsed, *, actor_scale=None,
+                           guarded=False, field_style=False):
+        sprite = self.field_mercenary_hit if field_style else self.mercenary_hit
         actor_scale = self.character_scale if actor_scale is None else actor_scale
         width, height = 80, 64
         frame = min(REACTION_FRAME_COUNT - 1, int(elapsed / REACTION_FRAME_SECONDS))
@@ -221,14 +229,10 @@ class DungeonAssets:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
 
     def draw_field_hit(self, x, feet, facing, camera, elapsed):
-        # Reuse the field sprite's crouched frames for the encounter impact.
-        elapsed = max(0.0, elapsed)
-        offset = (0, 2, 4, 3, 1)[min(4, int(elapsed / .06))]
-        tint = (255, 95, 85) if elapsed < .12 else None
-        self.draw_character('field_hit', elapsed, x-facing*offset, feet, facing, camera, tint=tint)
+        self.draw_mercenary_hit(x, feet, facing, camera, elapsed, field_style=True)
 
     def draw_character(self, clip_name, time, x, feet, facing, camera, *, actor_scale=None,
-                       melee_detail=False, alpha=255, tint=None):
+                       melee_detail=False, alpha=255):
         clip = self.animations['clips'][clip_name]
         duration = clip['duration']
         time = time % duration if clip['loop'] else min(time, duration)
@@ -247,8 +251,6 @@ class DungeonAssets:
         center_y = round(feet - (height / 2 - py)*actor_scale)
         if alpha != 255:
             p2d.SDL_SetTextureAlphaMod(image.texture, alpha)
-        if tint is not None:
-            p2d.SDL_SetTextureColorMod(image.texture, *tint)
         try:
             image.clip_composite_draw(sx, sy, width, height, 0,
                                       'h' if facing < 0 else '',
@@ -257,8 +259,6 @@ class DungeonAssets:
         finally:
             if alpha != 255:
                 p2d.SDL_SetTextureAlphaMod(image.texture, 255)
-            if tint is not None:
-                p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
 
 
 class Knight(Vitals):
