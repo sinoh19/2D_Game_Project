@@ -1,9 +1,7 @@
 """Side passages with persistent, mechanically rising lift gates."""
 import math
-from pathlib import Path
-import pico2d as p2d
 from game import drawing
-from game.config import ASSETS, SCALE, WINDOW_HEIGHT
+from game.config import SCALE, WINDOW_HEIGHT
 
 
 class LiftGate:
@@ -49,15 +47,6 @@ class SidePassages:
         self.gates=[LiftGate(s,s['id'] in opened) for s in scene.layout.get('sidePassages',[])]
         self.base_solids=list(scene.layout['solids'])
         self.base_solids += [(g.spec['left'],g.spec.get('top',0),g.spec['right'],g.spec['openingTop']) for g in self.gates]
-        assets=scene.assets
-        if not hasattr(assets,'gate_sound'):
-            assets.gate_sound=None
-            try:
-                assets.gate_sound=p2d.load_wav(str(ASSETS/'dungeon/side_passages/gate-ratchet.wav'))
-                assets.gate_sound.set_volume(38)
-            except (OSError,IOError):
-                pass
-        self.sound=assets.gate_sound
         self.sync()
 
     def sync(self):
@@ -72,7 +61,6 @@ class SidePassages:
     def interact(self):
         gate=self.nearby()
         if gate and self.scene.player.grounded and gate.begin():
-            if self.sound is not None:self.sound.play()
             return True
         return False
 
