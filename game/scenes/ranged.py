@@ -371,7 +371,10 @@ class RangedScene:
         frame = (min(Lich.CAST_FRAMES - 3, int(self.action_elapsed * Lich.CAST_FPS))
                  if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
         width = art.CAST_WIDTH if casting else art.FRAME_WIDTH
-        sprite = art.cast_image if casting else art.image
+        if self.phase == 'melee':
+            sprite = art.melee_cast_image if casting else art.melee_image
+        else:
+            sprite = art.cast_image if casting else art.image
         center_x = lich_x - 12 * scale if casting else lich_x
         sprite.clip_composite_draw(
             frame * width, 0, width, art.FRAME_HEIGHT, 0, '',
@@ -383,15 +386,18 @@ class RangedScene:
             orb_x = lich_x - 28 - (lich_x - player_x - 40) * progress
             orb = SimpleNamespace(x=orb_x, y=FLOOR - 54 * scale,
                                   age=self.action_elapsed, facing=-1, draw_angle=0)
-            art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH)
+            art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH,
+                                melee_detail=self.phase == 'melee')
         if self.resolving in ('ranged', 'melee_enemy') and self.hit:
             elapsed = self.action_elapsed - CONTACT_TIME
             if elapsed < .3:
                 self.field.assets.draw_mercenary_hit(
-                    player_x, FLOOR, 1, 0, elapsed, actor_scale=scale, field_style=True)
+                    player_x, FLOOR, 1, 0, elapsed, actor_scale=scale,
+                    field_style=self.phase == 'ranged')
             else:
                 self.field.assets.draw_character('idle', self.idle_elapsed, player_x, FLOOR,
-                                                 1, 0, actor_scale=scale)
+                                                 1, 0, actor_scale=scale,
+                                                 melee_detail=self.phase == 'melee')
             if elapsed < LichImpact.DURATION:
                 art.draw_impact(SimpleNamespace(x=player_x + 8, y=FLOOR - 54 * scale,
                                                 elapsed=elapsed, DURATION=LichImpact.DURATION),
@@ -403,7 +409,8 @@ class RangedScene:
                 self.draw_melee_player()
             else:
                 self.field.assets.draw_character('idle', self.idle_elapsed, player_x, FLOOR,
-                                                 1, 0, actor_scale=scale, alpha=alpha)
+                                                 1, 0, actor_scale=scale,
+                                                 melee_detail=self.phase == 'melee', alpha=alpha)
         if self.popup is not None:
             label, target, elapsed = self.popup
             x = player_x if target == 'player' else lich_x

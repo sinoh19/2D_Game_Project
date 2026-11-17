@@ -358,20 +358,26 @@ class LichArt:
         if (source.w, source.h) != (self.FRAME_WIDTH * self.FRAME_COUNT, self.FRAME_HEIGHT):
             raise ValueError('리치 이동 시트 크기가 잘못되었습니다.')
         self.image = simplify(source, block=2, palette=self.PALETTE)
+        self.melee_image = simplify(source, block=1, palette=self.PALETTE)
         cast = p2d.load_image(str(folder / 'cast.png'))
         if (cast.w, cast.h) != (self.CAST_WIDTH * self.CAST_FRAMES, self.FRAME_HEIGHT):
             raise ValueError('리치 공격 시트 크기가 잘못되었습니다.')
         self.cast_image = simplify(cast, block=2, palette=self.PALETTE)
+        self.melee_cast_image = simplify(cast, block=1, palette=self.PALETTE)
         projectile = p2d.load_image(str(folder / 'projectile.png'))
         if (projectile.w, projectile.h) != (self.PROJECTILE_WIDTH * self.PROJECTILE_FRAMES,
                                            self.PROJECTILE_HEIGHT):
             raise ValueError('리치 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_image = simplify(projectile, block=2, palette=self.PROJECTILE_PALETTE)
+        self.melee_projectile_image = simplify(projectile, block=1,
+                                               palette=self.PROJECTILE_PALETTE)
         left_projectile = p2d.load_image(str(folder / 'projectile-left.png'))
         if (left_projectile.w, left_projectile.h) != (projectile.w, projectile.h):
             raise ValueError('리치 왼쪽 투사체 시트 크기가 잘못되었습니다.')
         self.projectile_left_image = simplify(left_projectile, block=2,
                                               palette=self.PROJECTILE_PALETTE)
+        self.melee_projectile_left_image = simplify(left_projectile, block=1,
+                                                    palette=self.PROJECTILE_PALETTE)
         self.impact_image = simplify(
             p2d.load_image(str(folder / 'impact-concept.png')),
             block=32, palette=self.PROJECTILE_PALETTE)
@@ -397,13 +403,17 @@ class LichArt:
             round((WINDOW_HEIGHT - center_y * world_scale)),
             round(width * world_scale), round(lich.height * world_scale))
 
-    def draw_projectile(self, projectile, camera, world_scale, view_width):
+    def draw_projectile(self, projectile, camera, world_scale, view_width, *, melee_detail=False):
         from game.config import WINDOW_HEIGHT
 
         if projectile.x + 16 < camera or projectile.x - 16 > camera + view_width:
             return
         frame = int(projectile.age * 12) % self.PROJECTILE_FRAMES
-        image = self.projectile_image if projectile.facing > 0 else self.projectile_left_image
+        if melee_detail:
+            image = (self.melee_projectile_image if projectile.facing > 0
+                     else self.melee_projectile_left_image)
+        else:
+            image = self.projectile_image if projectile.facing > 0 else self.projectile_left_image
         image.clip_composite_draw(
             frame * self.PROJECTILE_WIDTH, 0,
             self.PROJECTILE_WIDTH, self.PROJECTILE_HEIGHT,
