@@ -14,13 +14,19 @@ def slot_bounds(x, y, columns, index):
     return left, top, left + 35, top + 35
 
 
-CHEST_SLOT = slot_bounds(85, 130, 3, 0)
+CHEST_SLOTS = tuple(slot_bounds(85, 130, 3, index) for index in range(6))
+CHEST_SLOT = CHEST_SLOTS[0]
 BAG_SLOTS = tuple(slot_bounds(352, 130, 5, i) for i in range(BAG_SIZE))
 GOLD = (197, 155, 95)
 
 
 def bag_slot_at(x, y):
     return next((i for i, bounds in enumerate(BAG_SLOTS)
+                 if drawing.contains(bounds, x, y)), None)
+
+
+def chest_slot_at(x, y):
+    return next((i for i, bounds in enumerate(CHEST_SLOTS)
                  if drawing.contains(bounds, x, y)), None)
 
 
@@ -42,7 +48,7 @@ def slots(bounds_list, items, icons, font, hover=None):
                 drawing.text(font, left + 27, top + 29, '1')
 
 
-def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=None, pointer=None):
+def draw_loot(resources, icons, chest_items, bag, message, drag=None, bag_source=None, pointer=None, chest_source=None):
     small, normal = resources.small, resources.normal
     drawing.black_overlay(.45)
     panel((52, 54, 587, 265), (25, 25, 34), (92, 80, 68))
@@ -55,17 +61,18 @@ def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=
     panel((338, 95, 568, 223), (29, 29, 39), (75, 73, 83))
     drawing.text(normal, 85, 111, '보물상자')
     drawing.text(normal, 352, 111, '플레이어 가방')
-    drawing.text(small, 255, 111, f'{int(chest_item is not None)} / 6')
+    chest_items = list(chest_items or [])[:6]
+    drawing.text(small, 255, 111, f'{len(chest_items)} / 6')
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')
-    chest_slots = (slot_bounds(85, 130, 3, index) for index in range(6))
-    chest_visible = chest_item is not None and (drag is None or bag_source is not None)
-    chest_items = [chest_item if chest_visible else None] + [None] * 5
-    chest_slot_bounds = tuple(chest_slots)
+    visible_chest = chest_items.copy()
+    if drag is not None and chest_source is not None and chest_source < len(visible_chest):
+        visible_chest[chest_source] = None
+    visible_chest.extend([None] * (6 - len(visible_chest)))
     chest_hover = None
     if pointer is not None and drag is None:
-        chest_hover = next((i for i, bounds in enumerate(chest_slot_bounds)
-                            if drawing.contains(bounds, *pointer) and chest_items[i] is not None), None)
-    slots(chest_slot_bounds, chest_items, icons, small, chest_hover)
+        chest_hover = next((i for i, bounds in enumerate(CHEST_SLOTS)
+                            if drawing.contains(bounds, *pointer) and visible_chest[i] is not None), None)
+    slots(CHEST_SLOTS, visible_chest, icons, small, chest_hover)
     hover = bag_slot_at(*pointer) if pointer is not None and drag is None else None
     if hover is not None and bag[hover] is None:
         hover = None
@@ -76,20 +83,21 @@ def draw_loot(resources, icons, chest_item, bag, message, drag=None, bag_source=
     slots(BAG_SLOTS, visible_bag, icons, small, hover)
     drawing.text(normal, 311, 169, '→', GOLD)
     drawing.text(small, 73, 245, message)
-    if chest_item is not None:
+    if chest_items:
         drawing.text(small, 401, 245, '클릭 또는 드래그로 옮기기')
     elif any(bag):
         drawing.text(small, 401, 245, '드래그로 가방 정리')
     if pointer is not None and drag is None:
         item_id = None
         if chest_hover is not None:
-            item_id = chest_items[chest_hover]
+            item_id = visible_chest[chest_hover]
         elif hover is not None:
             item_id = bag[hover]
         if item_id is not None:
             draw_item_tooltip(resources, ITEMS[item_id], pointer)
     if drag is not None:
-        draw_drag_icon(icons[chest_item if bag_source is None else bag[bag_source]], *drag)
+        item_id = chest_items[chest_source] if chest_source is not None else bag[bag_source]
+        draw_drag_icon(icons[item_id], *drag)
 
 
 def draw_item_tooltip(resources, item, pointer):

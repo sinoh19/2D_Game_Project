@@ -1,0 +1,23 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "쇠사슬",
+  "tilewidth": 63,
+  "tileheight": 279,
+  "tilecount": 1,
+  "columns": 0,
+  "objectalignment": "topleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "CeilingDecoration",
+      "image": "../../assets/dungeon/scenery/chain.png",
+      "imagewidth": 63,
+      "imageheight": 279,
+      "properties": [
+        { "name": "label", "type": "string", "value": "쇠사슬" }
+      ]
+    }
+  ]
+}
