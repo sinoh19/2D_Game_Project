@@ -125,8 +125,12 @@ class DungeonAssets:
         else:
             self.unity_sprite(prop['kind'], prop['x'], prop['bottom'], prop['unitScale'], camera)
 
-    def draw_tiled(self, camera, time):
+    def draw_tiled(self, camera, time, spike_traps=(), spike_image=None):
         for command in self.layout['tiledDrawOrder']:
+            if command['kind']=='spike_trap':
+                if spike_image is not None:
+                    spike_traps[command['index']].draw(spike_image,camera)
+                continue
             if command['kind']=='prop':
                 self.draw_prop(self.layout['props'][command['index']],camera,time)
                 continue
@@ -146,11 +150,11 @@ class DungeonAssets:
             if alpha!=255:p2d.SDL_SetTextureAlphaMod(image.texture,255)
             self.terrain_shading.draw(item,camera)
 
-    def draw_world(self, camera, time=0):
+    def draw_world(self, camera, time=0, *, spike_traps=(), spike_image=None):
         from game.background import draw_layer
         draw_layer(self, camera)
         if "tiledVisuals" in self.layout:
-            self.draw_tiled(camera,time)
+            self.draw_tiled(camera,time,spike_traps,spike_image)
             return
         size = self.tile_size
         start = int(camera//size)*size

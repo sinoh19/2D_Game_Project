@@ -198,6 +198,7 @@ def load_map(map_path,base_layout,asset_root):
                 if klass=='SpikeTrap':
                     if shown:
                         layout['spikeTraps'].append({'x':x,'y':y,'width':w,'height':h})
+                        layout['tiledDrawOrder'].append({'kind':'spike_trap','index':len(layout['spikeTraps'])-1})
                     continue
                 if klass=='Slime':
                     if not shown:continue

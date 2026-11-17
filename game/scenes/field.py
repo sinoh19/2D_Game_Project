@@ -13,6 +13,7 @@ from game.field_inventory import FieldInventory
 from game.character_status import CharacterStatus
 from game.items import ITEMS, DroppedItem
 from game.spike_trap import SpikeTrap
+from game.pixel_style import simplify
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -45,8 +46,11 @@ class FieldScene:
         self.chests = TreasureChests(self, restore=not new_game)
         self.spike_traps = [SpikeTrap(spec, self.solids + self.platforms)
                             for spec in self.layout.get('spikeTraps', [])]
-        self.spike_image = (p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-chunky.png'))
-                            if self.spike_traps else None)
+        self.spike_image = (
+            simplify(p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-chunky.png')),
+                     block=2)
+            if self.spike_traps else None
+        )
         self.trap_hit_time = 0.0
         self.inventory = FieldInventory(self)
         self.status = CharacterStatus(self)
@@ -234,7 +238,8 @@ class FieldScene:
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     def draw(self, *, hit_enemy=None, hit_elapsed=None, hit_by=None):
-        self.assets.draw_world(self.camera_x, self.scenery_time)
+        self.assets.draw_world(self.camera_x, self.scenery_time,
+                               spike_traps=self.spike_traps, spike_image=self.spike_image)
         self.passages.draw(self.camera_x)
         self.chests.draw(self.camera_x)
         for enemy in self.enemies:
@@ -244,8 +249,6 @@ class FieldScene:
                     hit_elapsed=hit_elapsed, hit_facing=-1 if self.player.x <= enemy.x else 1)
             else:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
-        for trap in self.spike_traps:
-            trap.draw(self.spike_image, self.camera_x)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
             self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
