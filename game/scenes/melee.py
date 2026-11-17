@@ -403,8 +403,7 @@ class MeleeScene:
                                 size_scale=LICH_PROJECTILE_SIZE * zoom)
         if self.enemy_elapsed >= self.enemy_impact_time:
             elapsed = self.enemy_elapsed - self.enemy_impact_time
-            if (elapsed < LichImpact.DURATION and self.selected != self.enemy_direction
-                    and not self.enemy_attack_evaded):
+            if elapsed < LichImpact.DURATION and not self.enemy_attack_evaded:
                 x, y = self.zoom_point(HOME_X + 8, core_y, zoom)
                 art.draw_impact(SimpleNamespace(x=x, y=y, elapsed=elapsed,
                                                 DURATION=LichImpact.DURATION),
