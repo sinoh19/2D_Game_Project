@@ -51,7 +51,7 @@ class SpikeTrap:
 
     def collides(self, player):
         left, right = self.x - self.width * .38, self.x + self.width * .38
-        top, bottom = self.y + self.height * .18, self.y + self.height * .65
+        top, bottom = self.y + self.height * .18, self.y + self.height * .90
         return (player.x + player.HALF_WIDTH > left and player.x - player.HALF_WIDTH < right
                 and player.y > top and player.y - player.HEIGHT < bottom)
 

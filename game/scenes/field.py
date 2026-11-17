@@ -45,7 +45,7 @@ class FieldScene:
         self.chests = TreasureChests(self, restore=not new_game)
         self.spike_traps = [SpikeTrap(spec, self.solids + self.platforms)
                             for spec in self.layout.get('spikeTraps', [])]
-        self.spike_image = (p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-concept.png'))
+        self.spike_image = (p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-chunky.png'))
                             if self.spike_traps else None)
         self.trap_hit_time = 0.0
         self.inventory = FieldInventory(self)
