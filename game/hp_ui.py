@@ -23,4 +23,9 @@ def draw_hp_bar(font, x, y, hp, max_hp, *, width=156):
         for corner_y in (y + 2, bottom - 4):
             drawing.rectangle((corner_x, corner_y, corner_x + 2, corner_y + 2),
                               (194, 143, 66), filled=True)
-    drawing.text(font, x + 10, y + 16, f'HP {hp} / {max_hp}', (246, 241, 228))
+    label = f'HP {hp} / {max_hp}'
+    text_y = y + height // 2
+    # A one-pixel horizontal overdraw gives the small HUD font the mockup's
+    # heavier pixel lettering without changing the rest of the game's fonts.
+    drawing.text(font, x + 10, text_y, label, (246, 241, 228))
+    drawing.text(font, x + 11, text_y, label, (246, 241, 228))
