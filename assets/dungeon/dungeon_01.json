@@ -2507,7 +2507,7 @@
     "enabled": true,
     "pixelGrid": 2,
     "paletteColors": 24,
-    "scope": "in-game character, door/armor/torch and terrain; originals preserved"
+    "scope": "in-game character and door/armor/torch only; originals preserved"
   },
   "sidePassages": [
     {
