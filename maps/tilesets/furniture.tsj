@@ -96,7 +96,7 @@
     {
       "id": 6,
       "class": "Decoration",
-      "image": "images/props/chest.png",
+      "image": "images/props/chest-game-preview.png",
       "imagewidth": 32,
       "imageheight": 32,
       "properties": [

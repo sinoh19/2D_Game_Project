@@ -1,0 +1,23 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "낙하 가시 함정",
+  "tilewidth": 48,
+  "tileheight": 24,
+  "tilecount": 1,
+  "columns": 0,
+  "objectalignment": "topleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "SpikeTrap",
+      "image": "images/falling-spikes-editor.png",
+      "imagewidth": 48,
+      "imageheight": 24,
+      "properties": [
+        {"name": "label", "type": "string", "value": "낙하 가시 함정"}
+      ]
+    }
+  ]
+}
