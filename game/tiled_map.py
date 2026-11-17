@@ -58,7 +58,7 @@ def load_map(map_path,base_layout,asset_root):
     mp=properties(data);layout=copy.deepcopy(base_layout)
     layout.update(width=data['width']*tw,height=int(mp.get('worldHeight',data['height']*th)),
                   name=mp.get('displayName',path.stem),mapId=path.stem,tiledSource=str(path),
-                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],chests=[],tiledVisuals=[],tiledDrawOrder=[])
+                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],chests=[],spikeTraps=[],tiledVisuals=[],tiledDrawOrder=[])
     if layout['width']<640 or layout['height']<360:raise ValueError('맵은 최소 640×360이어야 합니다.')
     layout['characterScale']=float(mp.get('characterScale',layout['characterScale']))
     layout['terrainInteriorShading']=bool(mp.get('terrainInteriorShading',True))
@@ -194,6 +194,10 @@ def load_map(map_path,base_layout,asset_root):
                 if klass=='TreasureChest':
                     if shown:
                         layout['chests'].append((obj['id'],x+w/2,y))
+                    continue
+                if klass=='SpikeTrap':
+                    if shown:
+                        layout['spikeTraps'].append({'x':x,'y':y,'width':w,'height':h})
                     continue
                 if klass=='Slime':
                     if not shown:continue

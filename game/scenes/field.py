@@ -3,7 +3,7 @@ import math
 import pico2d as p2d
 from game import drawing
 from game.hp_ui import draw_hp_bar
-from game.config import SCALE
+from game.config import ASSETS, SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime
@@ -12,6 +12,7 @@ from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
 from game.character_status import CharacterStatus
 from game.items import ITEMS, DroppedItem
+from game.spike_trap import SpikeTrap
 from game.terrain import slope_surfaces, inside_slope
 
 
@@ -42,6 +43,11 @@ class FieldScene:
         self.player = Knight(self, position)
         self.dropped_items = []
         self.chests = TreasureChests(self, restore=not new_game)
+        self.spike_traps = [SpikeTrap(spec, self.solids + self.platforms)
+                            for spec in self.layout.get('spikeTraps', [])]
+        self.spike_image = (p2d.load_image(str(ASSETS / 'dungeon' / 'scenery' / 'falling-spikes-concept.png'))
+                            if self.spike_traps else None)
+        self.trap_hit_time = 0.0
         self.inventory = FieldInventory(self)
         self.status = CharacterStatus(self)
         self.pickup_target = None
@@ -206,6 +212,7 @@ class FieldScene:
         if self.chests.active is not None:
             return
         self.scenery_time += dt
+        self.trap_hit_time = max(0.0, self.trap_hit_time - dt)
         self.map_notice_time = max(0, self.map_notice_time-dt)
         self.passages.update(dt)
         for item in self.dropped_items:
@@ -216,6 +223,9 @@ class FieldScene:
         direction = self.movement_direction()
         for _ in range(steps):
             self.player.step(dt/steps, direction)
+            for trap in self.spike_traps:
+                if trap.update(dt/steps, self.player):
+                    self.trap_hit_time = .30
             self.update_pickup(dt/steps)
             for enemy in self.enemies:
                 enemy.update(dt/steps, self)
@@ -234,9 +244,13 @@ class FieldScene:
                     hit_elapsed=hit_elapsed, hit_facing=-1 if self.player.x <= enemy.x else 1)
             else:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
+        for trap in self.spike_traps:
+            trap.draw(self.spike_image, self.camera_x)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
             self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
+        elif self.trap_hit_time > 0:
+            self.assets.draw_field_hit(self.x, self.y, self.player.facing, self.camera_x, .30 - self.trap_hit_time)
         else:
             clip, time = self.player.clip
             self.assets.draw_character(clip, time, self.x, self.y, self.player.facing, self.camera_x)
