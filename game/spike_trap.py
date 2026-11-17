@@ -1,6 +1,5 @@
 """A repeating ceiling spike trap placed as a Tiled object."""
 
-from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
 
 
@@ -73,11 +72,7 @@ class SpikeTrap:
         screen_x = self.x - camera
         if screen_x < -self.width or screen_x > 640 + self.width:
             return
-        if self.state == 'warning' and int(self.clock * 12) % 2 == 0:
-            drawing.rectangle((screen_x - self.width / 2, self.start_y,
-                               screen_x + self.width / 2, self.start_y + 2),
-                              (170, 53, 51), filled=True)
-        shake_x = (-2, 1, 2, -1)[int(self.clock * 24) % 4] if self.state in ('shaking', 'rising') else 0
+        shake_x = (-2, 1, 2, -1)[int(self.clock * 24) % 4] if self.state == 'shaking' else 0
         image.draw(round((screen_x + shake_x) * SCALE),
                    round(WINDOW_HEIGHT - (self.y + self.height / 2) * SCALE),
                    round(self.width * SCALE), round(self.height * SCALE))
