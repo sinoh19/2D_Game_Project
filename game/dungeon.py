@@ -35,8 +35,9 @@ class DungeonAssets:
         if self.layout.get('spriteStyle', {}).get('enabled', False):
             from game.pixel_style import apply
             apply(self)
-        from game.enemies import SlimeArt
+        from game.enemies import SlimeArt, LichArt
         self.slime_art = SlimeArt(folder/'monsters/slime') if self.layout.get('enemies') else None
+        self.lich_art = LichArt(folder/'monsters/lich') if self.layout.get('liches') else None
         from game.terrain_interior import TerrainInterior
         self.terrain_shading = TerrainInterior(self)
         self.chandelier_frames = {}

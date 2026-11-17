@@ -58,7 +58,7 @@ def load_map(map_path,base_layout,asset_root):
     mp=properties(data);layout=copy.deepcopy(base_layout)
     layout.update(width=data['width']*tw,height=int(mp.get('worldHeight',data['height']*th)),
                   name=mp.get('displayName',path.stem),mapId=path.stem,tiledSource=str(path),
-                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],chests=[],spikeTraps=[],tiledVisuals=[],tiledDrawOrder=[])
+                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],liches=[],chests=[],spikeTraps=[],tiledVisuals=[],tiledDrawOrder=[])
     if layout['width']<640 or layout['height']<360:raise ValueError('맵은 최소 640×360이어야 합니다.')
     layout['characterScale']=float(mp.get('characterScale',layout['characterScale']))
     layout['terrainInteriorShading']=bool(mp.get('terrainInteriorShading',True))
@@ -217,6 +217,24 @@ def load_map(map_path,base_layout,asset_root):
                         raise ValueError('슬라임 위치·순찰 범위·속도·방향을 확인하세요.')
                     layout['enemies'].append({'kind':'slime','id':obj['id'],'x':cx,'y':y,
                         'scale':w/32,'patrolLeft':left,'patrolRight':right,'speed':speed,'direction':direction})
+                    continue
+                if klass=='Lich':
+                    if not shown:continue
+                    if rotation or gid&(V|D) or w<=0 or h<=0 or abs(w/h-3/4)>.001:
+                        raise ValueError('리치는 3:4 비율로, 수평 뒤집기만 사용하세요.')
+                    cx=x+w/2
+                    radius=float(props.get('patrolRadius',72))
+                    left=float(props.get('patrolLeft',max(w/2,cx-radius)))
+                    right=float(props.get('patrolRight',min(layout['width']-w/2,cx+radius)))
+                    speed=float(props.get('speed',24))
+                    direction=props.get('direction','right' if gid&H else 'left')
+                    if (not all(math.isfinite(v) for v in (cx,y,w,h,radius,left,right,speed))
+                        or radius<=0 or speed<0 or not w/2<=left<right<=layout['width']-w/2
+                        or not left<=cx<=right or direction not in ('left','right')
+                        or not h<=y<=layout['height']):
+                        raise ValueError('리치 위치·순찰 범위·속도·방향을 확인하세요.')
+                    layout['liches'].append({'id':obj['id'],'x':cx,'y':y,'width':w,'height':h,
+                        'patrolLeft':left,'patrolRight':right,'speed':speed,'direction':direction})
                     continue
                 if klass in ('Solid','Platform'):
                     if rotation:raise ValueError('사각 충돌은 회전하지 말고 경사면 선을 사용하세요.')

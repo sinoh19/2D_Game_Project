@@ -988,6 +988,40 @@
                  "width":32,
                  "x":672,
                  "y":288
+                },
+                {
+                 "gid":54,
+                 "height":64,
+                 "id":157,
+                 "name":"튜토리얼 리치",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"left"
+                        },
+                        {
+                         "name":"patrolLeft",
+                         "type":"float",
+                         "value":1248
+                        },
+                        {
+                         "name":"patrolRight",
+                         "type":"float",
+                         "value":1392
+                        },
+                        {
+                         "name":"speed",
+                         "type":"float",
+                         "value":24
+                        }],
+                 "rotation":0,
+                 "type":"Lich",
+                 "visible":true,
+                 "width":48,
+                 "x":1312,
+                 "y":288
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -996,7 +1030,7 @@
          "y":0
         }],
  "nextlayerid":16,
- "nextobjectid":157,
+ "nextobjectid":158,
  "orientation":"orthogonal",
  "properties":[
         {
@@ -1065,6 +1099,10 @@
         {
          "firstgid":53,
          "source":"tilesets\/falling-spikes.tsj"
+        },
+        {
+         "firstgid":54,
+         "source":"tilesets\/lich.tsj"
         }],
  "tilewidth":32,
  "type":"map",

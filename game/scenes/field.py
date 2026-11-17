@@ -6,7 +6,7 @@ from game.hp_ui import draw_hp_bar
 from game.config import ASSETS, SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
-from game.enemies import Slime
+from game.enemies import Slime, Lich
 from game.combat import resolve_encounter
 from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
@@ -58,6 +58,7 @@ class FieldScene:
         self.status = CharacterStatus(self)
         self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
+        self.liches = [Lich(spec) for spec in self.layout.get('liches', [])]
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
 
     @property
@@ -239,6 +240,8 @@ class FieldScene:
             self.update_pickup(dt/steps)
             for enemy in self.enemies:
                 enemy.update(dt/steps, self)
+            for lich in self.liches:
+                lich.update(dt/steps)
             if resolve_encounter(self):
                 return
         self.camera_x = round(max(0.0, min(self.width-self.view_width, self.x-self.view_width*0.375)))
@@ -255,6 +258,8 @@ class FieldScene:
                     hit_elapsed=hit_elapsed, hit_facing=-1 if self.player.x <= enemy.x else 1)
             else:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
+        for lich in self.liches:
+            self.assets.lich_art.draw(lich, self.camera_x, self.assets.scale, self.view_width)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
             self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)

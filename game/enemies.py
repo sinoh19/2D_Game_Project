@@ -136,3 +136,66 @@ class SlimeArt:
                 p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
             if alpha != 255:
                 p2d.SDL_SetTextureAlphaMod(image.texture, 255)
+
+
+class Lich:
+    """A floating field patrol; battle behavior can be added separately."""
+
+    def __init__(self, spec):
+        self.x, self.y = spec['x'], spec['y']
+        self.left, self.right = spec['patrolLeft'], spec['patrolRight']
+        self.speed = spec['speed']
+        self.width, self.height = spec['width'], spec['height']
+        self.facing = -1 if spec['direction'] == 'left' else 1
+        self.time = 0.0
+
+    @property
+    def frame(self):
+        return int(self.time * 10) % 16
+
+    def update(self, dt):
+        self.time += max(0.0, dt)
+        if not self.speed:
+            return
+        span = self.right - self.left
+        phase = self.x - self.left if self.facing > 0 else 2 * span - (self.x - self.left)
+        phase = (phase + self.speed * dt) % (2 * span)
+        self.x = self.left + phase if phase < span else self.right - (phase - span)
+        self.facing = 1 if phase < span else -1
+
+
+class LichArt:
+    FRAME_WIDTH = 48
+    FRAME_HEIGHT = 64
+    FRAME_COUNT = 16
+    # Keep the game's muted palette while retaining the lich's plum robe and blue eye.
+    PALETTE = (
+        (22, 24, 30), (34, 37, 43), (48, 52, 59), (65, 70, 78),
+        (83, 90, 100), (105, 113, 124), (132, 140, 149),
+        (39, 31, 43), (58, 43, 61), (79, 58, 81), (103, 76, 105),
+        (128, 101, 127), (157, 148, 140), (188, 180, 168),
+        (50, 85, 105), (82, 140, 158),
+    )
+
+    def __init__(self, folder):
+        import pico2d as p2d
+        from game.pixel_style import simplify
+
+        source = p2d.load_image(str(folder / 'hover.png'))
+        if (source.w, source.h) != (self.FRAME_WIDTH * self.FRAME_COUNT, self.FRAME_HEIGHT):
+            raise ValueError('리치 이동 시트 크기가 잘못되었습니다.')
+        self.image = simplify(source, block=2, palette=self.PALETTE)
+
+    def draw(self, lich, camera, world_scale, view_width):
+        from game.config import WINDOW_HEIGHT
+
+        if lich.x + lich.width / 2 < camera or lich.x - lich.width / 2 > camera + view_width:
+            return
+        bob = round(2 * math.sin(lich.time * 2 * math.pi * 10 / self.FRAME_COUNT))
+        center_y = lich.y - 8 - bob - lich.height / 2
+        self.image.clip_composite_draw(
+            lich.frame * self.FRAME_WIDTH, 0, self.FRAME_WIDTH, self.FRAME_HEIGHT,
+            0, 'h' if lich.facing > 0 else '',
+            round((lich.x - camera) * world_scale),
+            round((WINDOW_HEIGHT - center_y * world_scale)),
+            round(lich.width * world_scale), round(lich.height * world_scale))
