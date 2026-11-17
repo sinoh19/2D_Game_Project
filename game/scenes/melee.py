@@ -378,8 +378,11 @@ class MeleeScene:
             width = art.FRAME_WIDTH
         center_x, center_y = self.zoom_point(self.enemy_home_x + recoil - (24 if casting else 0),
                                              FLOOR - 72, zoom)
+        blue_guard = self.attack_blocked and 0 <= hit_elapsed < .12
         red_hit = 0 <= hit_elapsed < .18 and self.player_attack_landed
-        if red_hit:
+        if blue_guard:
+            p2d.SDL_SetTextureColorMod(sprite.texture, 100, 105, 255)
+        elif red_hit:
             p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
         try:
             sprite.clip_composite_draw(0, 0, sprite.w, sprite.h, 0, '',
@@ -387,7 +390,7 @@ class MeleeScene:
                                        round(width * 2 * zoom * SCALE),
                                        round(art.FRAME_HEIGHT * 2 * zoom * SCALE))
         finally:
-            if red_hit:
+            if blue_guard or red_hit:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
         if not casting:
             return
