@@ -8,7 +8,7 @@ from game import drawing
 from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
 from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
                         DroppedItem, Equipment)
-from game.loot_ui import CHEST_SLOT, CLOSE_BUTTON, bag_slot_at, draw_loot
+from game.loot_ui import CLOSE_BUTTON, bag_slot_at, chest_slot_at, draw_loot
 
 FRAME_SIZE = 192
 DRAW_SIZE = 56
@@ -47,11 +47,16 @@ class TreasureChests:
         bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
         self.bag = [item if isinstance(item, str) and item in ITEMS else None for item in bag]
         self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
-        self.contents = data.get('contents', {}) if data.get('scene') == self.map_id else {}
-        if not isinstance(self.contents, dict):
-            self.contents = {}
-        self.contents = {str(key): value for key, value in self.contents.items()
-                         if isinstance(value, str) and value in ITEMS}
+        raw_contents = data.get('contents', {}) if data.get('scene') == self.map_id else {}
+        if not isinstance(raw_contents, dict):
+            raw_contents = {}
+        self.contents = {}
+        for key, value in raw_contents.items():
+            items = [value] if isinstance(value, str) else value
+            if isinstance(items, list):
+                valid = [item for item in items if isinstance(item, str) and item in ITEMS]
+                if valid:
+                    self.contents[str(key)] = valid
         for slot, starter_id in (('weapon', SWORD), ('armor', LEATHER_ARMOR), ('accessory', None)):
             item_id = data.get(slot, starter_id)
             item = ITEMS.get(item_id) if isinstance(item_id, str) else None
@@ -64,14 +69,24 @@ class TreasureChests:
         self.chests = [TreasureChest(spec, spec[0] in opened, spec[0] in looted)
                        for spec in field.layout.get('chests', [])]
         if self.chests and not restore and not self.contents:
-            self.contents[str(self.chests[0].id)] = choice(RING_IDS)
-        elif self.chests and not self.contents and restore:
-            # Keep older saved runs compatible with the chest's previous potion reward.
-            self.contents[str(self.chests[0].id)] = POTION
+            self.contents[str(self.chests[0].id)] = [choice(RING_IDS), POTION]
+        elif self.chests and not self.contents and restore and self.chests[0].id not in looted:
+            # Older saves may predate persisted chest rewards.
+            self.contents[str(self.chests[0].id)] = [POTION]
+        self.starter_chest_prepared = True
+        if self.chests and restore and not data.get('starterChestPrepared'):
+            first = self.chests[0]
+            key = str(first.id)
+            if first.id not in looted:
+                items = self.contents.setdefault(key, [])
+                if POTION not in items:
+                    items.append(POTION)
+            self.starter_chest_prepared = True
         self.active = None
         self.message = ''
         self.press_origin = None
         self.bag_source = None
+        self.chest_source = None
         self.drag = None
         self.pointer = None
         if self.chests:
@@ -95,13 +110,15 @@ class TreasureChests:
         return min(candidates, key=lambda chest: abs(player.x - chest.x), default=None)
 
     def chest_item(self, chest):
-        return self.contents.get(str(chest.id))
+        return self.contents.get(str(chest.id), [])
 
     def item_label(self, chest):
-        item_id = self.chest_item(chest)
-        if item_id is None:
+        items = self.chest_item(chest)
+        if not items:
             return '상자가 비어 있습니다.'
-        item = ITEMS[item_id]
+        if len(items) > 1:
+            return f'상자 안에 아이템이 {len(items)}개 있습니다.'
+        item = ITEMS[items[0]]
         if isinstance(item, Equipment):
             bonus = ', '.join(f'{name} +{value}' for name, value in item.stats)
             return f'{item.name}  ·  {bonus}'
@@ -118,7 +135,7 @@ class TreasureChests:
         return True
 
     def cancel_drag(self):
-        self.press_origin = self.drag = self.bag_source = None
+        self.press_origin = self.drag = self.bag_source = self.chest_source = None
 
     def close(self):
         self.cancel_drag()
@@ -131,9 +148,13 @@ class TreasureChests:
             return
         if drawing.contains(CLOSE_BUTTON, x, y):
             self.close()
-        elif not chest.looted and drawing.contains(CHEST_SLOT, x, y):
-            self.press_origin = (x, y)
-            self.message = self.item_label(chest)
+        elif not chest.looted and chest_slot_at(x, y) is not None:
+            index = chest_slot_at(x, y)
+            items = self.chest_item(chest)
+            if index < len(items):
+                self.press_origin = (x, y)
+                self.chest_source = index
+                self.message = ITEMS[items[index]].name
         else:
             index = bag_slot_at(x, y)
             if index is not None and self.bag[index] is not None:
@@ -154,6 +175,7 @@ class TreasureChests:
         self.mouse_move(x, y)
         dragging = self.drag is not None
         source = self.bag_source
+        chest_source = self.chest_source
         self.cancel_drag()
         if source is not None:
             target = bag_slot_at(x, y) if dragging else None
@@ -169,30 +191,38 @@ class TreasureChests:
             if self.bag[index] is not None:
                 self.message = '빈 슬롯에 놓아 주세요.'
                 return
-        elif drawing.contains(CHEST_SLOT, x, y):
-            if None not in self.bag:
-                self.message = '가방에 빈 슬롯이 없습니다.'
+        elif chest_source is not None:
+            index = bag_slot_at(x, y) if dragging else None
+            if dragging and index is None:
                 return
-            index = self.bag.index(None)
+            if index is None:
+                if None not in self.bag:
+                    self.message = '가방에 빈 슬롯이 없습니다.'
+                    return
+                index = self.bag.index(None)
+            elif self.bag[index] is not None:
+                self.message = '빈 슬롯에 놓아 주세요.'
+                return
         else:
             return
         chest = self.active
         if chest is None or chest.looted:
             return
-        item_id = self.chest_item(chest)
-        if item_id is None:
-            self.message = '상자가 비어 있습니다.'
+        items = self.chest_item(chest)
+        if chest_source is None or chest_source >= len(items):
             return
+        item_id = items.pop(chest_source)
         self.bag[index] = item_id
-        chest.looted = True
+        self.contents[str(chest.id)] = items
+        chest.looted = not items
         self.save()
         self.message = f'{ITEMS[item_id].name}을(를) 가방에 옮겼습니다.'
 
     def draw_loot(self):
         if self.active is not None and self.active.elapsed >= OPEN_TIME:
             draw_loot(self.field.app.resources, self.icons,
-                      None if self.active.looted else self.chest_item(self.active),
-                      self.bag, self.message, self.drag, self.bag_source, self.pointer)
+                      [] if self.active.looted else self.chest_item(self.active),
+                      self.bag, self.message, self.drag, self.bag_source, self.pointer, self.chest_source)
 
     def update(self, dt):
         for chest in self.chests:
@@ -204,7 +234,7 @@ class TreasureChests:
         looted = [chest.id for chest in self.chests if chest.looted]
         self.field.app.storage.write('chests.json', {
             'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
-            'contents': self.contents,
+            'contents': self.contents, 'starterChestPrepared': self.starter_chest_prepared,
             'accessory': self.field.player.accessory.id if self.field.player.accessory else None,
             'weapon': self.field.player.weapon.id if self.field.player.weapon else None,
             'armor': self.field.player.armor.id if self.field.player.armor else None,
@@ -225,7 +255,7 @@ class TreasureChests:
         chest = self.nearby()
         if chest is None or self.active is not None:
             return False
-        label = 'F  상자 열기' if chest.elapsed is None else 'F  상자 보기'
+        label = 'F'
         font = self.field.app.resources.small
         width, height = font.measure(label)
         x = max(5, min(NATIVE_WIDTH - width - 5, round(chest.x - camera - width / 2)))
