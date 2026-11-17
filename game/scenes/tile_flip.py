@@ -12,7 +12,9 @@ class TileFlipScene:
     def __init__(self, app, source, destination):
         self.app = app
         self.source = source
-        self.destination = destination
+        self.destination = None
+        self.destination_factory = destination
+        self.black_presented = False
         self.elapsed = 0.0
         self.wave_duration = TILE_FLIP_SECONDS + TILE_FLIP_STAGGER_SECONDS
         self.duration = 2 * self.wave_duration + TILE_FLIP_BLACK_SECONDS
@@ -20,7 +22,6 @@ class TileFlipScene:
         self.destination_texture = None
         try:
             self.source_texture = self.snapshot(source)
-            self.destination_texture = self.snapshot(destination)
         except Exception:
             self.close()
             raise
@@ -62,8 +63,17 @@ class TileFlipScene:
         return max(0.0, min(1.0, (self.elapsed - start - delay) / TILE_FLIP_SECONDS))
 
     def update(self, dt):
+        if self.elapsed >= self.wave_duration and self.destination is None:
+            if not self.black_presented:
+                return
+            # The black frame has reached the window; load before the reveal.
+            destination = self.destination_factory()
+            self.destination_texture = self.snapshot(destination)
+            self.destination = destination
+            self.destination_factory = None
         previous = self.elapsed
-        self.elapsed = min(self.duration, self.elapsed + max(0.0, dt))
+        end = self.duration if self.destination is not None else self.wave_duration
+        self.elapsed = min(end, self.elapsed + max(0.0, dt))
         if hasattr(self.source, "advance_animation"):
             self.source.advance_animation(max(0.0, min(self.elapsed, self.wave_duration) - min(previous, self.wave_duration)))
         if self.elapsed >= self.duration:
@@ -84,6 +94,7 @@ class TileFlipScene:
         p2d.SDL_RenderClear(renderer)
         phase = self.phase
         if phase == 'black':
+            self.black_presented = True
             return
         if phase == 'done':
             self.destination.draw()

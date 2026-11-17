@@ -75,7 +75,7 @@ class App:
     def start_book_to_field(self, book):
         from game.scenes.field import FieldScene
         from game.scenes.tile_flip import TileFlipScene
-        self.scene = TileFlipScene(self, book, FieldScene(self, None, new_game=True))
+        self.scene = TileFlipScene(self, book, lambda: FieldScene(self, None, new_game=True))
 
     def start_field(self, position):
         from game.scenes.field import FieldScene
