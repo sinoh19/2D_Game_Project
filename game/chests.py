@@ -111,7 +111,8 @@ class TreasureChests:
         if not player.grounded:
             return None
         candidates = [chest for chest in self.chests
-                      if abs(player.x - chest.x) <= 42 and abs(player.y - chest.y) <= 16]
+                      if abs(player.x - chest.x) <= 42
+                      and chest.y - chest.height - 16 <= player.y <= chest.y + 72]
         return min(candidates, key=lambda chest: abs(player.x - chest.x), default=None)
 
     def chest_item(self, chest):
