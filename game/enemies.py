@@ -145,23 +145,50 @@ class Lich:
         self.x, self.y = spec['x'], spec['y']
         self.left, self.right = spec['patrolLeft'], spec['patrolRight']
         self.speed = spec['speed']
+        self.move_distance = spec['moveDistance']
+        self.move_pause = spec['movePause']
+        self.turn_pause = spec['turnPause']
         self.width, self.height = spec['width'], spec['height']
         self.facing = -1 if spec['direction'] == 'left' else 1
         self.time = 0.0
+        self.distance_left = self.move_distance
+        self.pause_left = 0.0
 
     @property
     def frame(self):
         return int(self.time * 10) % 16
 
     def update(self, dt):
-        self.time += max(0.0, dt)
+        dt = max(0.0, dt)
+        self.time += dt
         if not self.speed:
             return
-        span = self.right - self.left
-        phase = self.x - self.left if self.facing > 0 else 2 * span - (self.x - self.left)
-        phase = (phase + self.speed * dt) % (2 * span)
-        self.x = self.left + phase if phase < span else self.right - (phase - span)
-        self.facing = 1 if phase < span else -1
+        while dt > 1e-9:
+            if self.pause_left > 0:
+                step = min(dt, self.pause_left)
+                self.pause_left -= step
+                dt -= step
+                continue
+            edge = self.right if self.facing > 0 else self.left
+            to_edge = max(0.0, (edge - self.x) * self.facing)
+            if to_edge <= 1e-9:
+                self.facing *= -1
+                self.distance_left = self.move_distance
+                self.pause_left = self.turn_pause
+                continue
+            step = min(dt, self.distance_left / self.speed, to_edge / self.speed)
+            traveled = self.speed * step
+            self.x += self.facing * traveled
+            self.distance_left -= traveled
+            dt -= step
+            if abs(self.x - edge) <= 1e-8:
+                self.x = edge
+                self.facing *= -1
+                self.distance_left = self.move_distance
+                self.pause_left = self.turn_pause
+            elif self.distance_left <= 1e-8:
+                self.distance_left = self.move_distance
+                self.pause_left = self.move_pause
 
 
 class LichArt:

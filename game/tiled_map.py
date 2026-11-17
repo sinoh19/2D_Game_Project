@@ -227,14 +227,21 @@ def load_map(map_path,base_layout,asset_root):
                     left=float(props.get('patrolLeft',max(w/2,cx-radius)))
                     right=float(props.get('patrolRight',min(layout['width']-w/2,cx+radius)))
                     speed=float(props.get('speed',24))
+                    move_distance=float(props.get('moveDistance',48))
+                    move_pause=float(props.get('movePause',0.7))
+                    turn_pause=float(props.get('turnPause',1.2))
                     direction=props.get('direction','right' if gid&H else 'left')
-                    if (not all(math.isfinite(v) for v in (cx,y,w,h,radius,left,right,speed))
-                        or radius<=0 or speed<0 or not w/2<=left<right<=layout['width']-w/2
+                    if (not all(math.isfinite(v) for v in (cx,y,w,h,radius,left,right,speed,
+                                                            move_distance,move_pause,turn_pause))
+                        or radius<=0 or speed<0 or move_distance<=0 or move_pause<0 or turn_pause<0
+                        or not w/2<=left<right<=layout['width']-w/2
                         or not left<=cx<=right or direction not in ('left','right')
                         or not h<=y<=layout['height']):
-                        raise ValueError('리치 위치·순찰 범위·속도·방향을 확인하세요.')
+                        raise ValueError('리치 위치·순찰 범위·속도·정지 시간을 확인하세요.')
                     layout['liches'].append({'id':obj['id'],'x':cx,'y':y,'width':w,'height':h,
-                        'patrolLeft':left,'patrolRight':right,'speed':speed,'direction':direction})
+                        'patrolLeft':left,'patrolRight':right,'speed':speed,
+                        'moveDistance':move_distance,'movePause':move_pause,'turnPause':turn_pause,
+                        'direction':direction})
                     continue
                 if klass in ('Solid','Platform'):
                     if rotation:raise ValueError('사각 충돌은 회전하지 말고 경사면 선을 사용하세요.')

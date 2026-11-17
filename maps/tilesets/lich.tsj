@@ -18,7 +18,10 @@
       "properties": [
         {"name": "label", "type": "string", "value": "리치"},
         {"name": "patrolRadius", "type": "float", "value": 72},
-        {"name": "speed", "type": "float", "value": 24}
+        {"name": "speed", "type": "float", "value": 24},
+        {"name": "moveDistance", "type": "float", "value": 48},
+        {"name": "movePause", "type": "float", "value": 0.7},
+        {"name": "turnPause", "type": "float", "value": 1.2}
       ]
     }
   ]
