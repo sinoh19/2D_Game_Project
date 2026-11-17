@@ -23,6 +23,12 @@ def segment_box_time(x1, y1, x2, y2, box):
 
 
 class Slime(Vitals):
+    melee_name = '슬라임'
+    melee_damage_type = 'physical'
+    melee_home_x = 425
+    melee_impact_time = .42
+    melee_attack_duration = 1.40
+
     def __init__(self, spec, motion):
         super().__init__(max_hp=20)
         self.strength = randint(0, 20)
@@ -157,6 +163,12 @@ class SlimeArt:
 class Lich(Vitals):
     """Floating patrol that charges and fires when the player enters range."""
 
+    melee_name = '리치'
+    melee_damage_type = 'magic'
+    melee_home_x = 425
+    melee_impact_time = 1.50
+    melee_attack_duration = 2.05
+
     ATTACK_RANGE = 200
     CAST_FPS = 12
     CAST_FRAMES = 13
@@ -183,6 +195,9 @@ class Lich(Vitals):
     @property
     def frame(self):
         return int(self.time * 10) % 16
+
+    def roll_damage(self):
+        return LichProjectile.DAMAGE, False
 
     def sees_player(self, scene):
         player = scene.player

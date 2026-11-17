@@ -10,7 +10,7 @@ from game.hp_ui import draw_hp_bar
 from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
-from game.enemies import SlimeArt
+from game.enemies import Lich, LichImpact, SlimeArt
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
@@ -55,6 +55,8 @@ SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
 SLIME_STRIKE_X = 246
 SLIME_ZOOM_FOCUS = ((HOME_X + SLIME_STRIKE_X) / 2, FLOOR - 51)
+LICH_PROJECTILE_LAUNCH_TIME = .35
+LICH_PROJECTILE_SIZE = 2.0
 
 
 def centered(font, x, y, label, color=(240, 231, 207)):
@@ -71,16 +73,23 @@ class MeleeScene:
         self.player = field.player
         self.enemy = enemy
         self.cause = cause
+        self.is_lich = isinstance(enemy, Lich)
+        self.enemy_name = enemy.melee_name
+        self.enemy_home_x = enemy.melee_home_x
+        self.enemy_impact_time = enemy.melee_impact_time
+        self.enemy_attack_duration = enemy.melee_attack_duration
         self.log = []
         self.log_offset = 0
         self.pointer = None
         if cause == 'debug':
             self.record('디버그 전투 시작')
         else:
-            self.record('선제공격 성공' if cause == 'player_attack' else '슬라임 접촉 피격')
+            self.record('선제공격 성공' if cause == 'player_attack' else
+                        '리치에게 접근  ·  근접 전투 시작' if self.is_lich else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.death_elapsed = 0.0 if enemy.hp == 0 else None
         self.attack_blocked = False
+        self.player_attack_landed = False
         self.player_attack_evaded = False
         self.hit_stop_left = 0.0
         self.idle_elapsed = 0.0
@@ -131,6 +140,7 @@ class MeleeScene:
         self.hit_stop_left = 0.0
         self.pointer = None
         self.attack_blocked = not self.debug_critical_pending and index == randrange(len(DIRECTIONS))
+        self.player_attack_landed = False
         self.player_attack_evaded = False
         self.record(f'{DIRECTIONS[index]} 공격!')
 
@@ -162,7 +172,7 @@ class MeleeScene:
     def update_enemy_attack(self, dt):
         previous = self.enemy_elapsed
         self.enemy_elapsed += dt
-        if previous < SLIME_IMPACT_TIME <= self.enemy_elapsed:
+        if previous < self.enemy_impact_time <= self.enemy_elapsed:
             direction = DIRECTIONS[self.enemy_direction]
             force_dodge = self.debug_dodge_pending
             self.debug_dodge_pending = False
@@ -172,22 +182,22 @@ class MeleeScene:
                                and randrange(1000) < dodge_weight):
                 self.enemy_attack_evaded = True
                 self.combat_popup = ('MISS', HOME_X, FLOOR - 109, 0.0)
-                self.record(f'슬라임 {direction} 공격 회피  ·  피해 0')
+                self.record(f'{self.enemy_name} {direction} 공격 회피  ·  피해 0')
             elif guarded:
-                self.record(f'슬라임 {direction} 공격 방어 성공  ·  피해 0')
+                self.record(f'{self.enemy_name} {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
                 damage, critical = self.enemy.roll_damage()
-                self.player.take_damage(damage)
+                self.player.take_damage(damage, damage_type=self.enemy.melee_damage_type)
                 damage = hp_before - self.player.hp
                 label = f'-{damage}!' if critical else f'-{damage}'
                 self.combat_popup = (label, HOME_X, FLOOR - 109, 0.0)
                 result = '치명타!' if critical else '명중'
-                self.record(f'슬라임 {direction} 공격 {result}  ·  용병 HP -{damage}')
-                self.enemy_elapsed = SLIME_IMPACT_TIME
+                self.record(f'{self.enemy_name} {direction} 공격 {result}  ·  용병 HP -{damage}')
+                self.enemy_elapsed = self.enemy_impact_time
                 self.hit_stop_left = IMPACT_HIT_STOP
                 return
-        if self.enemy_elapsed >= SLIME_ATTACK_DURATION:
+        if self.enemy_elapsed >= self.enemy_attack_duration:
             self.enemy_elapsed = self.enemy_direction = None
             self.enemy_forecast = None
             self.pointer = None
@@ -211,7 +221,7 @@ class MeleeScene:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
-            if self.death_elapsed is not None and self.death_elapsed >= SlimeArt.DEATH_DURATION:
+            if self.death_elapsed is not None and self.death_elapsed >= (0.7 if self.is_lich else SlimeArt.DEATH_DURATION):
                 if self.cause == 'debug':
                     self.app.show_title()
                 else:
@@ -223,25 +233,29 @@ class MeleeScene:
             force_critical = self.debug_critical_pending
             self.debug_critical_pending = False
             if self.attack_blocked:
-                self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
+                self.record(f'{self.enemy_name}이(가) {DIRECTIONS[self.selected]} 공격을 막았다  ·  피해 0')
             elif (not force_critical
+                  and not self.is_lich
                   and randrange(1000) < min(250, 5 * self.enemy.agility + self.enemy.luck)):
                 self.player_attack_evaded = True
-                self.combat_popup = ('MISS', SLIME_HOME_X, FLOOR - 58, 0.0)
-                self.record(f'슬라임이 {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
+                self.combat_popup = ('MISS', self.enemy_home_x, FLOOR - 58, 0.0)
+                self.record(f'{self.enemy_name}이(가) {DIRECTIONS[self.selected]} 공격을 피했다  ·  피해 0')
             else:
                 hp_before = self.enemy.hp
                 damage, critical = roll_player_damage(
                     self.player.stat_value('strength'), self.player.stat_value('luck'),
                     base_attack=self.player.base_attack, force_critical=force_critical)
                 self.enemy.take_damage(damage)
-                if self.enemy.hp == 0:
+                if self.enemy.hp == 0 and not self.is_lich:
                     self.death_elapsed = -SlimeArt.HIT_DURATION
+                elif self.enemy.hp == 0:
+                    self.death_elapsed = 0.0
                 damage = hp_before - self.enemy.hp
+                self.player_attack_landed = damage > 0
                 label = f'-{damage}!' if critical else f'-{damage}'
-                self.combat_popup = (label, SLIME_HOME_X, FLOOR - 58, 0.0)
+                self.combat_popup = (label, self.enemy_home_x, FLOOR - 58, 0.0)
                 result = '치명타!' if critical else '공격 성공!'
-                self.record(f'{DIRECTIONS[self.selected]} {result}  슬라임 HP -{damage}')
+                self.record(f'{DIRECTIONS[self.selected]} {result}  {self.enemy_name} HP -{damage}')
             # Render the contact frame even if a slow update crossed its start.
             self.attack_elapsed = self.impact_time
             if not self.attack_blocked and not self.player_attack_evaded:
@@ -251,7 +265,7 @@ class MeleeScene:
         if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
             self.attack_elapsed = None
             if self.enemy.hp == 0:
-                self.record('슬라임을 쓰러뜨렸다!')
+                self.record(f'{self.enemy_name}를 쓰러뜨렸다!')
             else:
                 self.start_enemy_turn()
 
@@ -277,7 +291,7 @@ class MeleeScene:
             elapsed = self.attack_elapsed - self.impact_time
         elif (self.enemy_elapsed is not None and self.selected != self.enemy_direction
               and not self.enemy_attack_evaded):
-            elapsed = self.enemy_elapsed - SLIME_IMPACT_TIME
+            elapsed = self.enemy_elapsed - self.enemy_impact_time
         else:
             return 1.0
         if not 0 <= elapsed < SLASH_HIGHLIGHT_SECONDS:
@@ -286,7 +300,12 @@ class MeleeScene:
         return 1 + SLASH_ZOOM_FACTOR * release**2
 
     def zoom_point(self, x, y, zoom):
-        focus_x, focus_y = SLIME_ZOOM_FOCUS if self.enemy_elapsed is not None else SLASH_ZOOM_FOCUS
+        if self.enemy_elapsed is None:
+            focus_x, focus_y = SLASH_ZOOM_FOCUS
+        elif self.is_lich:
+            focus_x, focus_y = (HOME_X + self.enemy_home_x) / 2, FLOOR - 51
+        else:
+            focus_x, focus_y = SLIME_ZOOM_FOCUS
         return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
     def draw_slime(self, art, zoom=1.0):
@@ -340,13 +359,64 @@ class MeleeScene:
                  attack_elapsed=attack_elapsed, death_elapsed=death_elapsed,
                  guarded=self.attack_blocked, alpha=alpha)
 
+    def draw_lich(self, art, zoom=1.0):
+        if self.death_elapsed is not None and self.death_elapsed >= 0.7:
+            return
+        hit_elapsed = (self.attack_elapsed - self.impact_time
+                       if self.attack_elapsed is not None else -1)
+        recoil = (12 * max(0.0, 1 - hit_elapsed / .24) ** 2
+                  if hit_elapsed >= 0 and self.player_attack_landed else 0)
+        casting = self.enemy_elapsed is not None
+        frame = (min(Lich.CAST_FRAMES - 3, int(self.enemy_elapsed * Lich.CAST_FPS))
+                 if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
+        if casting:
+            sprite = art.melee_cast_frames[frame]
+            width = art.CAST_WIDTH
+        else:
+            hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
+            sprite = art.melee_frames[hover_frame]
+            width = art.FRAME_WIDTH
+        center_x, center_y = self.zoom_point(self.enemy_home_x + recoil - (24 if casting else 0),
+                                             FLOOR - 72, zoom)
+        red_hit = 0 <= hit_elapsed < .18 and self.player_attack_landed
+        if red_hit:
+            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
+        try:
+            sprite.clip_composite_draw(0, 0, sprite.w, sprite.h, 0, '',
+                                       round(center_x * SCALE), round((NATIVE_HEIGHT - center_y) * SCALE),
+                                       round(width * 2 * zoom * SCALE),
+                                       round(art.FRAME_HEIGHT * 2 * zoom * SCALE))
+        finally:
+            if red_hit:
+                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+        if not casting:
+            return
+        core_x = self.enemy_home_x - 35
+        core_y = FLOOR - 88
+        if LICH_PROJECTILE_LAUNCH_TIME <= self.enemy_elapsed < self.enemy_impact_time:
+            progress = ((self.enemy_elapsed - LICH_PROJECTILE_LAUNCH_TIME)
+                        / (self.enemy_impact_time - LICH_PROJECTILE_LAUNCH_TIME))
+            x = (core_x - 8) + (HOME_X + 8 - (core_x - 8)) * progress
+            x, y = self.zoom_point(x, core_y, zoom)
+            orb = SimpleNamespace(x=x, y=y, age=self.enemy_elapsed, facing=-1, draw_angle=0)
+            art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH, melee_detail=True,
+                                size_scale=LICH_PROJECTILE_SIZE * zoom)
+        if self.enemy_elapsed >= self.enemy_impact_time:
+            elapsed = self.enemy_elapsed - self.enemy_impact_time
+            if (elapsed < LichImpact.DURATION and self.selected != self.enemy_direction
+                    and not self.enemy_attack_evaded):
+                x, y = self.zoom_point(HOME_X + 8, core_y, zoom)
+                art.draw_impact(SimpleNamespace(x=x, y=y, elapsed=elapsed,
+                                                DURATION=LichImpact.DURATION),
+                                0, SCALE, NATIVE_WIDTH)
+
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
     def draw_mercenary(self, zoom=1.0):
-        if (self.enemy_elapsed is not None and self.enemy_elapsed >= SLIME_IMPACT_TIME
+        if (self.enemy_elapsed is not None and self.enemy_elapsed >= self.enemy_impact_time
                 and not self.enemy_attack_evaded):
-            since_contact = self.enemy_elapsed - SLIME_IMPACT_TIME
+            since_contact = self.enemy_elapsed - self.enemy_impact_time
             guarded = self.selected == self.enemy_direction
             elapsed = since_contact if guarded else since_contact + IMPACT_HIT_STOP - self.hit_stop_left
             if elapsed < MERCENARY_REACTION_DURATION:
@@ -378,7 +448,7 @@ class MeleeScene:
             time = self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
         alpha = 255
         if self.enemy_attack_evaded and self.enemy_elapsed is not None:
-            progress = min(1.0, (self.enemy_elapsed - SLIME_IMPACT_TIME) / DODGE_FADE_SECONDS)
+            progress = min(1.0, (self.enemy_elapsed - self.enemy_impact_time) / DODGE_FADE_SECONDS)
             alpha = round(105 + 150 * progress)
         self.field.assets.draw_character(
             clip, time, x, y, facing, 0, actor_scale=2 * zoom, melee_detail=True, alpha=alpha)
@@ -503,15 +573,21 @@ class MeleeScene:
         if impact:
             drawing.black_overlay(.38 * impact)
         if self.attack_elapsed is not None:
-            self.draw_slime(assets.slime_art, zoom)
+            if self.is_lich:
+                self.draw_lich(assets.lich_art, zoom)
+            else:
+                self.draw_slime(assets.slime_art, zoom)
             self.draw_mercenary(zoom)
         else:
             self.draw_mercenary(zoom)
-            self.draw_slime(assets.slime_art, zoom)
+            if self.is_lich:
+                self.draw_lich(assets.lich_art, zoom)
+            else:
+                self.draw_slime(assets.slime_art, zoom)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
-                    else (SLIME_HOME_X - 13, FLOOR - 26))
+                    else (self.enemy_home_x - 13, FLOOR - 26))
             for step in range(5):
                 left, top = self.zoom_point(x + 3 * step, y + 3 * step, zoom)
                 drawing.rectangle((left, top, left + 4 * zoom, top + 2 * zoom),
@@ -539,7 +615,7 @@ class MeleeScene:
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
         centered(small, 320, 29, '근접 전투')
-        drawing.text(small, 514, 29, f'슬라임 HP {self.enemy.hp} / {self.enemy.max_hp}')
+        drawing.text(small, 514, 29, f'{self.enemy_name} HP {self.enemy.hp} / {self.enemy.max_hp}')
 
         line = (76, 75, 86)
         panel((17, 264, 258, 348), (23, 24, 32), line)
@@ -553,7 +629,7 @@ class MeleeScene:
         if self.attack_elapsed is not None:
             instruction = '공격 진행 중'
         elif self.enemy_elapsed is not None:
-            instruction = '슬라임 공격 진행 중'
+            instruction = f'{self.enemy_name} 공격 진행 중'
         elif self.player.hp == 0:
             instruction = '전투 패배  /  ESC 메인'
         elif self.enemy_direction is not None:

@@ -1,4 +1,4 @@
-"""Lich encounter: dodge across ranged tiles, then fight at close range."""
+"""Lich ranged encounter before entering the shared melee scene."""
 from copy import copy
 import math
 from random import randrange
@@ -7,29 +7,19 @@ from types import SimpleNamespace
 import pico2d as p2d
 
 from game import drawing
-from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.enemies import Lich, LichImpact, LichProjectile
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.hp_ui import draw_hp_bar
 from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
-from game.pixel_style import simplify
 from game.scenes.melee import (BUTTONS, COMBAT_POPUP_SECONDS, GOLD, ITEM_BUTTON,
-                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered,
-                               HOME_X, STRIKE_X, WALK_SECONDS, SLASH_HIGHLIGHTS,
-                               SLASH_PREP_FRAMES, SLASH_HIGHLIGHT_SECONDS,
-                               UPPER_ATTACK, UPPER_HIGHLIGHT_FRAME, IMPACT_HIT_STOP)
+                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered)
 
 RANGED_DIRECTIONS = ('왼쪽', '중앙', '오른쪽')
-MELEE_DIRECTIONS = ('상단', '중단', '하단')
 FLOOR = 245
 CONTACT_TIME = .48
 TURN_SECONDS = .92
-MELEE_CAST_CONTACT_TIME = 1.50
-MELEE_CAST_DURATION = 2.05
-MELEE_PROJECTILE_LAUNCH_TIME = .35
-MELEE_PROJECTILE_SIZE = 2.0
 MELEE_ENTRY_DISTANCE = 2
 MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
@@ -44,8 +34,6 @@ class RangedScene:
                                  else math.ceil(abs(enemy.x - field.x) / 32))
         self.distance = self.initial_cells
         self.cell_width = min(32, 420 / self.initial_cells)
-        self.phase = 'melee' if self.distance <= MELEE_ENTRY_DISTANCE else 'ranged'
-        self.turn = 'player' if self.phase == 'melee' else 'enemy'
         self.enemy_direction = None
         self.enemy_forecast = None
         self.selected = 1
@@ -57,7 +45,6 @@ class RangedScene:
         self.advance = True
         self.hit = False
         self.idle_elapsed = 0.0
-        self.victory_wait = None
         self.transitioning = False
         self.popup = None
         self.pointer = None
@@ -67,20 +54,8 @@ class RangedScene:
         self.log = []
         self.log_offset = 0
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
-        character_art = ASSETS / 'dungeon' / 'character'
-        self.slash_highlights = {
-            direction: (simplify(p2d.load_image(str(character_art / filename)),
-                                 block=1, preserve_white=True), pivot)
-            for direction, (filename, pivot) in SLASH_HIGHLIGHTS.items()
-        }
-        self.attack_frames = field.assets.animations['clips']['attack']['frames']
-        self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
-        self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
         self.record(f'리치 투사체 적중  ·  거리 {self.distance}칸')
-        if self.phase == 'ranged':
-            self.prepare_enemy_attack()
-        else:
-            self.record('가까운 거리  ·  근접 전투 시작')
+        self.prepare_enemy_attack()
 
     def record(self, message):
         self.log.append(message)
@@ -101,11 +76,11 @@ class RangedScene:
         return self.pointer is not None and drawing.contains(bounds, *self.pointer)
 
     def can_choose(self):
-        return (not self.transitioning and self.resolving is None and self.victory_wait is None
+        return (not self.transitioning and self.resolving is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
 
     def can_act(self):
-        return self.can_choose() and (self.phase == 'ranged' or self.turn == 'player')
+        return self.can_choose()
 
     def choose_direction(self, index):
         if self.bag_open or not self.can_choose():
@@ -117,93 +92,47 @@ class RangedScene:
         self.action_duration = TURN_SECONDS
         self.hit_stop_left = 0.0
         self.pointer = None
-        if self.phase == 'ranged':
-            self.resolving = 'ranged'
-            self.advance = True
-            self.record(f'{RANGED_DIRECTIONS[index]}으로 회피하며 접근')
-        elif self.turn == 'player':
-            self.resolving = 'melee_player'
-            self.contact_time = WALK_SECONDS + self.slash_prep_duration
-            self.action_duration = 2 * WALK_SECONDS + self.attack_duration
-            self.record(f'{MELEE_DIRECTIONS[index]} 공격!')
-        else:
-            self.resolving = 'melee_enemy'
-            self.contact_time = MELEE_CAST_CONTACT_TIME
-            self.action_duration = MELEE_CAST_DURATION
-            self.record(f'{MELEE_DIRECTIONS[index]} 방어!')
+        self.resolving = 'ranged'
+        self.advance = True
+        self.record(f'{RANGED_DIRECTIONS[index]}으로 회피하며 접근')
 
     def resolve_contact(self):
-        action = self.resolving
-        if action == 'melee_player':
-            damage, critical = roll_player_damage(
-                self.player.stat_value('strength'), self.player.stat_value('luck'),
-                base_attack=self.player.base_attack)
-            before = self.enemy.hp
-            self.enemy.take_damage(damage)
-            damage = before - self.enemy.hp
-            self.hit = damage > 0
-            self.popup = (f'-{damage}!' if critical else f'-{damage}', 'enemy', 0.0)
-            self.record(f'리치에게 {damage} 피해' + ('  ·  치명타!' if critical else ''))
-            return
-        if action == 'ranged' and self.selected is not None and self.selected != self.enemy_direction:
+        if self.selected is not None and self.selected != self.enemy_direction:
             self.popup = ('MISS', 'player', 0.0)
             self.record(f'리치 {RANGED_DIRECTIONS[self.enemy_direction]} 공격 회피!')
             return
-        if action == 'melee_enemy' and self.selected == self.enemy_direction:
-            self.record('리치 공격 방어 성공  ·  피해 0')
-            return
-        if action == 'melee_enemy':
-            dodge = min(250, 5 * self.player.stat_value('agility')
-                        + self.player.stat_value('luck'))
-            if randrange(1000) < dodge:
-                self.popup = ('MISS', 'player', 0.0)
-                self.record('리치 공격 회피!')
-                return
         before = self.player.hp
         self.player.take_damage(6, damage_type='magic')
         damage = before - self.player.hp
         self.hit = True
         self.popup = (f'-{damage}', 'player', 0.0)
-        direction = (RANGED_DIRECTIONS if action == 'ranged' else MELEE_DIRECTIONS)[self.enemy_direction]
+        direction = RANGED_DIRECTIONS[self.enemy_direction]
         self.record(f'리치 {direction} 공격 명중  ·  HP -{damage}')
 
     def finish_action(self):
-        action = self.resolving
         self.resolving = None
         self.hit = False
         if self.player.hp == 0:
             self.record('용병이 쓰러졌다!')
             return
-        if action == 'ranged':
-            if self.advance:
-                self.distance -= 1
-            if self.distance <= MELEE_ENTRY_DISTANCE:
-                frozen = copy(self)
-                frozen.distance = self.distance
-                frozen.popup = None
-                frozen.enemy_forecast = None
-                frozen.log = list(self.log)
-                frozen.transitioning = True
-                self.distance = 0
-                self.phase = 'melee'
-                self.turn = 'player'
-                self.enemy_direction = self.enemy_forecast = None
-                self.record('리치에게 접근  ·  근접 전투 시작')
-                from game.scenes.melee_transition import MeleeTransitionScene
-                self.app.scene = MeleeTransitionScene(
-                    self.app, frozen, self, battle_phase=True)
-            else:
-                self.prepare_enemy_attack()
-        elif action == 'melee_player':
-            if self.enemy.hp == 0:
-                self.record('리치를 쓰러뜨렸다!')
-                self.victory_wait = .7
-            else:
-                self.turn = 'enemy'
-                self.prepare_enemy_attack()
+        if self.advance:
+            self.distance -= 1
+        if self.distance <= MELEE_ENTRY_DISTANCE:
+            frozen = copy(self)
+            frozen.distance = self.distance
+            frozen.popup = None
+            frozen.enemy_forecast = None
+            frozen.log = list(self.log)
+            frozen.transitioning = True
+            from game.scenes.melee import MeleeScene
+            melee = MeleeScene(self.app, self.field, self.enemy,
+                               'debug' if self.debug else 'lich')
+            melee.log = list(self.log) + melee.log
+            from game.scenes.melee_transition import MeleeTransitionScene
+            self.app.scene = MeleeTransitionScene(
+                self.app, frozen, melee, battle_phase=True)
         else:
-            self.turn = 'player'
-            self.enemy_direction = self.enemy_forecast = None
+            self.prepare_enemy_attack()
 
     def update(self, dt):
         dt = max(0.0, dt) * self.app.battle_speed
@@ -212,14 +141,6 @@ class RangedScene:
             label, target, elapsed = self.popup
             elapsed += dt
             self.popup = (label, target, elapsed) if elapsed < COMBAT_POPUP_SECONDS else None
-        if self.victory_wait is not None:
-            self.victory_wait -= dt
-            if self.victory_wait <= 0:
-                if self.debug:
-                    self.app.show_title()
-                else:
-                    self.field.resume_after_victory(self.enemy)
-            return
         if self.resolving is None:
             return
         if self.hit_stop_left > 0:
@@ -230,11 +151,6 @@ class RangedScene:
         self.action_elapsed += dt
         if previous < self.contact_time <= self.action_elapsed:
             self.resolve_contact()
-            if self.resolving == 'melee_player':
-                self.action_elapsed = self.contact_time
-                if self.hit:
-                    self.hit_stop_left = IMPACT_HIT_STOP
-                return
         if self.action_elapsed >= self.action_duration:
             self.finish_action()
 
@@ -271,21 +187,13 @@ class RangedScene:
                 self.field.chests.save()
             self.close_bag()
             self.record(message)
-            if self.phase == 'ranged':
-                self.selected = None
-                self.advance = False
-                self.resolving = 'ranged'
-            else:
-                self.turn = 'enemy'
-                self.resolving = 'melee_enemy'
-                self.selected = None
-                self.prepare_enemy_attack()
+            self.selected = None
+            self.advance = False
+            self.resolving = 'ranged'
             self.hit = False
             self.action_elapsed = 0.0
-            self.contact_time = (MELEE_CAST_CONTACT_TIME if self.phase == 'melee'
-                                 else CONTACT_TIME)
-            self.action_duration = (MELEE_CAST_DURATION if self.phase == 'melee'
-                                    else TURN_SECONDS)
+            self.contact_time = CONTACT_TIME
+            self.action_duration = TURN_SECONDS
             self.hit_stop_left = 0.0
         else:
             self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
@@ -350,132 +258,57 @@ class RangedScene:
         centered(normal, 394, 240, '사용')
         drawing.text(small, 214, 240, self.item_message)
 
-    def slash_attack_time(self, time):
-        if time < self.slash_prep_duration - 1e-8:
-            return time
-        recovery = time - self.slash_prep_duration - SLASH_HIGHLIGHT_SECONDS
-        if recovery < -1e-8:
-            return None
-        return max(0.0, self.slash_prep_duration - recovery - 1e-6)
-
-    def draw_melee_player(self):
-        elapsed = self.action_elapsed
-        if elapsed < WALK_SECONDS:
-            clip, time, facing = 'walk', elapsed, 1
-            x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
-        elif elapsed < WALK_SECONDS + self.attack_duration:
-            clip, time, facing = 'attack', self.slash_attack_time(elapsed - WALK_SECONDS), 1
-            x = STRIKE_X
-        else:
-            clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
-            x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
-        if time is None:
-            if self.selected != UPPER_ATTACK:
-                image, (pivot_x, pivot_y) = self.slash_highlights[self.selected]
-                scale = 2 * SCALE
-                image.draw(round(x * SCALE + (image.w / 2 - pivot_x) * scale),
-                           round((NATIVE_HEIGHT - FLOOR) * SCALE - (image.h / 2 - pivot_y) * scale),
-                           round(image.w * scale), round(image.h * scale))
-                return
-            time = self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
-        self.field.assets.draw_character(
-            clip, time, x, FLOOR, facing, 0, actor_scale=2, melee_detail=True)
-
     def draw_actors(self):
-        scale = 1.0 if self.phase == 'ranged' else 2.0
-        lich_x = 500 if self.phase == 'ranged' else 425
-        player_x = lich_x - self.distance * self.cell_width if self.phase == 'ranged' else HOME_X
-        if self.phase == 'ranged':
-            for step in range(self.distance):
-                x = lich_x - (step + .5) * self.cell_width
-                drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
-                                   x + self.cell_width / 2 - 2, FLOOR + 8),
-                                  (72, 78, 88), filled=True)
-                drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
-                                   x + self.cell_width / 2 - 2, FLOOR + 8),
-                                  (117, 123, 132))
+        lich_x = 500
+        player_x = lich_x - self.distance * self.cell_width
+        for step in range(self.distance):
+            x = lich_x - (step + .5) * self.cell_width
+            drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
+                               x + self.cell_width / 2 - 2, FLOOR + 8),
+                              (72, 78, 88), filled=True)
+            drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
+                               x + self.cell_width / 2 - 2, FLOOR + 8),
+                              (117, 123, 132))
         art = self.field.assets.lich_art
-        if self.resolving == 'melee_player' and self.hit:
-            recoil = max(0.0, 1 - (self.action_elapsed - self.contact_time) / .24)
-            lich_x += 12 * recoil * recoil
-        casting = self.resolving in ('ranged', 'melee_enemy')
+        casting = self.resolving == 'ranged'
         frame = (min(Lich.CAST_FRAMES - 3, int(self.action_elapsed * Lich.CAST_FPS))
                  if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
         width = art.CAST_WIDTH if casting else art.FRAME_WIDTH
-        if self.phase == 'melee':
-            hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
-            sprite = (art.melee_cast_frames[frame] if casting
-                      else art.melee_frames[hover_frame])
-            source_x, source_width, source_height = 0, sprite.w, sprite.h
-            core_x = lich_x - 17.5 * scale
-            core_y = FLOOR - 8 - 40 * scale
-        else:
-            sprite = art.cast_image if casting else art.image
-            source_x, source_width, source_height = frame * width, width, art.FRAME_HEIGHT
-        center_x = lich_x - 12 * scale if casting else lich_x
-        hit_elapsed = self.action_elapsed - self.contact_time
-        red_hit = (self.resolving == 'melee_player' and self.hit
-                   and 0 <= hit_elapsed < .18)
-        if red_hit:
-            p2d.SDL_SetTextureColorMod(sprite.texture, 255, 64, 55)
-        try:
-            sprite.clip_composite_draw(
-                source_x, 0, source_width, source_height, 0, '',
-                round(center_x * SCALE),
-                round((NATIVE_HEIGHT - (FLOOR - 8 - 32 * scale)) * SCALE),
-                round(width * scale * SCALE), round(art.FRAME_HEIGHT * scale * SCALE))
-        finally:
-            if red_hit:
-                p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
-        if red_hit:
-            spread = 1 + hit_elapsed / .18
-            for dx, dy in ((-7, -5), (5, -9), (-3, 6), (8, 4)):
-                x, y = lich_x - 23 + dx * spread, FLOOR - 65 + dy * spread
-                drawing.rectangle((x, y, x + 3, y + 3), (255, 78, 65), filled=True)
-        launch_time = (MELEE_PROJECTILE_LAUNCH_TIME if self.phase == 'melee' else .18)
-        if casting and launch_time <= self.action_elapsed < self.contact_time:
-            progress = (self.action_elapsed - launch_time) / (self.contact_time - launch_time)
-            if self.phase == 'melee':
-                launch_x, launch_y = core_x - 8, core_y
-                target_x, target_y = player_x + 8, core_y
-            else:
-                launch_x, launch_y = lich_x - 28, FLOOR - 54 * scale
-                target_x, target_y = player_x + 12, launch_y
-            orb = SimpleNamespace(x=launch_x + (target_x - launch_x) * progress,
-                                  y=launch_y + (target_y - launch_y) * progress,
-                                  age=self.action_elapsed, facing=-1, draw_angle=0)
-            art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH,
-                                melee_detail=self.phase == 'melee',
-                                size_scale=MELEE_PROJECTILE_SIZE if self.phase == 'melee' else 1.0)
-        if self.resolving in ('ranged', 'melee_enemy') and self.hit:
+        sprite = art.cast_image if casting else art.image
+        center_x = lich_x - 12 if casting else lich_x
+        sprite.clip_composite_draw(
+            frame * width, 0, width, art.FRAME_HEIGHT, 0, '',
+            round(center_x * SCALE),
+            round((NATIVE_HEIGHT - (FLOOR - 40)) * SCALE),
+            round(width * SCALE), round(art.FRAME_HEIGHT * SCALE))
+        if casting and .18 <= self.action_elapsed < self.contact_time:
+            progress = (self.action_elapsed - .18) / (self.contact_time - .18)
+            orb = SimpleNamespace(x=lich_x - 28 + (player_x + 12 - lich_x + 28) * progress,
+                                  y=FLOOR - 54, age=self.action_elapsed,
+                                  facing=-1, draw_angle=0)
+            art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH)
+        if casting and self.hit:
             elapsed = self.action_elapsed - self.contact_time
             if elapsed < .3:
                 self.field.assets.draw_mercenary_hit(
-                    player_x, FLOOR, 1, 0, elapsed, actor_scale=scale,
-                    field_style=self.phase == 'ranged')
+                    player_x, FLOOR, 1, 0, elapsed, actor_scale=1, field_style=True)
             else:
-                self.field.assets.draw_character('idle', self.idle_elapsed, player_x, FLOOR,
-                                                 1, 0, actor_scale=scale,
-                                                 melee_detail=self.phase == 'melee')
+                self.field.assets.draw_character('idle', self.idle_elapsed, player_x,
+                                                 FLOOR, 1, 0, actor_scale=1)
             if elapsed < LichImpact.DURATION:
-                impact_y = core_y if self.phase == 'melee' else FLOOR - 54 * scale
-                art.draw_impact(SimpleNamespace(x=player_x + 8, y=impact_y,
+                art.draw_impact(SimpleNamespace(x=player_x + 8, y=FLOOR - 54,
                                                 elapsed=elapsed, DURATION=LichImpact.DURATION),
                                 0, SCALE, NATIVE_WIDTH)
         else:
-            alpha = 110 if (self.resolving in ('ranged', 'melee_enemy')
-                            and self.popup is not None and self.popup[0] == 'MISS') else 255
-            if self.resolving == 'melee_player':
-                self.draw_melee_player()
-            else:
-                self.field.assets.draw_character('idle', self.idle_elapsed, player_x, FLOOR,
-                                                 1, 0, actor_scale=scale,
-                                                 melee_detail=self.phase == 'melee', alpha=alpha)
+            alpha = 110 if casting and self.popup is not None and self.popup[0] == 'MISS' else 255
+            self.field.assets.draw_character('idle', self.idle_elapsed, player_x,
+                                             FLOOR, 1, 0, actor_scale=1, alpha=alpha)
         if self.popup is not None:
             label, target, elapsed = self.popup
             x = player_x if target == 'player' else lich_x
-            y = FLOOR - 82 * scale - 14 * elapsed / COMBAT_POPUP_SECONDS
-            color = (195, 226, 255) if label == 'MISS' else (255, 72, 65) if label.endswith('!') else (255, 139, 108)
+            y = FLOOR - 82 - 14 * elapsed / COMBAT_POPUP_SECONDS
+            color = ((195, 226, 255) if label == 'MISS' else
+                     (255, 72, 65) if label.endswith('!') else (255, 139, 108))
             centered(self.app.resources.normal, x, y, label, color)
 
     def draw(self):
@@ -490,8 +323,7 @@ class RangedScene:
             left, top, right, bottom = bounds
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
-        centered(small, 320, 29, f'원거리 전투  ·  {self.distance}칸' if self.phase == 'ranged'
-                 else '리치 근접 전투')
+        centered(small, 320, 29, f'원거리 전투  ·  {self.distance}칸')
         drawing.text(small, 514, 29, f'리치 HP {self.enemy.hp} / {self.enemy.max_hp}')
         line = (76, 75, 86)
         panel((17, 264, 258, 348), (23, 24, 32), line)
@@ -504,21 +336,15 @@ class RangedScene:
             drawing.text(small, 29, 299 + row * 16, entry, (228, 216, 187))
         if self.player.hp == 0:
             instruction = '전투 패배  /  ESC 메인'
-        elif self.victory_wait is not None:
-            instruction = '리치 처치!'
         elif self.resolving is not None:
-            instruction = '리치 공격 진행 중' if self.resolving != 'melee_player' else '공격 진행 중'
+            instruction = '리치 공격 진행 중'
         elif self.transitioning:
             instruction = '리치에게 접근  /  근접 전투 전환 중'
-        elif self.phase == 'ranged':
-            instruction = '회피 방향 선택  /  한 턴에 1칸 접근'
-        elif self.turn == 'player':
-            instruction = '내 턴  /  공격 방향 선택'
         else:
-            instruction = '상대 턴  /  방어 방향 선택'
+            instruction = '회피 방향 선택  /  한 턴에 1칸 접근'
         centered(small, 339, 263, instruction)
-        labels = RANGED_DIRECTIONS if self.phase == 'ranged' else MELEE_DIRECTIONS
-        action = '회피' if self.phase == 'ranged' else '공격' if self.turn == 'player' else '방어'
+        labels = RANGED_DIRECTIONS
+        action = '회피'
         for index, (bounds, label) in enumerate(zip(BUTTONS, labels)):
             left, top, right, bottom = bounds
             active = self.can_choose() and self.hovered(bounds)
