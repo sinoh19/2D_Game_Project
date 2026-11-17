@@ -251,6 +251,7 @@ class LichProjectile:
     HALF_HEIGHT = 5
 
     def __init__(self, lich, target_x, target_y):
+        self.owner = lich
         self.facing = lich.facing
         self.x = lich.x + self.facing * 28
         self.y = lich.y - 48
@@ -275,11 +276,11 @@ class LichProjectile:
             return False
         dt = min(max(0.0, dt), (self.RANGE-self.distance)/self.SPEED)
         end_x, end_y = self.x + self.vx*dt, self.y + self.vy*dt
-        walls = [segment_box_time(self.x, self.y, end_x, end_y,
-                                 (left-self.HALF_WIDTH, top-self.HALF_HEIGHT,
-                                  right+self.HALF_WIDTH, bottom+self.HALF_HEIGHT))
-                 for left, top, right, bottom in scene.solids]
-        wall_hit = min((hit for hit in walls if hit is not None), default=None)
+        obstacles = (segment_box_time(self.x, self.y, end_x, end_y,
+                                     (left-self.HALF_WIDTH, top-self.HALF_HEIGHT,
+                                      right+self.HALF_WIDTH, bottom+self.HALF_HEIGHT))
+                     for left, top, right, bottom in scene.projectile_obstacles(self.owner))
+        obstacle_hit = min((hit for hit in obstacles if hit is not None), default=None)
         player = scene.player
         player_hit = None
         if player.hp > 0:
@@ -289,11 +290,11 @@ class LichProjectile:
                  player.y-player.HEIGHT-self.HALF_HEIGHT,
                  player.x+player.HALF_WIDTH+self.HALF_WIDTH,
                  player.y+self.HALF_HEIGHT))
-        if player_hit is not None and (wall_hit is None or player_hit < wall_hit):
+        if player_hit is not None and (obstacle_hit is None or player_hit < obstacle_hit):
             player.take_damage(self.DAMAGE, damage_type='magic')
             scene.trap_hit_time = .30
             return False
-        if wall_hit is not None:
+        if obstacle_hit is not None:
             return False
         self.x, self.y = end_x, end_y
         self.distance += self.SPEED * dt

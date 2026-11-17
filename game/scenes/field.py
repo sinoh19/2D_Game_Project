@@ -11,7 +11,7 @@ from game.combat import resolve_encounter
 from game.chests import TreasureChests
 from game.field_inventory import FieldInventory
 from game.character_status import CharacterStatus
-from game.items import ITEMS, DroppedItem
+from game.items import ITEMS, DroppedItem, Equipment
 from game.spike_trap import SpikeTrap
 from game.pixel_style import simplify
 from game.terrain import slope_surfaces, inside_slope
@@ -69,6 +69,30 @@ class FieldScene:
     @property
     def y(self):
         return self.player.y
+
+    def projectile_obstacles(self, owner):
+        """Visible physical objects that stop a lich projectile."""
+        yield from self.solids
+        yield from self.platforms
+        yield from self.layout.get('projectileObstacles', ())
+        for chest in self.chests.chests:
+            yield (chest.x - chest.width / 2, chest.y - chest.height,
+                   chest.x + chest.width / 2, chest.y)
+        for trap in self.spike_traps:
+            yield (trap.x - trap.width / 2, trap.y,
+                   trap.x + trap.width / 2, trap.y + trap.height)
+        for enemy in self.enemies:
+            half = 16 * enemy.scale
+            yield (enemy.x - half, enemy.y - 32 * enemy.scale,
+                   enemy.x + half, enemy.y)
+        for lich in self.liches:
+            if lich is not owner:
+                yield (lich.x - lich.width / 2, lich.y - lich.height,
+                       lich.x + lich.width / 2, lich.y)
+        for item in self.dropped_items:
+            size = 22 if isinstance(ITEMS[item.item_id], Equipment) else 14
+            yield (item.x - size / 2, item.feet - size - 5,
+                   item.x + size / 2, item.feet - 5)
 
     def valid_position(self, position):
         x, y = position

@@ -58,7 +58,7 @@ def load_map(map_path,base_layout,asset_root):
     mp=properties(data);layout=copy.deepcopy(base_layout)
     layout.update(width=data['width']*tw,height=int(mp.get('worldHeight',data['height']*th)),
                   name=mp.get('displayName',path.stem),mapId=path.stem,tiledSource=str(path),
-                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],liches=[],chests=[],spikeTraps=[],tiledVisuals=[],tiledDrawOrder=[])
+                  props=[],solids=[],platforms=[],slopes=[],sidePassages=[],enemies=[],liches=[],chests=[],spikeTraps=[],tiledVisuals=[],tiledDrawOrder=[],projectileObstacles=[])
     if layout['width']<640 or layout['height']<360:raise ValueError('맵은 최소 640×360이어야 합니다.')
     layout['characterScale']=float(mp.get('characterScale',layout['characterScale']))
     layout['terrainInteriorShading']=bool(mp.get('terrainInteriorShading',True))
@@ -272,6 +272,7 @@ def load_map(map_path,base_layout,asset_root):
                     ground_offset = float(props.get('groundOffset', default_offset))
                     layout['props'].append({'kind':'torch' if klass=='Torch' else 'armor','x':x+w*px,
                         'bottom':y-h*py+ground_offset*h/sh,'unitScale':w/sw*spec['ppu']})
+                    layout['projectileObstacles'].append((x,y-h,x+w,y))
                     layout['tiledDrawOrder'].append({'kind':'prop','index':len(layout['props'])-1});continue
                 if klass=='CeilingDecoration':
                     # Ceiling tilesets use a top-left editor anchor, so their
@@ -279,6 +280,7 @@ def load_map(map_path,base_layout,asset_root):
                     if rotation:raise ValueError('천장 장식은 회전 없이 배치하세요.')
                     if shown:
                         visual(gid,x,y,w,h,opacity=alpha)
+                        layout['projectileObstacles'].append((x,y,x+w,y+h))
                         if props.get('flameAnimation',False):
                             layout['tiledVisuals'][-1]['animation']='chandelier-flames'
                         if props.get('warmLight',False):
@@ -298,6 +300,7 @@ def load_map(map_path,base_layout,asset_root):
                     continue
                 if gid and shown:
                     visual(gid,x,y-h,w,h,rotation,alpha)
+                    layout['projectileObstacles'].append((x,y-h,x+w,y))
                     if lp.get('autoCollision',False):collision(definition,gid,x,y-h,w,h,rotation)
     walk(data['layers'])
     if len(spawns)!=1:raise ValueError('시작 위치(Spawn) 점은 정확히 하나 배치하세요.')
