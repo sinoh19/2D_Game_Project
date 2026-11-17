@@ -1,4 +1,4 @@
-"""Freeze the hit frame, then sweep pixel tiles into the melee scene."""
+"""Freeze the previous screen, then sweep pixel tiles into battle."""
 import math
 import pico2d as p2d
 from game import drawing
@@ -11,10 +11,11 @@ TILE_SIZE = 32
 
 
 class MeleeTransitionScene:
-    def __init__(self, app, source, destination):
+    def __init__(self, app, source, destination, *, battle_phase=False):
         self.app = app
         self.source = source
         self.destination = destination
+        self.battle_phase = battle_phase
         self.elapsed = 0.0
         self.finished = False
         self.slime_hit = destination.cause == 'player_attack'
@@ -22,8 +23,9 @@ class MeleeTransitionScene:
         self.cover_end = self.hold_seconds + COVER_SECONDS
         self.reveal_start = self.cover_end + BLACK_SECONDS
         self.duration = self.reveal_start + REVEAL_SECONDS
-        self.focus = (max(0,min(639,destination.enemy.x-source.camera_x)),
-                      max(0,min(359,destination.enemy.y-12)))
+        self.focus = ((320, 180) if battle_phase else
+                      (max(0,min(639,destination.enemy.x-source.camera_x)),
+                       max(0,min(359,destination.enemy.y-12))))
 
     @property
     def phase(self):
@@ -71,7 +73,9 @@ class MeleeTransitionScene:
             drawing.rectangle((0,0,639,359),(0,0,0),filled=True)
             return
         if phase in ('freeze','cover'):
-            if self.slime_hit:
+            if self.battle_phase:
+                self.source.draw()
+            elif self.slime_hit:
                 self.source.draw(hit_enemy=self.destination.enemy,
                                  hit_elapsed=max(0.0, self.elapsed - self.hold_seconds))
             else:

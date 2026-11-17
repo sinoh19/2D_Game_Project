@@ -1,4 +1,5 @@
 """Lich encounter: dodge across ranged tiles, then fight at close range."""
+from copy import copy
 import math
 from random import randrange
 from types import SimpleNamespace
@@ -49,6 +50,7 @@ class RangedScene:
         self.hit = False
         self.idle_elapsed = 0.0
         self.victory_wait = None
+        self.transitioning = False
         self.popup = None
         self.pointer = None
         self.bag_open = False
@@ -88,7 +90,7 @@ class RangedScene:
         return self.pointer is not None and drawing.contains(bounds, *self.pointer)
 
     def can_choose(self):
-        return (self.resolving is None and self.victory_wait is None
+        return (not self.transitioning and self.resolving is None and self.victory_wait is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
 
     def can_act(self):
@@ -163,11 +165,20 @@ class RangedScene:
             if self.advance:
                 self.distance -= 1
             if self.distance <= 0:
+                frozen = copy(self)
+                frozen.distance = 1
+                frozen.popup = None
+                frozen.enemy_forecast = None
+                frozen.log = list(self.log)
+                frozen.transitioning = True
                 self.distance = 0
                 self.phase = 'melee'
                 self.turn = 'player'
                 self.enemy_direction = self.enemy_forecast = None
                 self.record('리치에게 접근  ·  근접 전투 시작')
+                from game.scenes.melee_transition import MeleeTransitionScene
+                self.app.scene = MeleeTransitionScene(
+                    self.app, frozen, self, battle_phase=True)
             else:
                 self.prepare_enemy_attack()
         elif action == 'melee_player':
@@ -448,6 +459,8 @@ class RangedScene:
             instruction = '리치 처치!'
         elif self.resolving is not None:
             instruction = '리치 공격 진행 중' if self.resolving != 'melee_player' else '공격 진행 중'
+        elif self.transitioning:
+            instruction = '리치에게 접근  /  근접 전투 전환 중'
         elif self.phase == 'ranged':
             instruction = '회피 방향 선택  /  한 턴에 1칸 접근'
         elif self.turn == 'player':
