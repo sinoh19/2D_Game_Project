@@ -329,14 +329,15 @@ class LichArt:
     PROJECTILE_WIDTH = 28
     PROJECTILE_HEIGHT = 14
     PROJECTILE_FRAMES = 9
-    # Keep the game's muted palette while retaining the lich's plum robe and blue eye.
+    # Lift the lich's midtones so its silhouette survives the field's dark overlay.
     PALETTE = (
-        (22, 24, 30), (34, 37, 43), (48, 52, 59), (65, 70, 78),
-        (83, 90, 100), (105, 113, 124), (132, 140, 149),
-        (39, 31, 43), (58, 43, 61), (79, 58, 81), (103, 76, 105),
-        (128, 101, 127), (157, 148, 140), (188, 180, 168),
-        (50, 85, 105), (82, 140, 158), (71, 219, 225),
+        (26, 27, 34), (43, 45, 53), (60, 64, 73), (80, 86, 97),
+        (103, 111, 122), (129, 138, 151), (158, 167, 178),
+        (48, 35, 54), (72, 52, 77), (97, 70, 100), (126, 91, 129),
+        (155, 117, 153), (184, 171, 165), (212, 202, 192),
+        (63, 103, 125), (105, 166, 184), (111, 235, 239),
     )
+    PROJECTILE_PALETTE = PALETTE + ((181, 114, 194), (161, 237, 241), (222, 247, 248))
 
     def __init__(self, folder):
         import pico2d as p2d
@@ -354,14 +355,15 @@ class LichArt:
         if (projectile.w, projectile.h) != (self.PROJECTILE_WIDTH * self.PROJECTILE_FRAMES,
                                            self.PROJECTILE_HEIGHT):
             raise ValueError('리치 투사체 시트 크기가 잘못되었습니다.')
-        self.projectile_image = simplify(projectile, block=2, palette=self.PALETTE)
+        self.projectile_image = simplify(projectile, block=2, palette=self.PROJECTILE_PALETTE)
         left_projectile = p2d.load_image(str(folder / 'projectile-left.png'))
         if (left_projectile.w, left_projectile.h) != (projectile.w, projectile.h):
             raise ValueError('리치 왼쪽 투사체 시트 크기가 잘못되었습니다.')
-        self.projectile_left_image = simplify(left_projectile, block=2, palette=self.PALETTE)
+        self.projectile_left_image = simplify(left_projectile, block=2,
+                                              palette=self.PROJECTILE_PALETTE)
         self.impact_image = simplify(
             p2d.load_image(str(folder / 'impact-concept.png')),
-            block=32, palette=self.PALETTE)
+            block=32, palette=self.PROJECTILE_PALETTE)
 
     def draw(self, lich, camera, world_scale, view_width):
         from game.config import WINDOW_HEIGHT
