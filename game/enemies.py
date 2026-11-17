@@ -273,8 +273,11 @@ class LichProjectile:
 
     def update(self, dt, scene):
         if self.distance >= self.RANGE:
+            scene.lich_impacts.append(LichImpact(self.x, self.y))
             return False
-        dt = min(max(0.0, dt), (self.RANGE-self.distance)/self.SPEED)
+        time_to_range = (self.RANGE-self.distance)/self.SPEED
+        dt = min(max(0.0, dt), time_to_range)
+        reached_range = dt >= time_to_range
         end_x, end_y = self.x + self.vx*dt, self.y + self.vy*dt
         obstacles = (segment_box_time(self.x, self.y, end_x, end_y,
                                      (left-self.HALF_WIDTH, top-self.HALF_HEIGHT,
@@ -305,7 +308,10 @@ class LichProjectile:
         self.x, self.y = end_x, end_y
         self.distance += self.SPEED * dt
         self.age += dt
-        return self.distance < self.RANGE
+        if reached_range:
+            scene.lich_impacts.append(LichImpact(self.x, self.y))
+            return False
+        return True
 
 
 class LichImpact:
