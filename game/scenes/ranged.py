@@ -26,6 +26,10 @@ MELEE_DIRECTIONS = ('상단', '중단', '하단')
 FLOOR = 245
 CONTACT_TIME = .48
 TURN_SECONDS = .92
+MELEE_CAST_CONTACT_TIME = .90
+MELEE_CAST_DURATION = 1.40
+MELEE_PROJECTILE_LAUNCH_TIME = .30
+MELEE_PROJECTILE_SIZE = .65
 MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
 
@@ -120,6 +124,8 @@ class RangedScene:
             self.record(f'{MELEE_DIRECTIONS[index]} 공격!')
         else:
             self.resolving = 'melee_enemy'
+            self.contact_time = MELEE_CAST_CONTACT_TIME
+            self.action_duration = MELEE_CAST_DURATION
             self.record(f'{MELEE_DIRECTIONS[index]} 방어!')
 
     def resolve_contact(self):
@@ -272,8 +278,10 @@ class RangedScene:
                 self.prepare_enemy_attack()
             self.hit = False
             self.action_elapsed = 0.0
-            self.contact_time = CONTACT_TIME
-            self.action_duration = TURN_SECONDS
+            self.contact_time = (MELEE_CAST_CONTACT_TIME if self.phase == 'melee'
+                                 else CONTACT_TIME)
+            self.action_duration = (MELEE_CAST_DURATION if self.phase == 'melee'
+                                    else TURN_SECONDS)
             self.hit_stop_left = 0.0
         else:
             self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
@@ -409,20 +417,31 @@ class RangedScene:
         finally:
             if red_hit:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
+        if self.phase == 'melee':
+            core_x = lich_x - 17.5 * scale
+            core_y = FLOOR - 8 - 40 * scale
+            drawing.rectangle((core_x - 2 * scale, core_y - 2 * scale,
+                               core_x + 2 * scale, core_y + 2 * scale),
+                              (45, 103, 126), filled=True)
+            drawing.rectangle((core_x - scale, core_y - scale,
+                               core_x + scale, core_y + scale),
+                              (111, 235, 239), filled=True)
         if red_hit:
             spread = 1 + hit_elapsed / .18
             for dx, dy in ((-7, -5), (5, -9), (-3, 6), (8, 4)):
                 x, y = lich_x - 23 + dx * spread, FLOOR - 65 + dy * spread
                 drawing.rectangle((x, y, x + 3, y + 3), (255, 78, 65), filled=True)
-        if casting and .18 <= self.action_elapsed < CONTACT_TIME:
-            progress = (self.action_elapsed - .18) / (CONTACT_TIME - .18)
+        launch_time = (MELEE_PROJECTILE_LAUNCH_TIME if self.phase == 'melee' else .18)
+        if casting and launch_time <= self.action_elapsed < self.contact_time:
+            progress = (self.action_elapsed - launch_time) / (self.contact_time - launch_time)
             orb_x = lich_x - 28 - (lich_x - player_x - 40) * progress
             orb = SimpleNamespace(x=orb_x, y=FLOOR - 54 * scale,
                                   age=self.action_elapsed, facing=-1, draw_angle=0)
             art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH,
-                                melee_detail=self.phase == 'melee')
+                                melee_detail=self.phase == 'melee',
+                                size_scale=MELEE_PROJECTILE_SIZE if self.phase == 'melee' else 1.0)
         if self.resolving in ('ranged', 'melee_enemy') and self.hit:
-            elapsed = self.action_elapsed - CONTACT_TIME
+            elapsed = self.action_elapsed - self.contact_time
             if elapsed < .3:
                 self.field.assets.draw_mercenary_hit(
                     player_x, FLOOR, 1, 0, elapsed, actor_scale=scale,

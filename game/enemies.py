@@ -403,7 +403,8 @@ class LichArt:
             round((WINDOW_HEIGHT - center_y * world_scale)),
             round(width * world_scale), round(lich.height * world_scale))
 
-    def draw_projectile(self, projectile, camera, world_scale, view_width, *, melee_detail=False):
+    def draw_projectile(self, projectile, camera, world_scale, view_width, *,
+                        melee_detail=False, size_scale=1.0):
         from game.config import WINDOW_HEIGHT
 
         if projectile.x + 16 < camera or projectile.x - 16 > camera + view_width:
@@ -420,8 +421,8 @@ class LichArt:
             projectile.draw_angle, '',
             round((projectile.x-camera) * world_scale),
             round(WINDOW_HEIGHT-projectile.y * world_scale),
-            round(self.PROJECTILE_WIDTH * world_scale),
-            round(self.PROJECTILE_HEIGHT * world_scale))
+            round(self.PROJECTILE_WIDTH * world_scale * size_scale),
+            round(self.PROJECTILE_HEIGHT * world_scale * size_scale))
 
     def draw_impact(self, impact, camera, world_scale, view_width):
         import pico2d as p2d
