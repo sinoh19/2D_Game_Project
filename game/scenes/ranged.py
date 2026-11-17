@@ -13,8 +13,12 @@ from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.hp_ui import draw_hp_bar
 from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
+from game.pixel_style import simplify
 from game.scenes.melee import (BUTTONS, COMBAT_POPUP_SECONDS, GOLD, ITEM_BUTTON,
-                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered)
+                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered,
+                               HOME_X, STRIKE_X, WALK_SECONDS, SLASH_HIGHLIGHTS,
+                               SLASH_PREP_FRAMES, SLASH_HIGHLIGHT_SECONDS,
+                               UPPER_ATTACK, UPPER_HIGHLIGHT_FRAME, IMPACT_HIT_STOP)
 
 RANGED_DIRECTIONS = ('왼쪽', '중앙', '오른쪽')
 MELEE_DIRECTIONS = ('상단', '중단', '하단')
@@ -38,6 +42,9 @@ class RangedScene:
         self.selected = 1
         self.resolving = None
         self.action_elapsed = 0.0
+        self.contact_time = CONTACT_TIME
+        self.action_duration = TURN_SECONDS
+        self.hit_stop_left = 0.0
         self.advance = True
         self.hit = False
         self.idle_elapsed = 0.0
@@ -50,6 +57,15 @@ class RangedScene:
         self.log = []
         self.log_offset = 0
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
+        character_art = ASSETS / 'dungeon' / 'character'
+        self.slash_highlights = {
+            direction: (simplify(p2d.load_image(str(character_art / filename)),
+                                 block=1, preserve_white=True), pivot)
+            for direction, (filename, pivot) in SLASH_HIGHLIGHTS.items()
+        }
+        self.attack_frames = field.assets.animations['clips']['attack']['frames']
+        self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
+        self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
         self.record(f'리치 투사체 적중  ·  거리 {self.distance}칸')
         self.prepare_enemy_attack()
 
@@ -84,6 +100,9 @@ class RangedScene:
         self.selected = index
         self.hit = False
         self.action_elapsed = 0.0
+        self.contact_time = CONTACT_TIME
+        self.action_duration = TURN_SECONDS
+        self.hit_stop_left = 0.0
         self.pointer = None
         if self.phase == 'ranged':
             self.resolving = 'ranged'
@@ -91,6 +110,8 @@ class RangedScene:
             self.record(f'{RANGED_DIRECTIONS[index]}으로 회피하며 접근')
         elif self.turn == 'player':
             self.resolving = 'melee_player'
+            self.contact_time = WALK_SECONDS + self.slash_prep_duration
+            self.action_duration = 2 * WALK_SECONDS + self.attack_duration
             self.record(f'{MELEE_DIRECTIONS[index]} 공격!')
         else:
             self.resolving = 'melee_enemy'
@@ -174,11 +195,20 @@ class RangedScene:
             return
         if self.resolving is None:
             return
+        if self.hit_stop_left > 0:
+            paused = min(dt, self.hit_stop_left)
+            self.hit_stop_left -= paused
+            dt -= paused
         previous = self.action_elapsed
         self.action_elapsed += dt
-        if previous < CONTACT_TIME <= self.action_elapsed:
+        if previous < self.contact_time <= self.action_elapsed:
             self.resolve_contact()
-        if self.action_elapsed >= TURN_SECONDS:
+            if self.resolving == 'melee_player':
+                self.action_elapsed = self.contact_time
+                if self.hit:
+                    self.hit_stop_left = IMPACT_HIT_STOP
+                return
+        if self.action_elapsed >= self.action_duration:
             self.finish_action()
 
     def save(self):
@@ -223,6 +253,9 @@ class RangedScene:
                 self.prepare_enemy_attack()
             self.hit = False
             self.action_elapsed = 0.0
+            self.contact_time = CONTACT_TIME
+            self.action_duration = TURN_SECONDS
+            self.hit_stop_left = 0.0
         else:
             self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
                                         if bag[i] is not None and drawing.contains(bounds, x, y)), None)
@@ -286,10 +319,41 @@ class RangedScene:
         centered(normal, 394, 240, '사용')
         drawing.text(small, 214, 240, self.item_message)
 
+    def slash_attack_time(self, time):
+        if time < self.slash_prep_duration - 1e-8:
+            return time
+        recovery = time - self.slash_prep_duration - SLASH_HIGHLIGHT_SECONDS
+        if recovery < -1e-8:
+            return None
+        return max(0.0, self.slash_prep_duration - recovery - 1e-6)
+
+    def draw_melee_player(self):
+        elapsed = self.action_elapsed
+        if elapsed < WALK_SECONDS:
+            clip, time, facing = 'walk', elapsed, 1
+            x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
+        elif elapsed < WALK_SECONDS + self.attack_duration:
+            clip, time, facing = 'attack', self.slash_attack_time(elapsed - WALK_SECONDS), 1
+            x = STRIKE_X
+        else:
+            clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
+            x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
+        if time is None:
+            if self.selected != UPPER_ATTACK:
+                image, (pivot_x, pivot_y) = self.slash_highlights[self.selected]
+                scale = 2 * SCALE
+                image.draw(round(x * SCALE + (image.w / 2 - pivot_x) * scale),
+                           round((NATIVE_HEIGHT - FLOOR) * SCALE - (image.h / 2 - pivot_y) * scale),
+                           round(image.w * scale), round(image.h * scale))
+                return
+            time = self.attack_frames[UPPER_HIGHLIGHT_FRAME]['time']
+        self.field.assets.draw_character(
+            clip, time, x, FLOOR, facing, 0, actor_scale=2, melee_detail=True)
+
     def draw_actors(self):
-        scale = 1.0 if self.phase == 'ranged' else 1.65
-        lich_x = 500 if self.phase == 'ranged' else 420
-        player_x = lich_x - self.distance * self.cell_width if self.phase == 'ranged' else 210
+        scale = 1.0 if self.phase == 'ranged' else 2.0
+        lich_x = 500 if self.phase == 'ranged' else 425
+        player_x = lich_x - self.distance * self.cell_width if self.phase == 'ranged' else HOME_X
         if self.phase == 'ranged':
             for step in range(self.distance):
                 x = lich_x - (step + .5) * self.cell_width
@@ -300,6 +364,9 @@ class RangedScene:
                                    x + self.cell_width / 2 - 2, FLOOR + 8),
                                   (117, 123, 132))
         art = self.field.assets.lich_art
+        if self.resolving == 'melee_player' and self.hit:
+            recoil = max(0.0, 1 - (self.action_elapsed - self.contact_time) / .24)
+            lich_x += 12 * recoil * recoil
         casting = self.resolving in ('ranged', 'melee_enemy')
         frame = (min(Lich.CAST_FRAMES - 3, int(self.action_elapsed * Lich.CAST_FPS))
                  if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
@@ -332,12 +399,11 @@ class RangedScene:
         else:
             alpha = 110 if (self.resolving in ('ranged', 'melee_enemy')
                             and self.popup is not None and self.popup[0] == 'MISS') else 255
-            attacking = self.resolving == 'melee_player'
-            self.field.assets.draw_character(
-                'attack' if attacking else 'idle',
-                self.action_elapsed if attacking else self.idle_elapsed,
-                player_x, FLOOR, 1, 0, actor_scale=scale,
-                melee_detail=attacking, alpha=alpha)
+            if self.resolving == 'melee_player':
+                self.draw_melee_player()
+            else:
+                self.field.assets.draw_character('idle', self.idle_elapsed, player_x, FLOOR,
+                                                 1, 0, actor_scale=scale, alpha=alpha)
         if self.popup is not None:
             label, target, elapsed = self.popup
             x = player_x if target == 'player' else lich_x

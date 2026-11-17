@@ -75,7 +75,8 @@ class MeleeTransitionScene:
                 self.source.draw(hit_enemy=self.destination.enemy,
                                  hit_elapsed=max(0.0, self.elapsed - self.hold_seconds))
             else:
-                self.source.draw(hit_by=self.destination.enemy, hit_elapsed=self.elapsed)
+                hit_elapsed = 0.0 if self.destination.cause == 'lich_projectile' else self.elapsed
+                self.source.draw(hit_by=self.destination.enemy, hit_elapsed=hit_elapsed)
         else:
             self.destination.draw()
         if phase in ('freeze','done'):return
