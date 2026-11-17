@@ -18,9 +18,14 @@ from game.scenes.melee import (BUTTONS, COMBAT_POPUP_SECONDS, GOLD, ITEM_BUTTON,
 
 RANGED_DIRECTIONS = ('왼쪽', '중앙', '오른쪽')
 FLOOR = 245
-CONTACT_TIME = .48
-TURN_SECONDS = .92
-MELEE_ENTRY_DISTANCE = 2
+CONTACT_TIME = .65
+TURN_SECONDS = 1.09
+RANGED_PLAYER_START_X = 144
+RANGED_LICH_X = 496
+RANGED_LICH_GAP = 64
+RANGED_STAFF_CORE_X_OFFSET = 17.5
+RANGED_STAFF_CORE_Y = FLOOR - 48
+RANGED_PROJECTILE_SPEED = 660
 MAX_DISTANCE_CELLS = math.ceil(LichProjectile.RANGE / 32)
 
 
@@ -33,7 +38,8 @@ class RangedScene:
         self.initial_cells = max(1, distance_cells if distance_cells is not None
                                  else math.ceil(abs(enemy.x - field.x) / 32))
         self.distance = self.initial_cells
-        self.cell_width = min(32, 420 / self.initial_cells)
+        self.cell_width = min(32, (RANGED_LICH_X - RANGED_LICH_GAP
+                                   - RANGED_PLAYER_START_X) / self.initial_cells)
         self.enemy_direction = None
         self.enemy_forecast = None
         self.selected = 1
@@ -117,7 +123,7 @@ class RangedScene:
             return
         if self.advance:
             self.distance -= 1
-        if self.distance <= MELEE_ENTRY_DISTANCE:
+        if self.distance == 0:
             frozen = copy(self)
             frozen.distance = self.distance
             frozen.popup = None
@@ -259,10 +265,10 @@ class RangedScene:
         drawing.text(small, 214, 240, self.item_message)
 
     def draw_actors(self):
-        lich_x = 500
-        player_x = lich_x - self.distance * self.cell_width
+        lich_x = RANGED_LICH_X
+        player_x = lich_x - RANGED_LICH_GAP - self.distance * self.cell_width
         for step in range(self.distance):
-            x = lich_x - (step + .5) * self.cell_width
+            x = lich_x - RANGED_LICH_GAP - (step + .5) * self.cell_width
             drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
                                x + self.cell_width / 2 - 2, FLOOR + 8),
                               (72, 78, 88), filled=True)
@@ -281,10 +287,13 @@ class RangedScene:
             round(center_x * SCALE),
             round((NATIVE_HEIGHT - (FLOOR - 40)) * SCALE),
             round(width * SCALE), round(art.FRAME_HEIGHT * SCALE))
-        if casting and .18 <= self.action_elapsed < self.contact_time:
-            progress = (self.action_elapsed - .18) / (self.contact_time - .18)
-            orb = SimpleNamespace(x=lich_x - 28 + (player_x + 12 - lich_x + 28) * progress,
-                                  y=FLOOR - 54, age=self.action_elapsed,
+        core_x = lich_x - RANGED_STAFF_CORE_X_OFFSET
+        target_x = player_x + 12
+        launch_time = max(.16, self.contact_time - (core_x - target_x) / RANGED_PROJECTILE_SPEED)
+        if casting and launch_time <= self.action_elapsed < self.contact_time:
+            progress = (self.action_elapsed - launch_time) / (self.contact_time - launch_time)
+            orb = SimpleNamespace(x=core_x + (target_x - core_x) * progress,
+                                  y=RANGED_STAFF_CORE_Y, age=self.action_elapsed,
                                   facing=-1, draw_angle=0)
             art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH)
         if casting and self.hit:
@@ -296,7 +305,7 @@ class RangedScene:
                 self.field.assets.draw_character('idle', self.idle_elapsed, player_x,
                                                  FLOOR, 1, 0, actor_scale=1)
             if elapsed < LichImpact.DURATION:
-                art.draw_impact(SimpleNamespace(x=player_x + 8, y=FLOOR - 54,
+                art.draw_impact(SimpleNamespace(x=player_x + 8, y=RANGED_STAFF_CORE_Y,
                                                 elapsed=elapsed, DURATION=LichImpact.DURATION),
                                 0, SCALE, NATIVE_WIDTH)
         else:

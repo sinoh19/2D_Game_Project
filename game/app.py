@@ -87,15 +87,9 @@ class App:
         self.scene = MeleeTransitionScene(self, field, MeleeScene(self, field, enemy, cause))
 
     def start_ranged(self, field, lich):
-        import math
-        from game.scenes.melee import MeleeScene
-        from game.scenes.ranged import MELEE_ENTRY_DISTANCE, RangedScene
+        from game.scenes.ranged import RangedScene
         from game.scenes.melee_transition import MeleeTransitionScene
-        if math.ceil(abs(lich.x - field.x) / 32) <= MELEE_ENTRY_DISTANCE:
-            destination = MeleeScene(self, field, lich, 'lich_projectile')
-        else:
-            destination = RangedScene(self, field, lich)
-        self.scene = MeleeTransitionScene(self, field, destination)
+        self.scene = MeleeTransitionScene(self, field, RangedScene(self, field, lich))
 
     def start_debug_melee(self):
         from game.enemies import Slime
