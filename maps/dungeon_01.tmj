@@ -990,6 +990,74 @@
                  "y":288
                 },
                 {
+                 "gid":51,
+                 "height":32,
+                 "id":158,
+                 "name":"튜토리얼 슬라임 2",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"left"
+                        },
+                        {
+                         "name":"patrolLeft",
+                         "type":"float",
+                         "value":736
+                        },
+                        {
+                         "name":"patrolRight",
+                         "type":"float",
+                         "value":768
+                        },
+                        {
+                         "name":"speed",
+                         "type":"float",
+                         "value":24
+                        }],
+                 "rotation":0,
+                 "type":"Slime",
+                 "visible":true,
+                 "width":32,
+                 "x":736,
+                 "y":288
+                },
+                {
+                 "gid":51,
+                 "height":32,
+                 "id":159,
+                 "name":"튜토리얼 슬라임 3",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"left"
+                        },
+                        {
+                         "name":"patrolLeft",
+                         "type":"float",
+                         "value":800
+                        },
+                        {
+                         "name":"patrolRight",
+                         "type":"float",
+                         "value":832
+                        },
+                        {
+                         "name":"speed",
+                         "type":"float",
+                         "value":24
+                        }],
+                 "rotation":0,
+                 "type":"Slime",
+                 "visible":true,
+                 "width":32,
+                 "x":800,
+                 "y":288
+                },
+                {
                  "gid":54,
                  "height":64,
                  "id":157,
@@ -1030,7 +1098,7 @@
          "y":0
         }],
  "nextlayerid":16,
- "nextobjectid":158,
+ "nextobjectid":160,
  "orientation":"orthogonal",
  "properties":[
         {

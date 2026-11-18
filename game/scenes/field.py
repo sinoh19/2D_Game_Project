@@ -115,11 +115,12 @@ class FieldScene:
         self.passages.save()
         self.chests.save()
 
-    def resume_after_victory(self, enemy):
-        if enemy in self.enemies:
-            self.enemies.remove(enemy)
-        elif enemy in self.liches:
-            self.liches.remove(enemy)
+    def resume_after_victory(self, enemy, defeated=None):
+        for fallen in (defeated if defeated is not None else (enemy,)):
+            if fallen in self.enemies:
+                self.enemies.remove(fallen)
+            elif fallen in self.liches:
+                self.liches.remove(fallen)
         player = self.player
         player.x = max(player.HALF_WIDTH, min(self.width - player.HALF_WIDTH, enemy.x))
         player.y = enemy.y

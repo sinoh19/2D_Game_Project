@@ -10,7 +10,7 @@ from game.hp_ui import draw_hp_bar
 from game.combat import roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
-from game.enemies import Lich, LichImpact, SlimeArt
+from game.enemies import Lich, LichImpact, Slime, SlimeArt
 from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
 from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
@@ -24,6 +24,10 @@ SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
 HOME_X = 215
+PLAYER_SLOTS = (125, 170, HOME_X)
+ENEMY_SLOTS = (425, 485, 545)
+MOVE_SECONDS = .28
+REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
 WALK_SECONDS = .55
 UPPER_ATTACK = 0
@@ -53,8 +57,6 @@ SLIME_ATTACK_DURATION = 1.40
 SLIME_IMPACT_HEIGHT = 24
 SLIME_ARC_HEIGHT = 30
 SLIME_HOME_X = 425
-SLIME_STRIKE_X = 246
-SLIME_ZOOM_FOCUS = ((HOME_X + SLIME_STRIKE_X) / 2, FLOOR - 51)
 LICH_PROJECTILE_LAUNCH_TIME = .35
 LICH_PROJECTILE_SIZE = 2.0
 
@@ -87,6 +89,23 @@ class MeleeScene:
         self.field = field
         self.player = field.player
         self.enemy = enemy
+        self.encounter_enemy = enemy
+        self.active_enemy = None
+        self.enemy_slots = [enemy, None, None]
+        self.player_slot = 2
+        self.move_elapsed = None
+        self.move_from = HOME_X
+        self.move_to = HOME_X
+        self.pending_enemy_actions = []
+        self.support_bonus = 0
+        self.prepared_rear = None
+        self.defeated = []
+        self.reserve = (sorted((monster for monster in (*field.enemies, *field.liches)
+                                if monster is not enemy and monster.hp > 0
+                                and abs(monster.x - enemy.x) <= REINFORCEMENT_RANGE
+                                and abs(monster.y - enemy.y) <= 32),
+                               key=lambda monster: abs(monster.x - enemy.x))
+                        if cause != 'debug' else [])
         self.cause = cause
         self.is_lich = isinstance(enemy, Lich)
         self.enemy_name = enemy.melee_name
@@ -129,6 +148,59 @@ class MeleeScene:
         }
         self.slime_pose = SimpleNamespace(x=SLIME_HOME_X, y=FLOOR, scale=2, facing=-1, frame=0)
 
+    @property
+    def player_x(self):
+        if self.move_elapsed is None:
+            return PLAYER_SLOTS[self.player_slot]
+        progress = min(1.0, self.move_elapsed / MOVE_SECONDS)
+        return self.move_from + (self.move_to - self.move_from) * progress
+
+    def set_front(self):
+        if self.enemy_slots[0] is None:
+            for slot in (1, 2):
+                if self.enemy_slots[slot] is not None:
+                    self.enemy_slots[0], self.enemy_slots[slot] = self.enemy_slots[slot], None
+                    break
+        front = self.enemy_slots[0]
+        if front is not None:
+            self.enemy = front
+            self.is_lich = isinstance(front, Lich)
+            self.enemy_name = front.melee_name
+            self.enemy_home_x = front.melee_home_x
+            self.enemy_impact_time = front.melee_impact_time
+            self.enemy_attack_duration = front.melee_attack_duration
+
+    def move_player(self, step):
+        if self.bag_open or not self.can_act():
+            return
+        target = max(0, min(2, self.player_slot + step))
+        if target == self.player_slot:
+            return
+        self.move_from = PLAYER_SLOTS[self.player_slot]
+        self.move_to = PLAYER_SLOTS[target]
+        self.player_slot = target
+        self.move_elapsed = 0.0
+        self.record(f'용병 {target + 1}번 칸으로 이동')
+
+    def retire_front(self):
+        fallen = self.enemy_slots[0]
+        if fallen is None or fallen.hp > 0:
+            return
+        self.defeated.append(fallen)
+        self.enemy_slots[0] = None
+        self.death_elapsed = None
+        self.set_front()
+        if self.enemy_slots[0] is not None or self.reserve:
+            self.start_enemy_turn()
+            return
+        if self.cause == 'debug':
+            self.app.show_title()
+            destination = self.app.scene
+        else:
+            self.field.resume_after_victory(self.encounter_enemy, self.defeated)
+            destination = self.field
+        self.fade_to(destination)
+
     def record(self, message):
         self.message = message
         self.log.append(message)
@@ -139,6 +211,7 @@ class MeleeScene:
 
     def can_choose(self):
         return (self.attack_elapsed is None and self.enemy_elapsed is None
+                and self.move_elapsed is None and self.death_elapsed is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
 
     def can_act(self):
@@ -162,6 +235,59 @@ class MeleeScene:
 
     def start_enemy_turn(self):
         self.pointer = None
+        if self.enemy_slots[0] is None:
+            self.set_front()
+        if (self.prepared_rear is not None and self.prepared_rear is self.enemy_slots[2]
+                and self.enemy_slots[0] is not None
+                and self.enemy_slots[0].hp <= self.enemy_slots[0].max_hp // 2
+                and self.enemy_slots[2].hp > self.enemy_slots[0].hp):
+            self.enemy_slots[0], self.enemy_slots[2] = self.enemy_slots[2], self.enemy_slots[0]
+            self.set_front()
+            self.record('뒷줄 슬라임이 앞줄과 교대했다!')
+        self.prepared_rear = None
+        # The lineup snapshot precedes joining: a newcomer first acts next turn.
+        self.pending_enemy_actions = [actor for actor in self.enemy_slots if actor is not None and actor.hp > 0]
+        if self.reserve:
+            for slot in range(3):
+                if self.enemy_slots[slot] is None:
+                    joined = self.reserve.pop(0)
+                    self.enemy_slots[slot] = joined
+                    self.set_front()
+                    self.record(f'{joined.melee_name}이(가) {slot + 1}번 칸에 합류했다!')
+                    break
+        self.next_enemy_action()
+
+    def next_enemy_action(self):
+        while self.pending_enemy_actions:
+            actor = self.pending_enemy_actions.pop(0)
+            if actor.hp == 0 or actor not in self.enemy_slots:
+                continue
+            slot = self.enemy_slots.index(actor)
+            if slot == 1 and isinstance(actor, Slime):
+                front = self.enemy_slots[0]
+                if front is not None and front.hp <= front.max_hp // 2 and actor.hp > front.hp:
+                    self.enemy_slots[0], self.enemy_slots[1] = actor, front
+                    self.set_front()
+                    self.record('중간 슬라임이 앞줄과 교대했다!')
+                else:
+                    self.support_bonus = min(2, self.support_bonus + 1)
+                    self.record('중간 슬라임이 앞줄을 밀어준다! 다음 공격 +1')
+                continue
+            if slot == 2 and isinstance(actor, Slime):
+                self.prepared_rear = actor
+                self.record('뒷줄 슬라임이 교대를 준비한다!')
+                continue
+            self.prepare_enemy_attack(actor)
+            return
+        self.active_enemy = None
+        self.enemy_direction = None
+        self.enemy_forecast = None
+        self.pointer = None
+
+    def prepare_enemy_attack(self, actor):
+        self.active_enemy = actor
+        self.enemy_impact_time = actor.melee_impact_time
+        self.enemy_attack_duration = actor.melee_attack_duration
         self.enemy_direction = randrange(len(DIRECTIONS))
         intelligence = max(0, min(20, self.player.stat_value('intelligence')))
         # 50/150 at intelligence 0, increasing to 90/150 at intelligence 20.
@@ -189,6 +315,7 @@ class MeleeScene:
         previous = self.enemy_elapsed
         self.enemy_elapsed += dt
         if previous < self.enemy_impact_time <= self.enemy_elapsed:
+            actor = self.active_enemy
             direction = DIRECTIONS[self.enemy_direction]
             force_dodge = self.debug_dodge_pending
             self.debug_dodge_pending = False
@@ -197,28 +324,36 @@ class MeleeScene:
             if force_dodge or (not guarded and dodge_weight > 0
                                and randrange(1000) < dodge_weight):
                 self.enemy_attack_evaded = True
-                self.combat_popup = ('MISS', HOME_X, FLOOR - 109, 0.0)
-                self.record(f'{self.enemy_name} {direction} 공격 회피  ·  피해 0')
+                self.combat_popup = ('MISS', self.player_x, FLOOR - 109, 0.0)
+                self.record(f'{actor.melee_name} {direction} 공격 회피  ·  피해 0')
             elif guarded:
-                self.record(f'{self.enemy_name} {direction} 공격 방어 성공  ·  피해 0')
+                self.record(f'{actor.melee_name} {direction} 공격 방어 성공  ·  피해 0')
             else:
                 hp_before = self.player.hp
-                damage, critical = self.enemy.roll_damage()
-                self.player.take_damage(damage, damage_type=self.enemy.melee_damage_type)
+                damage, critical = actor.roll_damage()
+                if actor is self.enemy:
+                    damage += self.support_bonus
+                self.player.take_damage(damage, damage_type=actor.melee_damage_type)
                 damage = hp_before - self.player.hp
                 label = f'-{damage}!' if critical else f'-{damage}'
-                self.combat_popup = (label, HOME_X, FLOOR - 109, 0.0)
+                self.combat_popup = (label, self.player_x, FLOOR - 109, 0.0)
                 result = '치명타!' if critical else '명중'
-                self.record(f'{self.enemy_name} {direction} 공격 {result}  ·  용병 HP -{damage}')
+                self.record(f'{actor.melee_name} {direction} 공격 {result}  ·  용병 HP -{damage}')
                 self.enemy_elapsed = self.enemy_impact_time
                 self.hit_stop_left = IMPACT_HIT_STOP
+                if actor is self.enemy:
+                    self.support_bonus = 0
                 return
+            if actor is self.enemy:
+                self.support_bonus = 0
         if self.enemy_elapsed >= self.enemy_attack_duration:
-            self.enemy_elapsed = self.enemy_direction = None
-            self.enemy_forecast = None
-            self.pointer = None
+            self.enemy_elapsed = None
             if self.player.hp == 0:
+                self.enemy_direction = None
+                self.pending_enemy_actions.clear()
                 self.record('용병이 쓰러졌다!')
+            else:
+                self.next_enemy_action()
 
     def update(self, dt):
         dt = max(0.0, dt) * self.app.battle_speed
@@ -233,18 +368,18 @@ class MeleeScene:
         self.idle_elapsed += dt
         if self.death_elapsed is not None:
             self.death_elapsed += dt
+        if self.move_elapsed is not None:
+            self.move_elapsed += dt
+            if self.move_elapsed >= MOVE_SECONDS:
+                self.move_elapsed = None
+                self.start_enemy_turn()
+            return
         if self.enemy_elapsed is not None:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
             if self.death_elapsed is not None and self.death_elapsed >= (self.field.assets.lich_art.DEATH_DURATION if self.is_lich else SlimeArt.DEATH_DURATION):
-                if self.cause == 'debug':
-                    self.app.show_title()
-                    destination = self.app.scene
-                else:
-                    self.field.resume_after_victory(self.enemy)
-                    destination = self.field
-                self.fade_to(destination)
+                self.retire_front()
             return
         previous = self.attack_elapsed
         self.attack_elapsed += dt
@@ -321,17 +456,23 @@ class MeleeScene:
     def zoom_point(self, x, y, zoom):
         if self.enemy_elapsed is None:
             focus_x, focus_y = SLASH_ZOOM_FOCUS
-        elif self.is_lich:
-            focus_x, focus_y = (HOME_X + self.enemy_home_x) / 2, FLOOR - 51
+        elif isinstance(self.active_enemy, Lich):
+            focus_x, focus_y = (self.player_x + self.actor_x(self.active_enemy)) / 2, FLOOR - 51
         else:
-            focus_x, focus_y = SLIME_ZOOM_FOCUS
+            focus_x, focus_y = self.player_x + 15.5, FLOOR - 51
         return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
-    def draw_slime(self, art, zoom=1.0):
+    def actor_x(self, actor):
+        return ENEMY_SLOTS[self.enemy_slots.index(actor)]
+
+    def draw_slime(self, art, zoom=1.0, actor=None, slot=0):
+        actor = self.enemy if actor is None else actor
+        front = actor is self.enemy
+        casting = actor is self.active_enemy and self.enemy_elapsed is not None
         hit_elapsed = None
-        death_elapsed = self.death_elapsed
+        death_elapsed = self.death_elapsed if front else None
         alpha = 255
-        if self.attack_elapsed is not None:
+        if front and self.attack_elapsed is not None:
             elapsed_since_hit = self.attack_elapsed - self.impact_time
             if self.player_attack_evaded:
                 progress = min(1.0, elapsed_since_hit / DODGE_FADE_SECONDS)
@@ -346,27 +487,30 @@ class MeleeScene:
             else:
                 hit_elapsed = None
         pose = self.slime_pose
-        pose.x, pose.y, pose.frame, pose.facing, pose.scale = SLIME_HOME_X, FLOOR, 0, -1, 2
-        pose.x += SLASH_RECOIL_PIXELS * self.slash_impact_strength() ** 2
+        home_x = ENEMY_SLOTS[slot]
+        strike_x = self.player_x + 31
+        pose.x, pose.y, pose.frame, pose.facing, pose.scale = home_x, FLOOR, 0, -1, 2
+        if front:
+            pose.x += SLASH_RECOIL_PIXELS * self.slash_impact_strength() ** 2
         attack_elapsed = None
-        if self.enemy_elapsed is not None:
+        if casting:
             elapsed = self.enemy_elapsed
             if elapsed < SLIME_RETURN_TIME:
                 attack_elapsed = min(1.0, elapsed / SLIME_LAND_TIME) * art.ATTACK_DURATION
                 if elapsed < SLIME_IMPACT_TIME:
                     flight = max(0.0, (elapsed - SLIME_LAUNCH_TIME)
                                  / (SLIME_IMPACT_TIME - SLIME_LAUNCH_TIME))
-                    pose.x += (SLIME_STRIKE_X - SLIME_HOME_X) * flight
+                    pose.x += (strike_x - home_x) * flight
                     height = SLIME_IMPACT_HEIGHT * flight + 4 * SLIME_ARC_HEIGHT * flight * (1 - flight)
                 else:
-                    pose.x = SLIME_STRIKE_X
+                    pose.x = strike_x
                     fall = min(1.0, (elapsed - SLIME_IMPACT_TIME) / (SLIME_LAND_TIME - SLIME_IMPACT_TIME))
                     height = SLIME_IMPACT_HEIGHT * (1 - fall**2)
                 pose.y -= height
             else:
                 retreat = elapsed - SLIME_RETURN_TIME
                 progress = retreat / (SLIME_ATTACK_DURATION - SLIME_RETURN_TIME)
-                pose.x = SLIME_STRIKE_X + (SLIME_HOME_X - SLIME_STRIKE_X) * progress
+                pose.x = strike_x + (home_x - strike_x) * progress
                 pose.facing = 1
                 motion = art.motion
                 pose.frame = int(retreat * motion['fps'] * 2) % motion['frameCount']
@@ -376,18 +520,21 @@ class MeleeScene:
         pose.scale *= zoom
         art.draw(pose, 0, SCALE, NATIVE_WIDTH, hit_elapsed=hit_elapsed,
                  attack_elapsed=attack_elapsed, death_elapsed=death_elapsed,
-                 guarded=self.attack_blocked, alpha=alpha)
+                 guarded=front and self.attack_blocked, alpha=alpha)
 
-    def draw_lich(self, art, zoom=1.0):
-        if self.death_elapsed is not None and self.death_elapsed >= art.DEATH_DURATION:
+    def draw_lich(self, art, zoom=1.0, actor=None, slot=0):
+        actor = self.enemy if actor is None else actor
+        front = actor is self.enemy
+        death_elapsed = self.death_elapsed if front else None
+        if death_elapsed is not None and death_elapsed >= art.DEATH_DURATION:
             return
         hit_elapsed = (self.attack_elapsed - self.impact_time
-                       if self.attack_elapsed is not None else -1)
+                       if front and self.attack_elapsed is not None else -1)
         recoil = (12 * max(0.0, 1 - hit_elapsed / .24) ** 2
                   if hit_elapsed >= 0 and self.player_attack_landed else 0)
-        casting = self.enemy_elapsed is not None and self.death_elapsed is None
-        if self.death_elapsed is not None:
-            frame = min(art.DEATH_FRAME_COUNT - 1, int(self.death_elapsed * art.DEATH_FPS))
+        casting = self.enemy_elapsed is not None and actor is self.active_enemy and death_elapsed is None
+        if death_elapsed is not None:
+            frame = min(art.DEATH_FRAME_COUNT - 1, int(death_elapsed * art.DEATH_FPS))
             sprite = art.melee_death_frames[frame]
             width = art.FRAME_WIDTH
         elif casting:
@@ -399,7 +546,8 @@ class MeleeScene:
             hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
             sprite = art.melee_frames[hover_frame]
             width = art.FRAME_WIDTH
-        center_x, center_y = self.zoom_point(self.enemy_home_x + recoil - (24 if casting else 0),
+        home_x = ENEMY_SLOTS[slot]
+        center_x, center_y = self.zoom_point(home_x + recoil - (24 if casting else 0),
                                              FLOOR - 72, zoom)
         blue_guard = self.attack_blocked and 0 <= hit_elapsed < .12
         red_hit = 0 <= hit_elapsed < .18 and self.player_attack_landed
@@ -417,12 +565,12 @@ class MeleeScene:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
         if not casting:
             return
-        core_x = self.enemy_home_x - 35
+        core_x = home_x - 35
         core_y = FLOOR - 88
         if LICH_PROJECTILE_LAUNCH_TIME <= self.enemy_elapsed < self.enemy_impact_time:
             progress = ((self.enemy_elapsed - LICH_PROJECTILE_LAUNCH_TIME)
                         / (self.enemy_impact_time - LICH_PROJECTILE_LAUNCH_TIME))
-            x = (core_x - 8) + (HOME_X + 8 - (core_x - 8)) * progress
+            x = (core_x - 8) + (self.player_x + 8 - (core_x - 8)) * progress
             x, y = self.zoom_point(x, core_y, zoom)
             orb = SimpleNamespace(x=x, y=y, age=self.enemy_elapsed, facing=-1, draw_angle=0)
             art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH, melee_detail=True,
@@ -430,7 +578,7 @@ class MeleeScene:
         if self.enemy_elapsed >= self.enemy_impact_time:
             elapsed = self.enemy_elapsed - self.enemy_impact_time
             if elapsed < LichImpact.DURATION and not self.enemy_attack_evaded:
-                x, y = self.zoom_point(HOME_X + 8, core_y, zoom)
+                x, y = self.zoom_point(self.player_x + 8, core_y, zoom)
                 art.draw_impact(SimpleNamespace(x=x, y=y, elapsed=elapsed,
                                                 DURATION=LichImpact.DURATION),
                                 0, SCALE, NATIVE_WIDTH)
@@ -445,22 +593,26 @@ class MeleeScene:
             guarded = self.selected == self.enemy_direction
             elapsed = since_contact if guarded else since_contact + IMPACT_HIT_STOP - self.hit_stop_left
             if elapsed < MERCENARY_REACTION_DURATION:
-                x, y = self.zoom_point(HOME_X, FLOOR, zoom)
+                x, y = self.zoom_point(self.player_x, FLOOR, zoom)
                 self.field.assets.draw_mercenary_hit(x, y, 1, 0, elapsed,
                                                      actor_scale=2 * zoom, guarded=guarded)
                 return
         elapsed = self.attack_elapsed
         if elapsed is None:
-            clip, time, x, facing = 'idle', self.idle_elapsed, HOME_X, 1
+            if self.move_elapsed is not None:
+                clip, time, x = 'walk', self.move_elapsed, self.player_x
+                facing = 1 if self.move_to > self.move_from else -1
+            else:
+                clip, time, x, facing = 'idle', self.idle_elapsed, self.player_x, 1
         elif elapsed < WALK_SECONDS:
             clip, time, facing = 'walk', elapsed, 1
-            x = HOME_X + (STRIKE_X - HOME_X) * elapsed / WALK_SECONDS
+            x = self.player_x + (STRIKE_X - self.player_x) * elapsed / WALK_SECONDS
         elif elapsed < WALK_SECONDS + self.attack_duration:
             clip = 'attack'
             time, x, facing = self.slash_attack_time(elapsed - WALK_SECONDS), STRIKE_X, 1
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
-            x = STRIKE_X - (STRIKE_X - HOME_X) * time / WALK_SECONDS
+            x = STRIKE_X - (STRIKE_X - self.player_x) * time / WALK_SECONDS
         x, y = self.zoom_point(x, FLOOR, zoom)
         if time is None:
             if self.selected != UPPER_ATTACK:
@@ -548,6 +700,10 @@ class MeleeScene:
                 self.log_offset = max(0, self.log_offset - LOG_ROWS)
             elif event.key in KEYS:
                 self.choose_direction(KEYS.index(event.key))
+            elif not self.bag_open and event.key in (p2d.SDLK_LEFT, p2d.SDLK_a):
+                self.move_player(-1)
+            elif not self.bag_open and event.key in (p2d.SDLK_RIGHT, p2d.SDLK_d):
+                self.move_player(1)
         elif event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT:
             x, y = event.x / SCALE, event.y / SCALE
             if self.bag_open:
@@ -591,6 +747,27 @@ class MeleeScene:
         centered(normal, 394, 240, '사용')
         drawing.text(small, 214, 240, self.item_message)
 
+    def draw_enemies(self, zoom):
+        for slot in (2, 1, 0):
+            actor = self.enemy_slots[slot]
+            if actor is None:
+                continue
+            if isinstance(actor, Lich):
+                self.draw_lich(self.field.assets.lich_art, zoom, actor, slot)
+            else:
+                self.draw_slime(self.field.assets.slime_art, zoom, actor, slot)
+
+    def draw_slots(self, zoom):
+        for slot, x in enumerate(PLAYER_SLOTS):
+            left, top = self.zoom_point(x - 22, FLOOR + 2, zoom)
+            drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
+                              GOLD if slot == self.player_slot else (91, 91, 105), filled=True)
+        for slot, x in enumerate(ENEMY_SLOTS):
+            left, top = self.zoom_point(x - 22, FLOOR + 2, zoom)
+            drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
+                              (190, 95, 83) if self.enemy_slots[slot] is not None else (91, 91, 105),
+                              filled=True)
+
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
         zoom = self.impact_zoom()
@@ -599,26 +776,20 @@ class MeleeScene:
                              round(width * zoom), round(height * zoom))
         draw_battle_flames(self.field.assets, self.idle_elapsed,
                            zoom=zoom, transform=self.zoom_point)
-        assets = self.field.assets
+        self.draw_slots(zoom)
         impact = ((zoom - 1) / SLASH_ZOOM_FACTOR if self.enemy_elapsed is not None
                   else self.slash_impact_strength())
         if impact:
             drawing.black_overlay(.38 * impact)
         if self.attack_elapsed is not None:
-            if self.is_lich:
-                self.draw_lich(assets.lich_art, zoom)
-            else:
-                self.draw_slime(assets.slime_art, zoom)
+            self.draw_enemies(zoom)
             self.draw_mercenary(zoom)
         else:
             self.draw_mercenary(zoom)
-            if self.is_lich:
-                self.draw_lich(assets.lich_art, zoom)
-            else:
-                self.draw_slime(assets.slime_art, zoom)
+            self.draw_enemies(zoom)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
-            x, y = ((HOME_X + 9, FLOOR - 51) if self.player_in_hit_stop()
+            x, y = ((self.player_x + 9, FLOOR - 51) if self.player_in_hit_stop()
                     else (self.enemy_home_x - 13, FLOOR - 26))
             for step in range(5):
                 left, top = self.zoom_point(x + 3 * step, y + 3 * step, zoom)
@@ -647,7 +818,8 @@ class MeleeScene:
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
         centered(small, 320, 29, '근접 전투')
-        drawing.text(small, 514, 29, f'{self.enemy_name} HP {self.enemy.hp} / {self.enemy.max_hp}')
+        count = sum(actor is not None for actor in self.enemy_slots)
+        drawing.text(small, 470, 29, f'{self.enemy_name} HP {self.enemy.hp}/{self.enemy.max_hp} ({count})')
 
         line = (76, 75, 86)
         panel((17, 264, 258, 348), (23, 24, 32), line)
@@ -660,8 +832,10 @@ class MeleeScene:
             drawing.text(small, 29, 299 + row * 16, entry, (228, 216, 187))
         if self.attack_elapsed is not None:
             instruction = '공격 진행 중'
+        elif self.move_elapsed is not None:
+            instruction = '이동 진행 중'
         elif self.enemy_elapsed is not None:
-            instruction = f'{self.enemy_name} 공격 진행 중'
+            instruction = f'{self.active_enemy.melee_name} 공격 진행 중'
         elif self.player.hp == 0:
             instruction = '전투 패배  /  ESC 메인'
         elif self.enemy_direction is not None:
@@ -669,7 +843,7 @@ class MeleeScene:
         elif self.enemy.hp == 0:
             instruction = '전투 승리  /  ESC 메인'
         else:
-            instruction = '내 턴  /  공격 방향 선택'
+            instruction = '내 턴 / 공격 선택 · ← → 이동'
         centered(small, 339, 263, instruction)
         can_choose = not self.bag_open and self.can_choose()
         action = '방어' if self.enemy_direction is not None else '공격'
