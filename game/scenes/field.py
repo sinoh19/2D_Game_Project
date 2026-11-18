@@ -56,6 +56,8 @@ class FieldScene:
         self.trap_hit_time = 0.0
         self.inventory = FieldInventory(self)
         self.status = CharacterStatus(self)
+        self.ui_order = [self.status, self.inventory]
+        self.window_capture = None
         self.pickup_target = None
         self.enemies = [Slime(spec, self.assets.slime_art.motion) for spec in self.layout.get('enemies', [])]
         self.liches = [Lich(spec) for spec in self.layout.get('liches', [])]
@@ -127,27 +129,89 @@ class FieldScene:
     def movement_direction(self):
         return int(p2d.SDLK_RIGHT in self.keys) - int(p2d.SDLK_LEFT in self.keys)
 
-    def handle_event(self, event):
-        if self.status.is_open:
-            self.status.handle_event(event)
-            return
-        if self.inventory.is_open:
-            if event.type == p2d.SDL_KEYUP:
-                self.keys.discard(event.key)
-            elif event.type == p2d.SDL_WINDOWEVENT and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST:
-                self.keys.clear()
-                self.inventory.menu = None
-                self.inventory.cancel_drag()
-            elif (event.type == p2d.SDL_KEYDOWN and event.key in (p2d.SDLK_i, p2d.SDLK_ESCAPE)
-                  and event.key not in self.keys):
-                self.keys.add(event.key)
-                self.inventory.close()
-            elif event.type == p2d.SDL_MOUSEBUTTONDOWN:
+    def activate_window(self, window):
+        self.ui_order.remove(window)
+        self.ui_order.append(window)
+        if self.inventory.is_open and self.status.is_open:
+            if (self.inventory.offset_x, self.inventory.offset_y,
+                    self.status.offset_x, self.status.offset_y) == (0, 0, 0, 0):
+                self.status.offset_x = -62
+                self.inventory.offset_x = 195
+
+    def window_at(self, x, y):
+        return next((window for window in reversed(self.ui_order)
+                     if window.is_open and window.contains(x, y)), None)
+
+    def handle_window_event(self, event):
+        if event.type == p2d.SDL_KEYUP:
+            self.keys.discard(event.key)
+        elif (event.type == p2d.SDL_WINDOWEVENT
+              and getattr(event, 'event', None) == p2d.SDL_WINDOWEVENT_FOCUS_LOST):
+            self.keys.clear()
+            self.window_capture = None
+            self.inventory.menu = None
+            self.inventory.pointer = None
+            self.inventory.cancel_drag()
+            self.inventory.end_window_drag()
+            self.status.hovered_slot = None
+            self.status.cancel_pointer()
+        elif event.type == p2d.SDL_KEYDOWN:
+            key = event.key
+            if key in self.keys:
+                return
+            if key in (p2d.SDLK_i, p2d.SDLK_e, p2d.SDLK_ESCAPE):
+                self.keys.add(key)
+                if key == p2d.SDLK_i:
+                    if self.inventory.is_open:
+                        self.inventory.close()
+                    else:
+                        self.inventory.open()
+                        self.activate_window(self.inventory)
+                elif key == p2d.SDLK_e:
+                    if self.status.is_open:
+                        self.status.close()
+                    else:
+                        self.status.open()
+                        self.activate_window(self.status)
+                else:
+                    next(window for window in reversed(self.ui_order) if window.is_open).close()
+                if self.window_capture is not None and not self.window_capture.is_open:
+                    self.window_capture = None
+        elif event.type == p2d.SDL_MOUSEMOTION:
+            x, y = event.x / SCALE, event.y / SCALE
+            window = self.window_capture or self.window_at(x, y)
+            self.inventory.pointer = None
+            self.status.hovered_slot = None
+            if window is self.inventory:
+                self.inventory.mouse_move(x, y)
+            elif window is self.status:
+                self.status.move_pointer(x, y)
+        elif event.type == p2d.SDL_MOUSEBUTTONDOWN:
+            x, y = event.x / SCALE, event.y / SCALE
+            window = self.window_at(x, y)
+            if window is None:
+                return
+            self.activate_window(window)
+            if event.button == p2d.SDL_BUTTON_LEFT:
+                self.window_capture = window
+            if window is self.inventory:
                 self.inventory.click(event)
-            elif event.type == p2d.SDL_MOUSEMOTION:
-                self.inventory.mouse_move(event.x / SCALE, event.y / SCALE)
-            elif event.type == p2d.SDL_MOUSEBUTTONUP and event.button == p2d.SDL_BUTTON_LEFT:
-                self.inventory.mouse_up(event.x / SCALE, event.y / SCALE)
+            else:
+                self.status.handle_event(event)
+            if not window.is_open:
+                self.window_capture = None
+        elif event.type == p2d.SDL_MOUSEBUTTONUP and event.button == p2d.SDL_BUTTON_LEFT:
+            x, y = event.x / SCALE, event.y / SCALE
+            window = self.window_capture
+            self.window_capture = None
+            if window is self.inventory and window.is_open:
+                self.inventory.mouse_up(x, y)
+            elif window is self.status and window.is_open:
+                self.status.handle_event(event)
+
+    def handle_event(self, event):
+        if self.status.is_open or self.inventory.is_open:
+            self.handle_window_event(event)
             return
         if self.chests.active is not None:
             if event.type == p2d.SDL_KEYUP:
@@ -190,9 +254,11 @@ class FieldScene:
                 elif key == p2d.SDLK_i:
                     self.keys.intersection_update({key})
                     self.inventory.open()
+                    self.activate_window(self.inventory)
                 elif key == p2d.SDLK_e:
                     self.keys.intersection_update({key})
                     self.status.open()
+                    self.activate_window(self.status)
                 elif key == p2d.SDLK_f:
                     if self.chests.interact():
                         self.keys.intersection_update({key})
@@ -238,10 +304,11 @@ class FieldScene:
             self.player.pickup_time = None
 
     def update(self, dt):
-        if self.status.is_open:
-            self.status.idle_elapsed += max(0.0, dt)
+        if self.status.is_open or self.inventory.is_open:
+            if self.status.is_open:
+                self.status.idle_elapsed += max(0.0, dt)
             return
-        if self.encounter is not None or self.inventory.is_open:
+        if self.encounter is not None:
             return
         dt = max(0.0, min(1.0, dt))
         self.chests.update(dt)
@@ -326,7 +393,8 @@ class FieldScene:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
         self.chests.draw_loot()
-        if self.inventory.is_open:
-            self.inventory.draw()
-        if self.status.is_open:
-            self.status.draw()
+        if self.inventory.is_open or self.status.is_open:
+            drawing.black_overlay(.45)
+            for window in self.ui_order:
+                if window.is_open:
+                    window.draw()
