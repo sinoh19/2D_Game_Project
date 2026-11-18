@@ -318,7 +318,7 @@ class LichProjectile:
             if scene.encounter is None:
                 scene.encounter = (self.owner, 'lich_projectile')
                 scene.keys.clear()
-                scene.app.start_ranged(scene, self.owner)
+                scene.app.start_melee(scene, self.owner, 'lich_projectile')
             return False
         if obstacle_hit is not None:
             scene.lich_impacts.append(LichImpact(

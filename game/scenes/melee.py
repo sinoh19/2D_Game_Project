@@ -100,6 +100,7 @@ class MeleeScene:
             self.record('디버그 전투 시작')
         else:
             self.record('선제공격 성공' if cause == 'player_attack' else
+                        '리치 투사체 적중  ·  근접 전투 시작' if cause == 'lich_projectile' else
                         '리치에게 접근  ·  근접 전투 시작' if self.is_lich else '슬라임 접촉 피격')
         self.attack_elapsed = None
         self.death_elapsed = 0.0 if enemy.hp == 0 else None

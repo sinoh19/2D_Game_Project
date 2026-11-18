@@ -86,11 +86,6 @@ class App:
         from game.scenes.melee_transition import MeleeTransitionScene
         self.scene = MeleeTransitionScene(self, field, MeleeScene(self, field, enemy, cause))
 
-    def start_ranged(self, field, lich):
-        from game.scenes.ranged import RangedScene
-        from game.scenes.melee_transition import MeleeTransitionScene
-        self.scene = MeleeTransitionScene(self, field, RangedScene(self, field, lich))
-
     def start_debug_melee(self):
         from game.enemies import Slime
         from game.scenes.field import FieldScene
@@ -103,9 +98,9 @@ class App:
         self.debug_skip_hovered = False
         self.scene = MeleeScene(self, field, enemy, 'debug')
 
-    def start_debug_ranged(self):
+    def start_debug_lich_melee(self):
         from game.scenes.field import FieldScene
-        from game.scenes.ranged import MAX_DISTANCE_CELLS, RangedScene
+        from game.scenes.melee import MeleeScene
 
         field = FieldScene(self, new_game=True)
         if not field.liches:
@@ -113,8 +108,7 @@ class App:
             self.scene.notice_time = 2.5
             return
         self.debug_skip_hovered = False
-        self.scene = RangedScene(self, field, field.liches[0],
-                                 distance_cells=MAX_DISTANCE_CELLS, debug=True)
+        self.scene = MeleeScene(self, field, field.liches[0], 'debug')
 
     def reload_field_map(self):
         previous = self.scene
