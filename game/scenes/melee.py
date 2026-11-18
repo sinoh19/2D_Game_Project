@@ -30,6 +30,7 @@ MOVE_SECONDS = .28
 ENEMY_STEP_SECONDS = .42
 JOIN_START_X = NATIVE_WIDTH + 48
 JOIN_SPEED = 240
+RETREAT_HEAL = 4
 REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
 WALK_SECONDS = .55
@@ -104,6 +105,7 @@ class MeleeScene:
         self.enemy_motion_next = None
         self.support_bonus = 0
         self.prepared_rear = None
+        self.recovering_slimes = set()
         self.defeated = []
         self.reserve = (sorted((monster for monster in (*field.enemies, *field.liches)
                                 if monster is not enemy and monster.hp > 0
@@ -169,6 +171,7 @@ class MeleeScene:
                     break
         front = self.enemy_slots[0]
         if front is not None:
+            self.recovering_slimes.discard(front)
             self.enemy = front
             self.is_lich = isinstance(front, Lich)
             self.enemy_name = front.melee_name
@@ -220,6 +223,7 @@ class MeleeScene:
         if fallen is None or fallen.hp > 0:
             return
         self.defeated.append(fallen)
+        self.recovering_slimes.discard(fallen)
         self.enemy_slots[0] = None
         self.death_elapsed = None
         self.set_front()
@@ -274,11 +278,21 @@ class MeleeScene:
         self.pointer = None
         if self.enemy_slots[0] is None:
             self.set_front()
+        for slime in tuple(self.recovering_slimes):
+            if slime not in self.enemy_slots[1:] or slime.hp == 0:
+                self.recovering_slimes.discard(slime)
+                continue
+            healed = min(RETREAT_HEAL, slime.max_hp - slime.hp)
+            if healed > 0:
+                slime.hp += healed
+                self.record(f'뒤로 물러난 슬라임 HP +{healed}  ({slime.hp}/{slime.max_hp})')
         if (self.prepared_rear is not None and self.prepared_rear is self.enemy_slots[2]
                 and self.enemy_slots[0] is not None
                 and self.enemy_slots[0].hp <= self.enemy_slots[0].max_hp // 2
                 and self.enemy_slots[2].hp > self.enemy_slots[0].hp):
             self.enemy_slots[0], self.enemy_slots[2] = self.enemy_slots[2], self.enemy_slots[0]
+            if isinstance(self.enemy_slots[2], Slime):
+                self.recovering_slimes.add(self.enemy_slots[2])
             self.start_enemy_motion(self.enemy_slots[0], ENEMY_SLOTS[2], ENEMY_SLOTS[0])
             self.start_enemy_motion(self.enemy_slots[2], ENEMY_SLOTS[0], ENEMY_SLOTS[2])
             self.set_front()
@@ -311,6 +325,8 @@ class MeleeScene:
                 front = self.enemy_slots[0]
                 if front is not None and front.hp <= front.max_hp // 2 and actor.hp > front.hp:
                     self.enemy_slots[0], self.enemy_slots[1] = actor, front
+                    if isinstance(front, Slime):
+                        self.recovering_slimes.add(front)
                     self.start_enemy_motion(actor, ENEMY_SLOTS[1], ENEMY_SLOTS[0])
                     self.start_enemy_motion(front, ENEMY_SLOTS[0], ENEMY_SLOTS[1])
                     self.set_front()
