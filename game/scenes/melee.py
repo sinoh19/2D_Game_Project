@@ -23,7 +23,7 @@ BUTTONS = ((16, 278, 91, 309), (96, 278, 171, 309), (176, 278, 251, 309))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
-HUD_TOP = FLOOR + 1
+HUD_TOP = 264
 HOME_X = 215
 PLAYER_SLOTS = (125, 170, HOME_X)
 ENEMY_SLOTS = (425, 485, 545)
@@ -927,7 +927,6 @@ class MeleeScene:
         small = self.app.resources.small
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
-        drawing.text(small, 20, 251, self.fit_text(small, self.message, 317), ivory)
 
         if self.player.hp == 0:
             heading = '전투 패배 · ESC 메인'
