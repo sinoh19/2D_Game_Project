@@ -66,6 +66,21 @@ def centered(font, x, y, label, color=(240, 231, 207)):
     drawing.text(font, x - width.value / 2, y, label, color)
 
 
+def draw_battle_flames(assets, time, *, zoom=1.0, transform=None):
+    animation = assets.layout['torchAnimation']
+    for x, phase in ((47, 0.0), (593, 0.3)):
+        moment = (time + phase) % animation['duration']
+        frame = animation['frames'][0]
+        for candidate in animation['frames']:
+            if candidate['time'] > moment:
+                break
+            frame = candidate
+        image = assets.images[frame['sprite']]
+        flame_x, flame_y = (transform(x, 195, zoom) if transform is not None else (x, 195))
+        image.draw(round(flame_x * SCALE), round((NATIVE_HEIGHT - flame_y) * SCALE),
+                   round(image.w * zoom * SCALE), round(image.h * zoom * SCALE))
+
+
 class MeleeScene:
     def __init__(self, app, field, enemy, cause):
         self.app = app
@@ -569,6 +584,8 @@ class MeleeScene:
         x, y = self.zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
         self.background.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
                              round(width * zoom), round(height * zoom))
+        draw_battle_flames(self.field.assets, self.idle_elapsed,
+                           zoom=zoom, transform=self.zoom_point)
         assets = self.field.assets
         impact = ((zoom - 1) / SLASH_ZOOM_FACTOR if self.enemy_elapsed is not None
                   else self.slash_impact_strength())

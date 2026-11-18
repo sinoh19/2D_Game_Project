@@ -14,12 +14,14 @@ from game.hp_ui import draw_hp_bar
 from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
 from game.scenes.melee import (BUTTONS, COMBAT_POPUP_SECONDS, GOLD, ITEM_BUTTON,
-                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered)
+                               KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered,
+                               draw_battle_flames)
 
 RANGED_DIRECTIONS = ('왼쪽', '중앙', '오른쪽')
 FLOOR = 245
 CONTACT_TIME = .65
 TURN_SECONDS = 1.09
+DASH_SECONDS = .35
 RANGED_PLAYER_START_X = 144
 RANGED_LICH_X = 496
 RANGED_LICH_GAP = 64
@@ -49,6 +51,7 @@ class RangedScene:
         self.action_duration = TURN_SECONDS
         self.hit_stop_left = 0.0
         self.advance = True
+        self.advance_elapsed = None
         self.hit = False
         self.idle_elapsed = 0.0
         self.transitioning = False
@@ -83,6 +86,7 @@ class RangedScene:
 
     def can_choose(self):
         return (not self.transitioning and self.resolving is None
+                and self.advance_elapsed is None
                 and self.player.hp > 0 and self.enemy.hp > 0)
 
     def can_act(self):
@@ -122,7 +126,13 @@ class RangedScene:
             self.record('용병이 쓰러졌다!')
             return
         if self.advance:
-            self.distance -= 1
+            self.advance_elapsed = 0.0
+        else:
+            self.prepare_enemy_attack()
+
+    def finish_advance(self):
+        self.advance_elapsed = None
+        self.distance -= 1
         if self.distance == 0:
             frozen = copy(self)
             frozen.distance = self.distance
@@ -147,6 +157,11 @@ class RangedScene:
             label, target, elapsed = self.popup
             elapsed += dt
             self.popup = (label, target, elapsed) if elapsed < COMBAT_POPUP_SECONDS else None
+        if self.advance_elapsed is not None:
+            self.advance_elapsed += dt
+            if self.advance_elapsed >= DASH_SECONDS:
+                self.finish_advance()
+            return
         if self.resolving is None:
             return
         if self.hit_stop_left > 0:
@@ -267,6 +282,10 @@ class RangedScene:
     def draw_actors(self):
         lich_x = RANGED_LICH_X
         player_x = lich_x - RANGED_LICH_GAP - self.distance * self.cell_width
+        dash_progress = None
+        if self.advance_elapsed is not None:
+            dash_progress = min(1.0, self.advance_elapsed / DASH_SECONDS)
+            player_x += self.cell_width * dash_progress * dash_progress * (3 - 2 * dash_progress)
         for step in range(self.distance):
             x = lich_x - RANGED_LICH_GAP - (step + .5) * self.cell_width
             drawing.rectangle((x - self.cell_width / 2 + 2, FLOOR + 2,
@@ -310,7 +329,10 @@ class RangedScene:
                                 0, SCALE, NATIVE_WIDTH)
         else:
             alpha = 110 if casting and self.popup is not None and self.popup[0] == 'MISS' else 255
-            self.field.assets.draw_character('idle', self.idle_elapsed, player_x,
+            clip = 'dash' if dash_progress is not None else 'idle'
+            time = (self.field.assets.animations['clips']['dash']['duration'] * dash_progress
+                    if dash_progress is not None else self.idle_elapsed)
+            self.field.assets.draw_character(clip, time, player_x,
                                              FLOOR, 1, 0, actor_scale=1, alpha=alpha)
         if self.popup is not None:
             label, target, elapsed = self.popup
@@ -323,6 +345,7 @@ class RangedScene:
     def draw(self):
         self.background.draw(NATIVE_WIDTH * SCALE / 2, NATIVE_HEIGHT * SCALE / 2,
                              NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE)
+        draw_battle_flames(self.field.assets, self.idle_elapsed)
         self.draw_actors()
         small, normal = self.app.resources.small, self.app.resources.normal
         for speed, bounds in SPEED_BUTTONS:
@@ -345,6 +368,8 @@ class RangedScene:
             drawing.text(small, 29, 299 + row * 16, entry, (228, 216, 187))
         if self.player.hp == 0:
             instruction = '전투 패배  /  ESC 메인'
+        elif self.advance_elapsed is not None:
+            instruction = '접근 중'
         elif self.resolving is not None:
             instruction = '리치 공격 진행 중'
         elif self.transitioning:
