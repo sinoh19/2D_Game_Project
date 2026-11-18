@@ -7,7 +7,7 @@ import pico2d as p2d
 from game import drawing
 from game.config import ASSETS, NATIVE_WIDTH, SCALE, WINDOW_HEIGHT
 from game.items import (BAG_SIZE, ITEMS, LEATHER_ARMOR, POTION, RING_IDS, SWORD,
-                        DroppedItem, Equipment)
+                        DroppedItem, Equipment, Item)
 from game.loot_ui import CLOSE_BUTTON, bag_slot_at, chest_slot_at, draw_loot
 
 FRAME_SIZE = 192
@@ -52,6 +52,11 @@ class TreasureChests:
         bag = bag[:BAG_SIZE] if isinstance(bag, list) else []
         self.bag = [item if isinstance(item, str) and item in ITEMS else None for item in bag]
         self.bag.extend([None] * (BAG_SIZE - len(self.bag)))
+        saved_slots = data.get('quick_slots', [])
+        saved_slots = saved_slots if isinstance(saved_slots, list) else []
+        self.quick_slots = [item if isinstance(item, str) and isinstance(ITEMS.get(item), Item)
+                            and item in self.bag else None for item in saved_slots[:3]]
+        self.quick_slots.extend([None] * (3 - len(self.quick_slots)))
         raw_contents = data.get('contents', {}) if data.get('scene') == self.map_id else {}
         if not isinstance(raw_contents, dict):
             raw_contents = {}
@@ -235,11 +240,41 @@ class TreasureChests:
             if chest.elapsed is not None:
                 chest.elapsed = min(OPEN_TIME, chest.elapsed + dt)
 
+    def register_quick_slot(self, index, item_id):
+        if not 0 <= index < 3 or not isinstance(ITEMS.get(item_id), Item) or item_id not in self.bag:
+            return False
+        for slot, registered in enumerate(self.quick_slots):
+            if registered == item_id:
+                self.quick_slots[slot] = None
+        self.quick_slots[index] = item_id
+        self.save()
+        return True
+
+    def sync_quick_slots(self):
+        for index, item_id in enumerate(self.quick_slots):
+            if item_id is not None and item_id not in self.bag:
+                self.quick_slots[index] = None
+
+    def use_quick_slot(self, index, *, persist=True):
+        item_id = self.quick_slots[index]
+        if item_id is None or item_id not in self.bag:
+            self.sync_quick_slots()
+            return False, '등록된 아이템이 없습니다.'
+        consumed, message = ITEMS[item_id].use(self.field.player)
+        if consumed:
+            self.bag[self.bag.index(item_id)] = None
+            self.sync_quick_slots()
+            if persist:
+                self.save()
+        return consumed, message
+
     def save(self):
+        self.sync_quick_slots()
         opened = [chest.id for chest in self.chests if chest.elapsed is not None]
         looted = [chest.id for chest in self.chests if chest.looted]
         self.field.app.storage.write('chests.json', {
             'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
+            'quick_slots': self.quick_slots,
             'contents': self.contents, 'starterChestPrepared': self.starter_chest_prepared,
             'accessory': self.field.player.accessory.id if self.field.player.accessory else None,
             'weapon': self.field.player.weapon.id if self.field.player.weapon else None,

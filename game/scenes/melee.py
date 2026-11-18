@@ -11,9 +11,8 @@ from game.combat import apply_strength, roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.enemies import Lich, LichImpact, Slime, SlimeArt
-from game.field_inventory import BAG_SLOTS, CLOSE, PANEL
-from game.items import ITEMS, Equipment
-from game.loot_ui import panel, slots
+from game.items import ITEMS
+from game.loot_ui import panel
 from game.pixel_style import simplify
 
 DIRECTIONS = ('상단', '중단', '하단')
@@ -52,7 +51,6 @@ SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
 ITEM_BUTTON = (256, 278, 330, 309)
-USE_BUTTON = (359, 228, 429, 252)
 SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
 SLIME_LAND_TIME = .62
@@ -142,8 +140,7 @@ class MeleeScene:
         self.enemy_attack_evaded = False
         self.debug_dodge_pending = cause == 'debug'
         self.debug_critical_pending = cause == 'debug'
-        self.bag_open = False
-        self.item_selection = None
+        self.item_page = False
         self.item_message = ''
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
@@ -208,7 +205,7 @@ class MeleeScene:
             self.next_enemy_action()
 
     def move_player(self, step):
-        if self.bag_open or not self.can_act():
+        if not self.can_act():
             return
         target = max(0, min(2, self.player_slot + step))
         if target == self.player_slot:
@@ -292,7 +289,7 @@ class MeleeScene:
         return self.can_choose() and self.enemy_direction is None
 
     def start_attack(self, index):
-        if self.bag_open or not self.can_act():
+        if not self.can_act():
             return
         self.selected = index
         self.attack_frames = self.field.assets.animations['clips']['attack']['frames']
@@ -308,6 +305,7 @@ class MeleeScene:
         self.record(f'{DIRECTIONS[index]} 공격!')
 
     def start_enemy_turn(self):
+        self.item_page = False
         self.pointer = None
         if self.enemy_slots[0] is None:
             self.set_front()
@@ -399,10 +397,13 @@ class MeleeScene:
                                     for i in range(len(DIRECTIONS)))
 
     def choose_direction(self, index):
-        if self.bag_open or self.enemy_motions or self.enemy.hp == 0 or self.player.hp == 0:
+        if self.enemy_motions or self.enemy.hp == 0 or self.player.hp == 0:
             return
         if self.enemy_direction is None:
-            self.start_attack(index)
+            if self.item_page:
+                self.use_item(index)
+            else:
+                self.start_attack(index)
         elif self.enemy_elapsed is None:
             self.selected = index
             self.enemy_elapsed = 0.0
@@ -744,47 +745,14 @@ class MeleeScene:
         from game.scenes.melee_exit import MeleeExitScene
         self.app.scene = MeleeExitScene(self.app, self, destination)
 
-    def close_bag(self):
-        self.bag_open = False
-        self.item_selection = None
-        self.pointer = None
-
-    def click_bag(self, x, y):
-        bag = self.field.inventory.bag
-        if drawing.contains(CLOSE, x, y):
-            self.close_bag()
-        elif drawing.contains(USE_BUTTON, x, y):
-            index = self.item_selection
-            if index is None or not self.can_act():
-                return
-            item_id = bag[index]
-            if item_id is None:
-                return
-            item = ITEMS[item_id]
-            if isinstance(item, Equipment):
-                self.item_message = '장비는 횡스크롤 가방에서 장착할 수 있습니다.'
-                return
-            consumed, message = item.use(self.player)
-            if not consumed:
-                self.item_message = message
-                return
-            bag[index] = None
-            if self.cause != 'debug':
-                self.field.chests.save()
-            self.close_bag()
+    def use_item(self, index):
+        if not self.can_act():
+            return
+        consumed, message = self.field.chests.use_quick_slot(index, persist=self.cause != 'debug')
+        self.item_message = message
+        if consumed:
             self.record(message)
             self.start_enemy_turn()
-        else:
-            self.item_selection = next((i for i, bounds in enumerate(BAG_SLOTS)
-                                        if bag[i] is not None and drawing.contains(bounds, x, y)), None)
-            if not any(bag):
-                self.item_message = '가방이 비어 있습니다.'
-            elif not self.can_act():
-                self.item_message = '내 턴에 아이템을 사용할 수 있습니다.'
-            elif self.item_selection is not None:
-                self.item_message = ITEMS[bag[self.item_selection]].name
-            else:
-                self.item_message = '사용할 아이템을 선택하세요.'
 
     def handle_event(self, event):
         if event.type == p2d.SDL_MOUSEMOTION:
@@ -794,23 +762,20 @@ class MeleeScene:
             self.pointer = None
         elif event.type == p2d.SDL_KEYDOWN:
             if event.key == p2d.SDLK_ESCAPE:
-                if self.bag_open:
-                    self.close_bag()
+                if self.item_page:
+                    self.item_page = False
                 else:
                     self.save()
                     self.app.show_title()
                     self.fade_to(self.app.scene)
             elif event.key in KEYS:
                 self.choose_direction(KEYS.index(event.key))
-            elif not self.bag_open and event.key in (p2d.SDLK_LEFT, p2d.SDLK_a):
+            elif event.key in (p2d.SDLK_LEFT, p2d.SDLK_a):
                 self.move_player(-1)
-            elif not self.bag_open and event.key in (p2d.SDLK_RIGHT, p2d.SDLK_d):
+            elif event.key in (p2d.SDLK_RIGHT, p2d.SDLK_d):
                 self.move_player(1)
         elif event.type == p2d.SDL_MOUSEBUTTONDOWN and event.button == p2d.SDL_BUTTON_LEFT:
             x, y = event.x / SCALE, event.y / SCALE
-            if self.bag_open:
-                self.click_bag(x, y)
-                return
             for speed, bounds in SPEED_BUTTONS:
                 if drawing.contains(bounds, x, y):
                     self.app.battle_speed = speed
@@ -821,38 +786,13 @@ class MeleeScene:
                     self.inspected_enemy = actor
                     return
             if drawing.contains(ITEM_BUTTON, x, y) and self.can_act():
-                self.bag_open = True
-                self.item_selection = None
-                if not any(self.field.inventory.bag):
-                    self.item_message = '가방이 비어 있습니다.'
-                elif not self.can_act():
-                    self.item_message = '내 턴에 아이템을 사용할 수 있습니다.'
-                else:
-                    self.item_message = '사용할 아이템을 선택하세요.'
+                self.item_page = not self.item_page
+                self.item_message = ''
             else:
                 for index, bounds in enumerate(BUTTONS):
                     if drawing.contains(bounds, x, y):
                         self.choose_direction(index)
                         break
-
-    def draw_bag(self):
-        small, normal = self.app.resources.small, self.app.resources.normal
-        bag = self.field.inventory.bag
-        drawing.black_overlay(.45)
-        panel(PANEL, (25, 25, 34), (92, 80, 68))
-        drawing.text(normal, 214, 77, '전투 아이템', GOLD)
-        panel(CLOSE, (41, 34, 38), (115, 89, 68))
-        centered(normal, 426, 77, '×')
-        slots(BAG_SLOTS, bag, self.field.chests.icons, small)
-        if self.item_selection is not None:
-            left, top, right, bottom = BAG_SLOTS[self.item_selection]
-            drawing.rectangle((left - 2, top - 2, right + 2, bottom + 2), (245, 198, 110))
-            drawing.rectangle((left, top, right, bottom), (245, 198, 110))
-        enabled = self.item_selection is not None and self.can_act()
-        panel(USE_BUTTON, (66, 48, 37) if enabled else (32, 34, 43),
-              GOLD if enabled else (62, 64, 73))
-        centered(normal, 394, 240, '사용')
-        drawing.text(small, 214, 240, self.item_message)
 
     def draw_enemies(self, zoom):
         for slot in (2, 1, 0):
@@ -938,10 +878,10 @@ class MeleeScene:
         elif self.attack_elapsed is not None:
             heading = '내 턴 · 공격 진행 중'
         else:
-            heading = '내 턴 · 행동 선택'
+            heading = (self.item_message or '내 턴 · 아이템 선택') if self.item_page else '내 턴 · 행동 선택'
         drawing.text(small, 16, 270, self.fit_text(small, heading, 315), GOLD)
 
-        can_choose = not self.bag_open and self.can_choose()
+        can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
         for index, (bounds, direction) in enumerate(zip(BUTTONS, DIRECTIONS)):
             left, top, right, bottom = bounds
@@ -951,7 +891,15 @@ class MeleeScene:
             if highlighted:
                 drawing.rectangle(bounds, GOLD)
             color = ivory if can_choose else muted
-            if guarding and self.enemy_forecast is not None:
+            if self.item_page and not guarding:
+                item_id = self.field.chests.quick_slots[index]
+                if item_id is not None:
+                    self.field.chests.icons[item_id].draw((left + 18) * SCALE,
+                        (NATIVE_HEIGHT - (top + 15)) * SCALE, 22 * SCALE, 22 * SCALE)
+                label = ITEMS[item_id].name if item_id else '비어 있음'
+                drawing.text(small, left + 31, top + 19, self.fit_text(small, label, 42), color)
+                drawing.text(small, left + 5, top + 19, str(index + 1), GOLD)
+            elif guarding and self.enemy_forecast is not None:
                 centered(small, (left + right) / 2, top + 10, f'{direction} 방어', color)
                 centered(small, (left + right) / 2, top + 22,
                          f'{self.enemy_forecast[index]:.1%}', GOLD)
@@ -960,7 +908,8 @@ class MeleeScene:
                          f'{direction} 공격', color)
         if can_choose and not guarding and self.hovered(ITEM_BUTTON):
             drawing.rectangle(ITEM_BUTTON, GOLD)
-        centered(small, 293, 293, '아이템', ivory if can_choose and not guarding else muted)
+        centered(small, 293, 293, '공격' if self.item_page else '아이템',
+                 ivory if can_choose and not guarding else muted)
 
         base = self.player.base_attack
         strength = self.player.stat_value('strength')
@@ -1052,12 +1001,10 @@ class MeleeScene:
         for speed, bounds in SPEED_BUTTONS:
             left, top, right, bottom = bounds
             selected = self.app.battle_speed == speed
-            highlighted = selected or (not self.bag_open and self.hovered(bounds))
+            highlighted = selected or self.hovered(bounds)
             panel(bounds, (67, 48, 35) if selected else (30, 33, 44),
                   GOLD if highlighted else (76, 75, 86))
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
         count = sum(actor is not None for actor in self.enemy_slots)
         centered(small, 568, 29, f'적 {count}마리 · 앞칸 {self.enemy_name}')
-        if self.bag_open:
-            self.draw_bag()

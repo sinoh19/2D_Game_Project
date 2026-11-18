@@ -5,10 +5,11 @@ import pico2d as p2d
 
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
-from game.items import BAG_SIZE, ITEMS, Equipment
+from game.items import BAG_SIZE, ITEMS, Equipment, Item
 from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
 
 BAG_SLOTS = tuple(slot_bounds(130, 130, 5, i) for i in range(BAG_SIZE))
+QUICK_SLOTS = ((130, 211, 165, 239), (171, 211, 206, 239), (212, 211, 247, 239))
 CLOSE = (325, 65, 348, 88)
 PANEL = (106, 54, 353, 265)
 GEAR_PANEL = (359, 54, 531, 265)
@@ -33,7 +34,7 @@ class FieldInventory:
 
     def open(self):
         self.is_open = True
-        self.message = '드래그 정리  ·  가방 밖에 놓아 버리기'
+        self.message = '드래그 또는 우클릭으로 단축 슬롯 등록'
 
     def close(self):
         self.is_open = False
@@ -48,22 +49,29 @@ class FieldInventory:
             self.menu = None
             for index, bounds in enumerate(BAG_SLOTS):
                 if self.bag[index] is not None and drawing.contains(bounds, x, y):
+                    item = ITEMS[self.bag[index]]
+                    labels = (['장착'] if isinstance(item, Equipment) else
+                              ['1번 등록', '2번 등록', '3번 등록']) + ['버리기']
                     left = max(PANEL[0], min(round(x), PANEL[2] - 74))
-                    top = max(PANEL[1], min(round(y), PANEL[3] - 43))
-                    self.menu = (index, (left, top, left + 74, top + 21),
-                                 (left, top + 22, left + 74, top + 43))
+                    top = max(PANEL[1], min(round(y), PANEL[3] - 20 * len(labels)))
+                    self.menu = (index, [(label, (left, top + 20 * row,
+                                                   left + 74, top + 20 * (row + 1)))
+                                         for row, label in enumerate(labels)])
                     self.message = ITEMS[self.bag[index]].name
                     break
         elif event.button == p2d.SDL_BUTTON_LEFT:
             if drawing.contains(CLOSE, x, y):
                 self.close()
             elif self.menu is not None:
-                index, use, discard = self.menu
+                index, options = self.menu
                 self.menu = None
-                if drawing.contains(use, x, y):
-                    self.apply(index, discard=False)
-                elif drawing.contains(discard, x, y):
-                    self.apply(index, discard=True)
+                for label, bounds in options:
+                    if drawing.contains(bounds, x, y):
+                        if label.endswith('번 등록'):
+                            self.register(index, int(label[0]) - 1)
+                        else:
+                            self.apply(index, discard=label == '버리기')
+                        break
             else:
                 index = self.slot_at(x, y)
                 if index is not None and self.bag[index] is not None:
@@ -90,6 +98,13 @@ class FieldInventory:
                      if getattr(self.field.player, slot) is not None
                      and drawing.contains(bounds, x, y)), None)
 
+    def register(self, bag_index, quick_index):
+        item_id = self.bag[bag_index]
+        if not isinstance(ITEMS.get(item_id), Item):
+            self.message = '사용 아이템만 단축 슬롯에 등록할 수 있습니다.'
+        elif self.field.chests.register_quick_slot(quick_index, item_id):
+            self.message = f'{quick_index + 1}번 등록  ·  {ITEMS[item_id].name}'
+
     def cancel_drag(self):
         self.press = self.drag = self.last_click = None
 
@@ -111,6 +126,11 @@ class FieldInventory:
         if not dragging:
             return
         self.last_click = None
+        quick_target = next((index for index, bounds in enumerate(QUICK_SLOTS)
+                             if drawing.contains(bounds, x, y)), None)
+        if quick_target is not None:
+            self.register(source, quick_target)
+            return
         target = self.slot_at(x, y)
         if target is not None and target != source:
             self.bag[source], self.bag[target] = self.bag[target], self.bag[source]
@@ -133,10 +153,8 @@ class FieldInventory:
             setattr(player, item.slot, item)
             message = f'장착  ·  {item.name}'
         else:
-            consumed, message = item.use(player)
-            if not consumed:
-                self.message = message
-                return
+            self.message = '가방에서 단축 슬롯에 등록한 뒤 1·2·3 키로 사용하세요.'
+            return
         self.bag[index] = replacement
         self.field.chests.save()
         self.message = message
@@ -181,13 +199,22 @@ class FieldInventory:
             selected = self.slot_at(*self.drag)
         icons = self.field.chests.icons
         slots(BAG_SLOTS, visible_bag, icons, resources.small, selected)
-        drawing.text(resources.small, 124, 245, self.message)
+        for index, bounds in enumerate(QUICK_SLOTS):
+            item_id = self.field.chests.quick_slots[index]
+            hover = self.drag is not None and drawing.contains(bounds, *self.drag)
+            panel(bounds, (39, 31, 32) if item_id or hover else (17, 18, 25),
+                  GOLD if item_id or hover else (65, 66, 79))
+            drawing.text(resources.small, bounds[0] + 2, bounds[1] + 12, str(index + 1), GOLD)
+            if item_id:
+                icons[item_id].draw((bounds[0] + 23) * SCALE,
+                                    WINDOW_HEIGHT - (bounds[1] + 14) * SCALE,
+                                    22 * SCALE, 22 * SCALE)
+        drawing.text(resources.small, 124, 257, self.message)
         if self.menu is not None:
-            index, use, discard = self.menu
-            action = '장착' if isinstance(ITEMS[self.bag[index]], Equipment) else '사용'
-            for bounds, label in ((use, action), (discard, '버리기')):
+            _, options = self.menu
+            for label, bounds in options:
                 panel(bounds, (41, 34, 38), (115, 89, 68))
-                drawing.text(resources.normal, bounds[0] + 11, bounds[1] + 10, label)
+                drawing.text(resources.small, bounds[0] + 7, bounds[1] + 13, label)
         if self.drag is not None:
             draw_drag_icon(icons[self.bag[self.press[0]]], *self.drag)
         elif self.menu is None and hovered is not None and self.pointer is not None:

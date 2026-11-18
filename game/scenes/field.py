@@ -211,6 +211,11 @@ class FieldScene:
                     self.player.attack()
                 elif key == p2d.SDLK_z:
                     self.start_pickup()
+                elif key in (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3):
+                    used, message = self.chests.use_quick_slot(
+                        (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3).index(key))
+                    self.map_notice = message
+                    self.map_notice_time = 2.0
                 elif key == p2d.SDLK_i:
                     self.keys.intersection_update({key})
                     self.inventory.open()
@@ -343,12 +348,21 @@ class FieldScene:
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
         draw_hp_bar(self.app.resources.small, 6, 6, self.player.hp, self.player.max_hp)
+        for index, item_id in enumerate(self.chests.quick_slots):
+            left = 179 + index * 94
+            drawing.rectangle((left, 309, left + 90, 331), (24, 24, 33), filled=True)
+            drawing.rectangle((left, 309, left + 90, 331), (108, 85, 62))
+            drawing.text(self.app.resources.small, left + 5, 324, str(index + 1), (219, 177, 110))
+            if item_id is not None:
+                self.chests.icons[item_id].draw((left + 29) * SCALE,
+                                                (360 - 320) * SCALE, 19 * SCALE, 19 * SCALE)
+                drawing.text(self.app.resources.small, left + 41, 324, ITEMS[item_id].name)
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
                      '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 정보   I 가방   ESC 저장/메인')
         if self.map_notice_time>0:
-            drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
-            drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))
+            drawing.rectangle((6,285,633,306),(20,22,28),filled=True)
+            drawing.text(self.app.resources.small,10,300,self.map_notice,(224,201,148))
         self.chests.draw_loot()
         if self.inventory.is_open:
             self.inventory.draw()
