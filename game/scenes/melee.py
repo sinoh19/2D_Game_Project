@@ -240,8 +240,11 @@ class MeleeScene:
             if self.death_elapsed is not None and self.death_elapsed >= (0.7 if self.is_lich else SlimeArt.DEATH_DURATION):
                 if self.cause == 'debug':
                     self.app.show_title()
+                    destination = self.app.scene
                 else:
                     self.field.resume_after_victory(self.enemy)
+                    destination = self.field
+                self.fade_to(destination)
             return
         previous = self.attack_elapsed
         self.attack_elapsed += dt
@@ -475,6 +478,10 @@ class MeleeScene:
         if self.cause != 'debug':
             self.field.save()
 
+    def fade_to(self, destination):
+        from game.scenes.melee_exit import MeleeExitScene
+        self.app.scene = MeleeExitScene(self.app, self, destination)
+
     def close_bag(self):
         self.bag_open = False
         self.item_selection = None
@@ -530,6 +537,7 @@ class MeleeScene:
                 else:
                     self.save()
                     self.app.show_title()
+                    self.fade_to(self.app.scene)
             elif not self.bag_open and event.key == p2d.SDLK_PAGEUP:
                 self.log_offset = min(max(0, len(self.log) - LOG_ROWS), self.log_offset + LOG_ROWS)
             elif not self.bag_open and event.key == p2d.SDLK_PAGEDOWN:
