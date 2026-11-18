@@ -3,10 +3,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 NATIVE_WIDTH, NATIVE_HEIGHT = 640, 360
-SCALE = 2
+SCALE = 3
 WINDOW_WIDTH, WINDOW_HEIGHT = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
 TARGET_FPS = 60
-TITLE = "용병 일기 | Python + pico2d"
 
 # 640×360 기준 왼쪽 위 좌표 (left, top, right, bottom).
 MENU_BUTTONS = (

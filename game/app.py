@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 import pico2d as p2d
 from pico2d import pico2d as backend
-from game.config import ROOT, TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, TARGET_FPS, NATIVE_WIDTH, NATIVE_HEIGHT, SCALE
+from game.config import ROOT, WINDOW_WIDTH, WINDOW_HEIGHT, TARGET_FPS, NATIVE_WIDTH, NATIVE_HEIGHT, SCALE
 from game.resources import Resources
 from game.storage import Storage
 from game.config import DEFAULT_TILED_MAP
@@ -202,7 +202,6 @@ class App:
                     self.handle_event(event)
                     if not self.running:
                         break
-                p2d.SDL_SetWindowTitle(backend.window, TITLE.encode("utf-8"))
                 if not self.running:
                     break
                 self.scene.update(dt)
