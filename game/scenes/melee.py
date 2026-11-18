@@ -27,6 +27,9 @@ HOME_X = 215
 PLAYER_SLOTS = (125, 170, HOME_X)
 ENEMY_SLOTS = (425, 485, 545)
 MOVE_SECONDS = .28
+ENEMY_STEP_SECONDS = .42
+JOIN_START_X = NATIVE_WIDTH + 48
+JOIN_SPEED = 240
 REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
 WALK_SECONDS = .55
@@ -97,6 +100,8 @@ class MeleeScene:
         self.move_from = HOME_X
         self.move_to = HOME_X
         self.pending_enemy_actions = []
+        self.enemy_motions = {}
+        self.enemy_motion_next = None
         self.support_bonus = 0
         self.prepared_rear = None
         self.defeated = []
@@ -160,6 +165,7 @@ class MeleeScene:
             for slot in (1, 2):
                 if self.enemy_slots[slot] is not None:
                     self.enemy_slots[0], self.enemy_slots[slot] = self.enemy_slots[slot], None
+                    self.start_enemy_motion(self.enemy_slots[0], ENEMY_SLOTS[slot], ENEMY_SLOTS[0])
                     break
         front = self.enemy_slots[0]
         if front is not None:
@@ -169,6 +175,33 @@ class MeleeScene:
             self.enemy_home_x = front.melee_home_x
             self.enemy_impact_time = front.melee_impact_time
             self.enemy_attack_duration = front.melee_attack_duration
+
+    def start_enemy_motion(self, actor, start_x, target_x, duration=ENEMY_STEP_SECONDS):
+        if start_x == target_x:
+            return
+        self.enemy_motions[actor] = SimpleNamespace(start=start_x, target=target_x,
+                                                     elapsed=0.0, duration=duration)
+
+    def enemy_x(self, actor):
+        motion = self.enemy_motions.get(actor)
+        if motion is None:
+            return ENEMY_SLOTS[self.enemy_slots.index(actor)]
+        progress = min(1.0, motion.elapsed / motion.duration)
+        return motion.start + (motion.target - motion.start) * progress
+
+    def update_enemy_motions(self, dt):
+        for actor, motion in tuple(self.enemy_motions.items()):
+            motion.elapsed += dt
+            if motion.elapsed >= motion.duration:
+                del self.enemy_motions[actor]
+        if self.enemy_motions:
+            return
+        continuation = self.enemy_motion_next
+        self.enemy_motion_next = None
+        if continuation == 'start_turn':
+            self.start_enemy_turn()
+        elif continuation == 'next_action':
+            self.next_enemy_action()
 
     def move_player(self, step):
         if self.bag_open or not self.can_act():
@@ -191,7 +224,10 @@ class MeleeScene:
         self.death_elapsed = None
         self.set_front()
         if self.enemy_slots[0] is not None or self.reserve:
-            self.start_enemy_turn()
+            if self.enemy_motions:
+                self.enemy_motion_next = 'start_turn'
+            else:
+                self.start_enemy_turn()
             return
         if self.cause == 'debug':
             self.app.show_title()
@@ -212,6 +248,7 @@ class MeleeScene:
     def can_choose(self):
         return (self.attack_elapsed is None and self.enemy_elapsed is None
                 and self.move_elapsed is None and self.death_elapsed is None
+                and not self.enemy_motions
                 and self.player.hp > 0 and self.enemy.hp > 0)
 
     def can_act(self):
@@ -242,6 +279,8 @@ class MeleeScene:
                 and self.enemy_slots[0].hp <= self.enemy_slots[0].max_hp // 2
                 and self.enemy_slots[2].hp > self.enemy_slots[0].hp):
             self.enemy_slots[0], self.enemy_slots[2] = self.enemy_slots[2], self.enemy_slots[0]
+            self.start_enemy_motion(self.enemy_slots[0], ENEMY_SLOTS[2], ENEMY_SLOTS[0])
+            self.start_enemy_motion(self.enemy_slots[2], ENEMY_SLOTS[0], ENEMY_SLOTS[2])
             self.set_front()
             self.record('뒷줄 슬라임이 앞줄과 교대했다!')
         self.prepared_rear = None
@@ -252,10 +291,15 @@ class MeleeScene:
                 if self.enemy_slots[slot] is None:
                     joined = self.reserve.pop(0)
                     self.enemy_slots[slot] = joined
+                    duration = max(ENEMY_STEP_SECONDS, (JOIN_START_X - ENEMY_SLOTS[slot]) / JOIN_SPEED)
+                    self.start_enemy_motion(joined, JOIN_START_X, ENEMY_SLOTS[slot], duration)
                     self.set_front()
                     self.record(f'{joined.melee_name}이(가) {slot + 1}번 칸에 합류했다!')
                     break
-        self.next_enemy_action()
+        if self.enemy_motions:
+            self.enemy_motion_next = 'next_action'
+        else:
+            self.next_enemy_action()
 
     def next_enemy_action(self):
         while self.pending_enemy_actions:
@@ -267,8 +311,14 @@ class MeleeScene:
                 front = self.enemy_slots[0]
                 if front is not None and front.hp <= front.max_hp // 2 and actor.hp > front.hp:
                     self.enemy_slots[0], self.enemy_slots[1] = actor, front
+                    self.start_enemy_motion(actor, ENEMY_SLOTS[1], ENEMY_SLOTS[0])
+                    self.start_enemy_motion(front, ENEMY_SLOTS[0], ENEMY_SLOTS[1])
                     self.set_front()
                     self.record('중간 슬라임이 앞줄과 교대했다!')
+                    self.enemy_direction = None
+                    self.enemy_forecast = None
+                    self.enemy_motion_next = 'next_action'
+                    return
                 else:
                     self.support_bonus = min(2, self.support_bonus + 1)
                     self.record('중간 슬라임이 앞줄을 밀어준다! 다음 공격 +1')
@@ -300,7 +350,7 @@ class MeleeScene:
                                     for i in range(len(DIRECTIONS)))
 
     def choose_direction(self, index):
-        if self.bag_open or self.enemy.hp == 0 or self.player.hp == 0:
+        if self.bag_open or self.enemy_motions or self.enemy.hp == 0 or self.player.hp == 0:
             return
         if self.enemy_direction is None:
             self.start_attack(index)
@@ -373,6 +423,9 @@ class MeleeScene:
             if self.move_elapsed >= MOVE_SECONDS:
                 self.move_elapsed = None
                 self.start_enemy_turn()
+            return
+        if self.enemy_motions:
+            self.update_enemy_motions(dt)
             return
         if self.enemy_elapsed is not None:
             self.update_enemy_attack(dt)
@@ -463,7 +516,7 @@ class MeleeScene:
         return focus_x + (x - focus_x) * zoom, focus_y + (y - focus_y) * zoom
 
     def actor_x(self, actor):
-        return ENEMY_SLOTS[self.enemy_slots.index(actor)]
+        return self.enemy_x(actor)
 
     def draw_slime(self, art, zoom=1.0, actor=None, slot=0):
         actor = self.enemy if actor is None else actor
@@ -487,9 +540,13 @@ class MeleeScene:
             else:
                 hit_elapsed = None
         pose = self.slime_pose
-        home_x = ENEMY_SLOTS[slot]
+        home_x = self.enemy_x(actor)
         strike_x = self.player_x + 31
         pose.x, pose.y, pose.frame, pose.facing, pose.scale = home_x, FLOOR, 0, -1, 2
+        motion = self.enemy_motions.get(actor)
+        if motion is not None:
+            pose.frame = int(motion.elapsed * art.motion['fps']) % art.motion['frameCount']
+            pose.facing = -1 if motion.target < motion.start else 1
         if front:
             pose.x += SLASH_RECOIL_PIXELS * self.slash_impact_strength() ** 2
         attack_elapsed = None
@@ -546,7 +603,7 @@ class MeleeScene:
             hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
             sprite = art.melee_frames[hover_frame]
             width = art.FRAME_WIDTH
-        home_x = ENEMY_SLOTS[slot]
+        home_x = self.enemy_x(actor)
         center_x, center_y = self.zoom_point(home_x + recoil - (24 if casting else 0),
                                              FLOOR - 72, zoom)
         blue_guard = self.attack_blocked and 0 <= hit_elapsed < .12
@@ -765,8 +822,30 @@ class MeleeScene:
         for slot, x in enumerate(ENEMY_SLOTS):
             left, top = self.zoom_point(x - 22, FLOOR + 2, zoom)
             drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
-                              (190, 95, 83) if self.enemy_slots[slot] is not None else (91, 91, 105),
-                              filled=True)
+                              (91, 91, 105), filled=True)
+
+    def draw_enemy_hp(self, zoom):
+        small = self.app.resources.small
+        for actor in self.enemy_slots:
+            if actor is None:
+                continue
+            x = self.enemy_x(actor)
+            if x < -28 or x > NATIVE_WIDTH + 28:
+                continue
+            x, y = self.zoom_point(x, FLOOR + 11, zoom)
+            half = 27 * zoom
+            top, bottom = y - 7 * zoom, y + 7 * zoom
+            drawing.rectangle((x - half, top, x + half, bottom), (27, 24, 32), filled=True)
+            drawing.rectangle((x - half + zoom, top + zoom, x + half - zoom, bottom - zoom),
+                              (69, 37, 43), filled=True)
+            fill = (2 * half - 4 * zoom) * max(0, actor.hp) / actor.max_hp
+            if fill > 0:
+                drawing.rectangle((x - half + 2 * zoom, top + 2 * zoom,
+                                   x - half + 2 * zoom + fill, bottom - 2 * zoom),
+                                  (179, 57, 72), filled=True)
+            label = f'{actor.hp}/{actor.max_hp}'
+            centered(small, x + 1, y + 1, label, (30, 17, 23))
+            centered(small, x, y, label, (250, 240, 223))
 
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
@@ -787,6 +866,7 @@ class MeleeScene:
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
+        self.draw_enemy_hp(zoom)
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((self.player_x + 9, FLOOR - 51) if self.player_in_hit_stop()
@@ -834,6 +914,8 @@ class MeleeScene:
             instruction = '공격 진행 중'
         elif self.move_elapsed is not None:
             instruction = '이동 진행 중'
+        elif self.enemy_motions:
+            instruction = '몬스터 이동 중'
         elif self.enemy_elapsed is not None:
             instruction = f'{self.active_enemy.melee_name} 공격 진행 중'
         elif self.player.hp == 0:
