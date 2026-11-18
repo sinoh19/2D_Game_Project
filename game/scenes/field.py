@@ -120,8 +120,31 @@ class FieldScene:
             self.enemies.remove(enemy)
         elif enemy in self.liches:
             self.liches.remove(enemy)
+        player = self.player
+        player.x = max(player.HALF_WIDTH, min(self.width - player.HALF_WIDTH, enemy.x))
+        player.y = enemy.y
+        player.vy = 0.0
+        player.grounded = player.supported()
+        player.clock = 0.0
+        player.air_phase = None
+        player.air_time = 0.0
+        player.attack_time = None
+        player.dash_time = None
+        player.pickup_time = None
+        player.prepare_time = None
+        player.land_time = None
+        player.dash_cooldown = 0.0
+        player.coyote = 0.08 if player.grounded else 0.0
+        player.jump_buffer = 0.0
+        player.moving = False
+        self.keys.clear()
+        self.pickup_target = None
+        self.trap_hit_time = 0.0
+        self.lich_projectiles.clear()
+        self.lich_impacts.clear()
         self.encounter = None
-        self.player.attack_time = None
+        self.camera_x = round(max(0.0, min(self.width - self.view_width,
+                                           player.x - self.view_width * 0.375)))
         self.app.scene = self
 
     def movement_direction(self):
