@@ -2,9 +2,7 @@
 import math
 import pico2d as p2d
 from game import drawing
-from game.hp_ui import draw_hp_bar
-from game.quick_slot_ui import draw_quick_slot
-from game.config import ASSETS, SCALE
+from game.config import ASSETS, NATIVE_HEIGHT, SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime, Lich
@@ -45,6 +43,7 @@ class FieldScene:
         self.player = Knight(self, position)
         self.dropped_items = []
         self.chests = TreasureChests(self, restore=not new_game)
+        self.field_quick_hud = p2d.load_image(str(ASSETS / 'ui' / 'field-quick-hud.png'))
         self.spike_traps = [SpikeTrap(spec, self.solids + self.platforms)
                             for spec in self.layout.get('spikeTraps', [])]
         # The 2172px source shrinks to a 48px trap in the field. A 90px
@@ -348,12 +347,24 @@ class FieldScene:
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
+        hud = self.field_quick_hud
+        hud_left, hud_top = -6, 232
+        hud.draw(round((hud_left + hud.w / 2) * SCALE),
+                 round((NATIVE_HEIGHT - hud_top - hud.h / 2) * SCALE),
+                 hud.w * SCALE, hud.h * SCALE)
         for index, item_id in enumerate(self.chests.quick_slots):
-            left = 8 + index * 52
-            draw_quick_slot((left, 279, left + 44, 323), self.app.resources.small,
-                            self.chests.icons[item_id] if item_id else None, index + 1)
-        draw_hp_bar(self.app.resources.small, 8, 334,
-                    self.player.hp, self.player.max_hp, width=153)
+            if item_id is not None:
+                self.chests.icons[item_id].draw((31 + index * 54) * SCALE,
+                                                (NATIVE_HEIGHT - 285) * SCALE,
+                                                30 * SCALE, 30 * SCALE)
+        hp_ratio = max(0.0, min(1.0, self.player.hp / self.player.max_hp)) if self.player.max_hp else 0
+        hp_width = round(143 * hp_ratio)
+        if hp_width:
+            drawing.rectangle((14, 340, 13 + hp_width, 349), (132, 45, 64), filled=True)
+            drawing.rectangle((14, 340, 13 + hp_width, 341), (176, 68, 87), filled=True)
+        hp_label = f'HP {self.player.hp} / {self.player.max_hp}'
+        drawing.text(self.app.resources.small, 18, 345, hp_label, (246, 241, 228))
+        drawing.text(self.app.resources.small, 19, 345, hp_label, (246, 241, 228))
         drawing.text(self.app.resources.small, 184, 351,
                      'C 공격   F 상호작용   Z 줍기   I 가방   E 정보   ESC 메뉴')
         if self.map_notice_time>0:
