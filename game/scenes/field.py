@@ -2,7 +2,8 @@
 import math
 import pico2d as p2d
 from game import drawing
-from game.config import ASSETS, NATIVE_HEIGHT, SCALE
+from game.config import ASSETS, SCALE
+from game.quick_slot_ui import draw_bag_quick_slots
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
 from game.enemies import Slime, Lich
@@ -14,6 +15,9 @@ from game.items import ITEMS, DroppedItem, Equipment
 from game.spike_trap import SpikeTrap
 from game.pixel_style import simplify
 from game.terrain import slope_surfaces, inside_slope
+
+FIELD_QUICK_SLOTS = tuple((8 + index * 41, 281, 43 + index * 41, 316)
+                          for index in range(3))
 
 
 class FieldScene:
@@ -347,26 +351,28 @@ class FieldScene:
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
-        hud = self.field_quick_hud
-        hud_left, hud_top = -6, 232
-        hud.draw(round((hud_left + hud.w / 2) * SCALE),
-                 round((NATIVE_HEIGHT - hud_top - hud.h / 2) * SCALE),
-                 hud.w * SCALE, hud.h * SCALE)
-        for index, item_id in enumerate(self.chests.quick_slots):
-            if item_id is not None:
-                self.chests.icons[item_id].draw((31 + index * 54) * SCALE,
-                                                (NATIVE_HEIGHT - 285) * SCALE,
-                                                30 * SCALE, 30 * SCALE)
+        draw_bag_quick_slots(self.field_quick_hud, self.inventory.quick_badges,
+                             FIELD_QUICK_SLOTS, self.chests.icons, self.chests.quick_slots)
+        # Extend only the HP bar; the three item frames keep the bag's size.
+        drawing.rectangle((8, 333, 303, 356), (16, 18, 29), filled=True)
+        drawing.rectangle((8, 333, 303, 356), (174, 134, 81))
+        drawing.rectangle((11, 336, 300, 353), (28, 32, 45), filled=True)
+        drawing.rectangle((11, 336, 300, 353), (52, 56, 73))
+        drawing.rectangle((14, 340, 297, 349), (19, 23, 34), filled=True)
+        drawing.rectangle((8, 334, 10, 337), (224, 189, 121), filled=True)
+        drawing.rectangle((301, 353, 303, 356), (224, 189, 121), filled=True)
         hp_ratio = max(0.0, min(1.0, self.player.hp / self.player.max_hp)) if self.player.max_hp else 0
-        hp_width = round(143 * hp_ratio)
+        hp_width = round(284 * hp_ratio)
         if hp_width:
             drawing.rectangle((14, 340, 13 + hp_width, 349), (132, 45, 64), filled=True)
             drawing.rectangle((14, 340, 13 + hp_width, 341), (176, 68, 87), filled=True)
         hp_label = f'HP {self.player.hp} / {self.player.max_hp}'
         drawing.text(self.app.resources.small, 18, 345, hp_label, (246, 241, 228))
         drawing.text(self.app.resources.small, 19, 345, hp_label, (246, 241, 228))
-        drawing.text(self.app.resources.small, 184, 351,
-                     'C 공격   F 상호작용   Z 줍기   I 가방   E 정보   ESC 메뉴')
+        drawing.text(self.app.resources.small, 316, 343,
+                     'C 공격   F 상호작용   Z 줍기')
+        drawing.text(self.app.resources.small, 316, 355,
+                     'I 가방   E 정보   ESC 메뉴')
         if self.map_notice_time>0:
             drawing.rectangle((176, 305, 633, 329), (20, 22, 28), filled=True)
             drawing.text(self.app.resources.small, 184, 322,
