@@ -388,7 +388,7 @@ class FieldScene:
         draw_hp_bar(self.app.resources.small, 6, 6, self.player.hp, self.player.max_hp)
         drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
         drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 용병 정보   I 가방   ESC 저장/메인')
+                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 정보   I 가방   ESC 저장/메인')
         if self.map_notice_time>0:
             drawing.rectangle((6,310,633,331),(20,22,28),filled=True)
             drawing.text(self.app.resources.small,10,325,self.map_notice,(224,201,148))

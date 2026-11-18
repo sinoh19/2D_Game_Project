@@ -60,7 +60,7 @@ def draw_loot(resources, icons, chest_items, bag, message, drag=None, bag_source
     panel((71, 95, 302, 223), (29, 29, 39), (75, 73, 83))
     panel((338, 95, 568, 223), (29, 29, 39), (75, 73, 83))
     drawing.text(normal, 85, 111, '보물상자')
-    drawing.text(normal, 352, 111, '플레이어 가방')
+    drawing.text(normal, 352, 111, '가방')
     chest_items = list(chest_items or [])[:6]
     drawing.text(small, 255, 111, f'{len(chest_items)} / 6')
     drawing.text(small, 515, 111, f'{sum(item is not None for item in bag)} / {BAG_SIZE}')

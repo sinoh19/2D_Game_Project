@@ -149,7 +149,7 @@ class FieldInventory(DraggableWindow):
     def draw(self):
         resources = self.field.app.resources
         self.panel(PANEL, (25, 25, 34), (92, 80, 68))
-        self.text(resources.normal, 214, 77, '플레이어 가방', GOLD)
+        self.text(resources.normal, 214, 77, '가방', GOLD)
         self.text(resources.small, 369, 77, 'I / ESC')
         self.panel(CLOSE, (41, 34, 38), (115, 89, 68))
         self.text(resources.normal, 422, 77, '×', GOLD)

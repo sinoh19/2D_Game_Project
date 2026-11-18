@@ -125,7 +125,7 @@ class CharacterStatus(DraggableWindow):
         self.panel(PANEL, (23, 24, 34), (140, 112, 74))
         self.rectangle((71, 47, 568, 80), (37, 35, 43), filled=True)
         self.rectangle((71, 81, 568, 81), (95, 78, 60))
-        text(resources.heading, 85, 65, '용병 정보')
+        text(resources.heading, 85, 65, '정보')
         self.panel(CLOSE, CARD, BORDER)
         text(resources.normal, 545, 64, '×', GOLD)
 
