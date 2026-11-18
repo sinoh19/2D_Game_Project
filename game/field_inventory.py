@@ -9,7 +9,7 @@ from game.items import BAG_SIZE, ITEMS, Equipment, Item
 from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
 
 BAG_SLOTS = tuple(slot_bounds(130, 130, 5, i) for i in range(BAG_SIZE))
-QUICK_SLOTS = ((130, 211, 165, 239), (171, 211, 206, 239), (212, 211, 247, 239))
+QUICK_SLOTS = tuple(slot_bounds(130, 211, 3, i) for i in range(3))
 CLOSE = (325, 65, 348, 88)
 PANEL = (106, 54, 353, 265)
 GEAR_PANEL = (359, 54, 531, 265)
@@ -34,7 +34,7 @@ class FieldInventory:
 
     def open(self):
         self.is_open = True
-        self.message = '드래그 또는 우클릭으로 단축 슬롯 등록'
+        self.message = '장비 드래그 장착 · 아이템 단축 등록'
 
     def close(self):
         self.is_open = False
@@ -131,6 +131,15 @@ class FieldInventory:
         if quick_target is not None:
             self.register(source, quick_target)
             return
+        gear_target = next((slot for slot, _, bounds in GEAR_ROWS
+                            if drawing.contains(bounds, x, y)), None)
+        if gear_target is not None:
+            item = ITEMS[self.bag[source]]
+            if isinstance(item, Equipment) and item.slot == gear_target:
+                self.apply(source, discard=False)
+            else:
+                self.message = '해당 장비 칸에 장착할 수 없습니다.'
+            return
         target = self.slot_at(x, y)
         if target is not None and target != source:
             self.bag[source], self.bag[target] = self.bag[target], self.bag[source]
@@ -168,9 +177,14 @@ class FieldInventory:
         drawing.black_overlay(.45)
         panel(GEAR_PANEL, (25, 25, 34), (92, 80, 68))
         drawing.text(resources.normal, 375, 77, '장비', GOLD)
+        dragged_item = ITEMS[self.bag[self.press[0]]] if self.drag is not None else None
         for slot, label, bounds in GEAR_ROWS:
             item = getattr(self.field.player, slot)
-            panel(bounds, (32, 33, 44), (66, 65, 77))
+            compatible_drop = (isinstance(dragged_item, Equipment)
+                               and dragged_item.slot == slot
+                               and drawing.contains(bounds, *self.drag))
+            panel(bounds, (39, 34, 42) if compatible_drop else (32, 33, 44),
+                  GOLD if compatible_drop else (66, 65, 77))
             left, top, _, _ = bounds
             panel((left + 6, top + 6, left + 36, top + 36),
                   (23, 24, 32), (98, 83, 64))
@@ -207,7 +221,7 @@ class FieldInventory:
             drawing.text(resources.small, bounds[0] + 2, bounds[1] + 12, str(index + 1), GOLD)
             if item_id:
                 icons[item_id].draw((bounds[0] + 23) * SCALE,
-                                    WINDOW_HEIGHT - (bounds[1] + 14) * SCALE,
+                                    WINDOW_HEIGHT - (bounds[1] + 18) * SCALE,
                                     22 * SCALE, 22 * SCALE)
         drawing.text(resources.small, 124, 257, self.message)
         if self.menu is not None:
