@@ -7,7 +7,7 @@ from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
 from game.items import BAG_SIZE, ITEMS, Equipment, Item
 from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
-from game.quick_slot_ui import draw_quick_slot, hit_quick_slot
+from game.quick_slot_ui import draw_bag_quick_slots, hit_quick_slot
 
 BAG_SLOTS = tuple(slot_bounds(130, 130, 5, i) for i in range(BAG_SIZE))
 QUICK_SLOTS = tuple(slot_bounds(130, 211, 3, i) for i in range(3))
@@ -214,13 +214,13 @@ class FieldInventory:
             selected = self.slot_at(*self.drag)
         icons = self.field.chests.icons
         slots(BAG_SLOTS, visible_bag, icons, resources.small, selected)
-        for index, bounds in enumerate(QUICK_SLOTS):
-            item_id = self.field.chests.quick_slots[index]
-            hover = (self.drag is not None
-                     and isinstance(ITEMS[self.bag[self.press[0]]], Item)
-                     and hit_quick_slot(bounds, *self.drag))
-            draw_quick_slot(bounds, resources.small, icons[item_id] if item_id else None,
-                            index + 1, hovered=hover)
+        quick_hover = None
+        if (self.drag is not None
+                and isinstance(ITEMS[self.bag[self.press[0]]], Item)):
+            quick_hover = next((index for index, bounds in enumerate(QUICK_SLOTS)
+                                if hit_quick_slot(bounds, *self.drag)), None)
+        draw_bag_quick_slots(self.field.field_quick_hud, QUICK_SLOTS, icons,
+                             self.field.chests.quick_slots, hovered=quick_hover)
         drawing.text(resources.small, 124, 273, self.message)
         if self.menu is not None:
             _, options = self.menu

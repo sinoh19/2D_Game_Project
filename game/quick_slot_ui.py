@@ -1,50 +1,36 @@
-"""Shared pixel frames for field and bag item quick slots."""
+"""The field HUD artwork reused for the bag's registered item slots."""
 
 from game import drawing
 from game.config import NATIVE_HEIGHT, SCALE
 
-GOLD = (174, 134, 81)
-GOLD_LIGHT = (224, 189, 121)
-INK = (16, 18, 29)
-
 
 def hit_quick_slot(bounds, x, y):
     left, top, right, bottom = bounds
-    badge_height = 9 if right - left >= 44 else 7
-    return drawing.contains((left, top, right, bottom + badge_height), x, y)
+    return drawing.contains((left, top, right, bottom + 7), x, y)
 
 
-def draw_quick_slot(bounds, font, icon, number, *, hovered=False):
-    left, top, right, bottom = bounds
+def draw_bag_quick_slots(sheet, bounds_list, icons, item_ids, *, hovered=None):
+    """Draw the same PixelLab frames, then full-size icons under the key badges."""
+    left, top = bounds_list[0][:2]
+    right = bounds_list[-1][2]
     width = right - left + 1
-    cx = (left + right) // 2
-    radius = 9 if width >= 44 else 7
+    height = round(57 * width / 155)
+    sheet.clip_draw(14, sheet.h - 90, 155, 57,
+                    round((left + width / 2) * SCALE),
+                    round((NATIVE_HEIGHT - top - height / 2) * SCALE),
+                    width * SCALE, height * SCALE)
 
-    drawing.rectangle((left + 2, top + 2, right + 2, bottom + 2),
-                      (8, 10, 17), filled=True)
-    drawing.rectangle(bounds, INK, filled=True)
-    drawing.rectangle(bounds, GOLD_LIGHT if hovered else GOLD)
-    drawing.rectangle((left + 3, top + 3, right - 3, bottom - 3),
-                      (19, 23, 34), filled=True)
-    drawing.rectangle((left + 3, top + 3, right - 3, bottom - 3), (52, 56, 73))
-    drawing.rectangle((left + 4, top + 4, right - 6, top + 5),
-                      (99, 109, 120), filled=True)
-    if icon is not None:
-        size = 27 if width >= 44 else 22
-        icon.draw(cx * SCALE, round((NATIVE_HEIGHT - (top + (bottom - top) * .43)) * SCALE),
-                  size * SCALE, size * SCALE)
-
-    # A stepped circular key cap straddles the middle of the slot's bottom edge.
-    drawing.rectangle((cx - radius + 3, bottom - radius, cx + radius - 3, bottom + radius),
-                      GOLD, filled=True)
-    drawing.rectangle((cx - radius, bottom - radius + 3, cx + radius, bottom + radius - 3),
-                      GOLD, filled=True)
-    drawing.rectangle((cx - radius + 4, bottom - radius + 2,
-                       cx + radius - 4, bottom + radius - 2), INK, filled=True)
-    drawing.rectangle((cx - radius + 2, bottom - radius + 4,
-                       cx + radius - 2, bottom + radius - 4), INK, filled=True)
-    drawing.rectangle((cx - 2, bottom - radius + 2, cx + 2, bottom - radius + 2),
-                      GOLD_LIGHT, filled=True)
-    label = str(number)
-    drawing.text(font, cx - font.measure(label)[0] / 2, bottom + 4,
-                 label, (237, 224, 196))
+    for index, (bounds, item_id) in enumerate(zip(bounds_list, item_ids)):
+        slot_left, slot_top, slot_right, _ = bounds
+        center_x = (slot_left + slot_right) / 2
+        if item_id is not None:
+            icons[item_id].draw(round(center_x * SCALE),
+                                round((NATIVE_HEIGHT - slot_top - 17.5) * SCALE),
+                                30 * SCALE, 30 * SCALE)
+        if hovered == index:
+            drawing.rectangle(bounds, (224, 189, 121))
+        # Repaint the original PixelLab badge above the icon, without shrinking it.
+        sheet.clip_draw(27 + index * 54, sheet.h - 89, 21, 21,
+                        round(center_x * SCALE),
+                        round((NATIVE_HEIGHT - top - round(45 * width / 155)) * SCALE),
+                        16 * SCALE, 16 * SCALE)
