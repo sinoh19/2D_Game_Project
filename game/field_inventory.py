@@ -7,12 +7,13 @@ from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
 from game.items import BAG_SIZE, ITEMS, Equipment, Item
 from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
+from game.quick_slot_ui import draw_quick_slot, hit_quick_slot
 
 BAG_SLOTS = tuple(slot_bounds(130, 130, 5, i) for i in range(BAG_SIZE))
 QUICK_SLOTS = tuple(slot_bounds(130, 211, 3, i) for i in range(3))
 CLOSE = (325, 65, 348, 88)
-PANEL = (106, 54, 353, 265)
-GEAR_PANEL = (359, 54, 531, 265)
+PANEL = (106, 54, 353, 283)
+GEAR_PANEL = (359, 54, 531, 283)
 GEAR_ROWS = (
     ('weapon', '무기', (369, 101, 521, 144)),
     ('armor', '방어구', (369, 155, 521, 198)),
@@ -127,7 +128,7 @@ class FieldInventory:
             return
         self.last_click = None
         quick_target = next((index for index, bounds in enumerate(QUICK_SLOTS)
-                             if drawing.contains(bounds, x, y)), None)
+                             if hit_quick_slot(bounds, x, y)), None)
         if quick_target is not None:
             self.register(source, quick_target)
             return
@@ -215,15 +216,12 @@ class FieldInventory:
         slots(BAG_SLOTS, visible_bag, icons, resources.small, selected)
         for index, bounds in enumerate(QUICK_SLOTS):
             item_id = self.field.chests.quick_slots[index]
-            hover = self.drag is not None and drawing.contains(bounds, *self.drag)
-            panel(bounds, (39, 31, 32) if item_id or hover else (17, 18, 25),
-                  GOLD if item_id or hover else (65, 66, 79))
-            drawing.text(resources.small, bounds[0] + 2, bounds[1] + 12, str(index + 1), GOLD)
-            if item_id:
-                icons[item_id].draw((bounds[0] + 23) * SCALE,
-                                    WINDOW_HEIGHT - (bounds[1] + 18) * SCALE,
-                                    22 * SCALE, 22 * SCALE)
-        drawing.text(resources.small, 124, 257, self.message)
+            hover = (self.drag is not None
+                     and isinstance(ITEMS[self.bag[self.press[0]]], Item)
+                     and hit_quick_slot(bounds, *self.drag))
+            draw_quick_slot(bounds, resources.small, icons[item_id] if item_id else None,
+                            index + 1, hovered=hover)
+        drawing.text(resources.small, 124, 273, self.message)
         if self.menu is not None:
             _, options = self.menu
             for label, bounds in options:

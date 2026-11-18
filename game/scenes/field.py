@@ -3,6 +3,7 @@ import math
 import pico2d as p2d
 from game import drawing
 from game.hp_ui import draw_hp_bar
+from game.quick_slot_ui import draw_quick_slot
 from game.config import ASSETS, SCALE
 from game.dungeon import Knight, get_assets
 from game.gates import SidePassages
@@ -349,17 +350,8 @@ class FieldScene:
             self.passages.draw_hint()
         for index, item_id in enumerate(self.chests.quick_slots):
             left = 8 + index * 52
-            drawing.rectangle((left, 286, left + 48, 330), (16, 18, 28), filled=True)
-            drawing.rectangle((left, 286, left + 48, 330),
-                              (190, 145, 82) if item_id else (89, 91, 105))
-            drawing.rectangle((left + 2, 288, left + 46, 328), (52, 58, 72))
-            drawing.text(self.app.resources.small, left + 4, 300,
-                         str(index + 1), (220, 182, 113))
-            if item_id is not None:
-                self.chests.icons[item_id].draw((left + 27) * SCALE,
-                                                (360 - 302) * SCALE, 25 * SCALE, 25 * SCALE)
-            drawing.text(self.app.resources.small, left + 3, 325,
-                         ITEMS[item_id].name if item_id else '빈 슬롯')
+            draw_quick_slot((left, 279, left + 44, 323), self.app.resources.small,
+                            self.chests.icons[item_id] if item_id else None, index + 1)
         draw_hp_bar(self.app.resources.small, 8, 334,
                     self.player.hp, self.player.max_hp, width=153)
         drawing.text(self.app.resources.small, 184, 351,
