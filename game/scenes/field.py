@@ -347,22 +347,27 @@ class FieldScene:
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()
-        draw_hp_bar(self.app.resources.small, 6, 6, self.player.hp, self.player.max_hp)
         for index, item_id in enumerate(self.chests.quick_slots):
-            left = 179 + index * 94
-            drawing.rectangle((left, 309, left + 90, 331), (24, 24, 33), filled=True)
-            drawing.rectangle((left, 309, left + 90, 331), (108, 85, 62))
-            drawing.text(self.app.resources.small, left + 5, 324, str(index + 1), (219, 177, 110))
+            left = 8 + index * 52
+            drawing.rectangle((left, 286, left + 48, 330), (16, 18, 28), filled=True)
+            drawing.rectangle((left, 286, left + 48, 330),
+                              (190, 145, 82) if item_id else (89, 91, 105))
+            drawing.rectangle((left + 2, 288, left + 46, 328), (52, 58, 72))
+            drawing.text(self.app.resources.small, left + 4, 300,
+                         str(index + 1), (220, 182, 113))
             if item_id is not None:
-                self.chests.icons[item_id].draw((left + 29) * SCALE,
-                                                (360 - 320) * SCALE, 19 * SCALE, 19 * SCALE)
-                drawing.text(self.app.resources.small, left + 41, 324, ITEMS[item_id].name)
-        drawing.rectangle((0, 334, 639, 359), (20, 19, 22), filled=True)
-        drawing.text(self.app.resources.small, 10, 352,
-                     '← → 이동   SPACE 점프   SHIFT 대시   C 공격   F 상호작용   Z 줍기   E 정보   I 가방   ESC 저장/메인')
+                self.chests.icons[item_id].draw((left + 27) * SCALE,
+                                                (360 - 302) * SCALE, 25 * SCALE, 25 * SCALE)
+            drawing.text(self.app.resources.small, left + 3, 325,
+                         ITEMS[item_id].name if item_id else '빈 슬롯')
+        draw_hp_bar(self.app.resources.small, 8, 334,
+                    self.player.hp, self.player.max_hp, width=153)
+        drawing.text(self.app.resources.small, 184, 351,
+                     'C 공격   F 상호작용   Z 줍기   I 가방   E 정보   ESC 메뉴')
         if self.map_notice_time>0:
-            drawing.rectangle((6,285,633,306),(20,22,28),filled=True)
-            drawing.text(self.app.resources.small,10,300,self.map_notice,(224,201,148))
+            drawing.rectangle((176, 305, 633, 329), (20, 22, 28), filled=True)
+            drawing.text(self.app.resources.small, 184, 322,
+                         self.map_notice, (224, 201, 148))
         self.chests.draw_loot()
         if self.inventory.is_open:
             self.inventory.draw()
