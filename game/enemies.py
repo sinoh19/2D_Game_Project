@@ -350,6 +350,9 @@ class LichArt:
     FRAME_WIDTH = 48
     FRAME_HEIGHT = 64
     FRAME_COUNT = 16
+    DEATH_FRAME_COUNT = 9
+    DEATH_FPS = 12
+    DEATH_DURATION = (DEATH_FRAME_COUNT - 1) / DEATH_FPS
     CAST_WIDTH = 72
     CAST_FRAMES = 13
     PROJECTILE_WIDTH = 28
@@ -381,6 +384,8 @@ class LichArt:
         # becomes gray in the reduced field sheet.
         self.melee_frames = [p2d.load_image(str(path)) for path in
                              sorted((folder / 'source_frames').glob('frame-*.png'))]
+        self.melee_death_frames = [p2d.load_image(str(path)) for path in
+                                   sorted((folder / 'death_source_frames').glob('frame-*.png'))]
         self.melee_cast_frames = [p2d.load_image(str(path)) for path in
                                   sorted((folder / 'cast_source_frames').glob('frame-*.png'))]
         self.melee_projectile_frames = [p2d.load_image(str(path)) for path in
@@ -388,6 +393,9 @@ class LichArt:
         if (len(self.melee_frames), len(self.melee_cast_frames),
                 len(self.melee_projectile_frames)) != (9, self.CAST_FRAMES, self.PROJECTILE_FRAMES):
             raise ValueError('리치 원본 애니메이션 프레임 수가 잘못되었습니다.')
+        if (len(self.melee_death_frames) != self.DEATH_FRAME_COUNT
+                or any((frame.w, frame.h) != (128, 171) for frame in self.melee_death_frames)):
+            raise ValueError('리치 사망 애니메이션 프레임 크기 또는 수가 잘못되었습니다.')
         projectile = p2d.load_image(str(folder / 'projectile.png'))
         if (projectile.w, projectile.h) != (self.PROJECTILE_WIDTH * self.PROJECTILE_FRAMES,
                                            self.PROJECTILE_HEIGHT):

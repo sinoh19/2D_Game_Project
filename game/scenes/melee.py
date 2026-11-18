@@ -237,7 +237,7 @@ class MeleeScene:
             self.update_enemy_attack(dt)
             return
         if self.attack_elapsed is None:
-            if self.death_elapsed is not None and self.death_elapsed >= (0.7 if self.is_lich else SlimeArt.DEATH_DURATION):
+            if self.death_elapsed is not None and self.death_elapsed >= (self.field.assets.lich_art.DEATH_DURATION if self.is_lich else SlimeArt.DEATH_DURATION):
                 if self.cause == 'debug':
                     self.app.show_title()
                     destination = self.app.scene
@@ -379,19 +379,23 @@ class MeleeScene:
                  guarded=self.attack_blocked, alpha=alpha)
 
     def draw_lich(self, art, zoom=1.0):
-        if self.death_elapsed is not None and self.death_elapsed >= 0.7:
+        if self.death_elapsed is not None and self.death_elapsed >= art.DEATH_DURATION:
             return
         hit_elapsed = (self.attack_elapsed - self.impact_time
                        if self.attack_elapsed is not None else -1)
         recoil = (12 * max(0.0, 1 - hit_elapsed / .24) ** 2
                   if hit_elapsed >= 0 and self.player_attack_landed else 0)
-        casting = self.enemy_elapsed is not None
-        frame = (min(Lich.CAST_FRAMES - 3, int(self.enemy_elapsed * Lich.CAST_FPS))
-                 if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
-        if casting:
+        casting = self.enemy_elapsed is not None and self.death_elapsed is None
+        if self.death_elapsed is not None:
+            frame = min(art.DEATH_FRAME_COUNT - 1, int(self.death_elapsed * art.DEATH_FPS))
+            sprite = art.melee_death_frames[frame]
+            width = art.FRAME_WIDTH
+        elif casting:
+            frame = min(Lich.CAST_FRAMES - 3, int(self.enemy_elapsed * Lich.CAST_FPS))
             sprite = art.melee_cast_frames[frame]
             width = art.CAST_WIDTH
         else:
+            frame = int(self.idle_elapsed * 10) % art.FRAME_COUNT
             hover_frame = frame if frame < len(art.melee_frames) else art.FRAME_COUNT - frame
             sprite = art.melee_frames[hover_frame]
             width = art.FRAME_WIDTH
