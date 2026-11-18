@@ -9,7 +9,7 @@ def hit_quick_slot(bounds, x, y):
     return drawing.contains((left, top, right, bottom + 7), x, y)
 
 
-def draw_bag_quick_slots(sheet, bounds_list, icons, item_ids, *, hovered=None):
+def draw_bag_quick_slots(sheet, badges, bounds_list, icons, item_ids, *, hovered=None):
     """Draw the same PixelLab frames, then full-size icons under the key badges."""
     left, top = bounds_list[0][:2]
     right = bounds_list[-1][2]
@@ -29,8 +29,8 @@ def draw_bag_quick_slots(sheet, bounds_list, icons, item_ids, *, hovered=None):
                                 30 * SCALE, 30 * SCALE)
         if hovered == index:
             drawing.rectangle(bounds, (224, 189, 121))
-        # Repaint the original PixelLab badge above the icon, without shrinking it.
-        sheet.clip_draw(27 + index * 54, sheet.h - 89, 21, 21,
-                        round(center_x * SCALE),
-                        round((NATIVE_HEIGHT - top - round(45 * width / 155)) * SCALE),
-                        16 * SCALE, 16 * SCALE)
+        # This separate sprite is transparent outside the round badge.
+        badges.clip_draw(index * 22, 0, 22, 22,
+                         round(center_x * SCALE),
+                         round((NATIVE_HEIGHT - top - round(45 * width / 155)) * SCALE),
+                         16 * SCALE, 16 * SCALE)

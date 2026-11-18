@@ -4,7 +4,7 @@ from time import monotonic
 import pico2d as p2d
 
 from game import drawing
-from game.config import SCALE, WINDOW_HEIGHT
+from game.config import ASSETS, SCALE, WINDOW_HEIGHT
 from game.items import BAG_SIZE, ITEMS, Equipment, Item
 from game.loot_ui import GOLD, draw_drag_icon, draw_item_tooltip, panel, slot_bounds, slots
 from game.quick_slot_ui import draw_bag_quick_slots, hit_quick_slot
@@ -25,6 +25,7 @@ class FieldInventory:
     def __init__(self, field):
         self.field = field
         self.bag = field.chests.bag
+        self.quick_badges = p2d.load_image(str(ASSETS / 'ui' / 'quick-slot-badges.png'))
         self.is_open = False
         self.menu = None
         self.message = ''
@@ -219,7 +220,7 @@ class FieldInventory:
                 and isinstance(ITEMS[self.bag[self.press[0]]], Item)):
             quick_hover = next((index for index, bounds in enumerate(QUICK_SLOTS)
                                 if hit_quick_slot(bounds, *self.drag)), None)
-        draw_bag_quick_slots(self.field.field_quick_hud, QUICK_SLOTS, icons,
+        draw_bag_quick_slots(self.field.field_quick_hud, self.quick_badges, QUICK_SLOTS, icons,
                              self.field.chests.quick_slots, hovered=quick_hover)
         drawing.text(resources.small, 124, 273, self.message)
         if self.menu is not None:
