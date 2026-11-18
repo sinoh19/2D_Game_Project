@@ -7,7 +7,7 @@ import pico2d as p2d
 
 from game import drawing
 from game.hp_ui import draw_hp_bar
-from game.combat import roll_player_damage
+from game.combat import apply_strength, roll_player_damage
 from game.config import ASSETS, NATIVE_HEIGHT, NATIVE_WIDTH, SCALE
 from game.dungeon import MERCENARY_REACTION_DURATION
 from game.enemies import Lich, LichImpact, Slime, SlimeArt
@@ -19,7 +19,7 @@ from game.pixel_style import simplify
 DIRECTIONS = ('상단', '중단', '하단')
 COMBAT_POPUP_SECONDS = .85
 DODGE_FADE_SECONDS = .24
-BUTTONS = ((270, 274, 407, 295), (270, 299, 407, 320), (270, 324, 407, 345))
+BUTTONS = ((16, 278, 91, 309), (96, 278, 171, 309), (176, 278, 251, 309))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
@@ -50,8 +50,7 @@ IMPACT_HIT_STOP = .075
 SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
-ITEM_BUTTON = (471, 292, 603, 328)
-LOG_ROWS = 3
+ITEM_BUTTON = (256, 278, 330, 309)
 USE_BUTTON = (359, 228, 429, 252)
 SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
@@ -93,6 +92,7 @@ class MeleeScene:
         self.field = field
         self.player = field.player
         self.enemy = enemy
+        self.inspected_enemy = enemy
         self.encounter_enemy = enemy
         self.active_enemy = None
         self.enemy_slots = [enemy, None, None]
@@ -120,7 +120,6 @@ class MeleeScene:
         self.enemy_impact_time = enemy.melee_impact_time
         self.enemy_attack_duration = enemy.melee_attack_duration
         self.log = []
-        self.log_offset = 0
         self.pointer = None
         if cause == 'debug':
             self.record('디버그 전투 시작')
@@ -147,6 +146,7 @@ class MeleeScene:
         self.item_message = ''
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
+        self.hud = p2d.load_image(str(ASSETS / 'ui' / 'pixellab-melee-hud.png'))
         character_art = ASSETS / 'dungeon' / 'character'
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
@@ -227,6 +227,8 @@ class MeleeScene:
         self.enemy_slots[0] = None
         self.death_elapsed = None
         self.set_front()
+        if self.inspected_enemy is fallen:
+            self.inspected_enemy = self.enemy_slots[0]
         if self.enemy_slots[0] is not None or self.reserve:
             if self.enemy_motions:
                 self.enemy_motion_next = 'start_turn'
@@ -244,10 +246,40 @@ class MeleeScene:
     def record(self, message):
         self.message = message
         self.log.append(message)
-        self.log_offset = 0
 
     def hovered(self, bounds):
         return self.pointer is not None and drawing.contains(bounds, *self.pointer)
+
+    def enemy_at(self, x, y):
+        zoom = self.impact_zoom()
+        for actor in self.enemy_slots:
+            if actor is None:
+                continue
+            half = 48 if isinstance(actor, Lich) else 31
+            top = FLOOR - (136 if isinstance(actor, Lich) else 70)
+            center_x, top = self.zoom_point(self.enemy_x(actor), top, zoom)
+            _, bottom = self.zoom_point(self.enemy_x(actor), FLOOR, zoom)
+            if abs(x - center_x) <= half * zoom and top <= y <= bottom:
+                return actor
+        return None
+
+    def enemy_status(self, actor):
+        statuses = []
+        if actor in self.recovering_slimes and actor in self.enemy_slots[1:]:
+            statuses.append('후열 회복 +4 HP/턴')
+        if actor is self.prepared_rear:
+            statuses.append('교대 준비')
+        if actor is self.enemy and self.support_bonus:
+            statuses.append(f'공격 지원 +{self.support_bonus}')
+        return ' · '.join(statuses) if statuses else '상태 없음'
+
+    @staticmethod
+    def fit_text(font, label, width):
+        if font.measure(label)[0] <= width:
+            return label
+        while label and font.measure(label + '…')[0] > width:
+            label = label[:-1]
+        return label + '…'
 
     def can_choose(self):
         return (self.attack_elapsed is None and self.enemy_elapsed is None
@@ -767,10 +799,6 @@ class MeleeScene:
                     self.save()
                     self.app.show_title()
                     self.fade_to(self.app.scene)
-            elif not self.bag_open and event.key == p2d.SDLK_PAGEUP:
-                self.log_offset = min(max(0, len(self.log) - LOG_ROWS), self.log_offset + LOG_ROWS)
-            elif not self.bag_open and event.key == p2d.SDLK_PAGEDOWN:
-                self.log_offset = max(0, self.log_offset - LOG_ROWS)
             elif event.key in KEYS:
                 self.choose_direction(KEYS.index(event.key))
             elif not self.bag_open and event.key in (p2d.SDLK_LEFT, p2d.SDLK_a):
@@ -786,7 +814,12 @@ class MeleeScene:
                 if drawing.contains(bounds, x, y):
                     self.app.battle_speed = speed
                     return
-            if drawing.contains(ITEM_BUTTON, x, y) and self.can_choose():
+            if y < FLOOR:
+                actor = self.enemy_at(x, y)
+                if actor is not None:
+                    self.inspected_enemy = actor
+                    return
+            if drawing.contains(ITEM_BUTTON, x, y) and self.can_act():
                 self.bag_open = True
                 self.item_selection = None
                 if not any(self.field.inventory.bag):
@@ -832,36 +865,143 @@ class MeleeScene:
 
     def draw_slots(self, zoom):
         for slot, x in enumerate(PLAYER_SLOTS):
-            left, top = self.zoom_point(x - 22, FLOOR + 2, zoom)
+            left, top = self.zoom_point(x - 22, FLOOR - 8, zoom)
             drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
                               GOLD if slot == self.player_slot else (91, 91, 105), filled=True)
         for slot, x in enumerate(ENEMY_SLOTS):
-            left, top = self.zoom_point(x - 22, FLOOR + 2, zoom)
+            left, top = self.zoom_point(x - 22, FLOOR - 8, zoom)
             drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
                               (91, 91, 105), filled=True)
 
-    def draw_enemy_hp(self, zoom):
+    def draw_selection(self, zoom):
+        actor = self.inspected_enemy
+        if actor is None or actor not in self.enemy_slots:
+            return
+        x = self.enemy_x(actor)
+        if x < -48 or x > NATIVE_WIDTH + 48:
+            return
+        half = 46 if isinstance(actor, Lich) else 29
+        top = FLOOR - (136 if isinstance(actor, Lich) else 68)
+        for side in (-1, 1):
+            for edge_y, vertical in ((top, 1), (FLOOR - 13, -1)):
+                corner_x, corner_y = self.zoom_point(x + side * half, edge_y, zoom)
+                inner_x = corner_x - side * 8 * zoom
+                drawing.rectangle((min(corner_x, inner_x), corner_y,
+                                   max(corner_x, inner_x), corner_y + 2 * zoom),
+                                  GOLD, filled=True)
+                vertical_x = corner_x if side < 0 else corner_x - 2 * zoom
+                drawing.rectangle((vertical_x,
+                                   corner_y if vertical > 0 else corner_y - 8 * zoom,
+                                   vertical_x + 2 * zoom,
+                                   corner_y + 8 * zoom if vertical > 0 else corner_y),
+                                  GOLD, filled=True)
+
+    def draw_enemy_hp(self):
         small = self.app.resources.small
         for actor in self.enemy_slots:
             if actor is None:
                 continue
-            x = self.enemy_x(actor)
+            slot = self.enemy_slots.index(actor)
+            x = (ENEMY_SLOTS[slot] if actor is self.active_enemy and self.enemy_elapsed is not None
+                 else self.enemy_x(actor))
             if x < -28 or x > NATIVE_WIDTH + 28:
                 continue
-            x, y = self.zoom_point(x, FLOOR + 11, zoom)
-            half = 27 * zoom
-            top, bottom = y - 7 * zoom, y + 7 * zoom
-            drawing.rectangle((x - half, top, x + half, bottom), (27, 24, 32), filled=True)
-            drawing.rectangle((x - half + zoom, top + zoom, x + half - zoom, bottom - zoom),
+            y = FLOOR + 11
+            half = 27
+            top, bottom = y - 7, y + 7
+            drawing.rectangle((x - half, top, x + half, bottom),
+                              GOLD if actor is self.inspected_enemy else (90, 80, 80), filled=True)
+            drawing.rectangle((x - half + 1, top + 1, x + half - 1, bottom - 1),
                               (69, 37, 43), filled=True)
-            fill = (2 * half - 4 * zoom) * max(0, actor.hp) / actor.max_hp
+            fill = (2 * half - 4) * max(0, actor.hp) / actor.max_hp
             if fill > 0:
-                drawing.rectangle((x - half + 2 * zoom, top + 2 * zoom,
-                                   x - half + 2 * zoom + fill, bottom - 2 * zoom),
+                drawing.rectangle((x - half + 2, top + 2,
+                                   x - half + 2 + fill, bottom - 2),
                                   (179, 57, 72), filled=True)
             label = f'{actor.hp}/{actor.max_hp}'
             centered(small, x + 1, y + 1, label, (30, 17, 23))
             centered(small, x, y, label, (250, 240, 223))
+
+    def draw_combat_hud(self):
+        small = self.app.resources.small
+        ivory = (240, 231, 207)
+        muted = (181, 174, 169)
+        drawing.text(small, 20, 251, self.fit_text(small, self.message, 317), ivory)
+
+        if self.player.hp == 0:
+            heading = '전투 패배 · ESC 메인'
+        elif self.enemy_direction is not None and self.active_enemy in self.enemy_slots:
+            slot = self.enemy_slots.index(self.active_enemy) + 1
+            heading = f'공격 중: {slot}번 칸 {self.active_enemy.melee_name} · 방어 방향 선택'
+        elif self.enemy_motions:
+            heading = '몬스터 이동 중'
+        elif self.attack_elapsed is not None:
+            heading = '내 턴 · 공격 진행 중'
+        else:
+            heading = '내 턴 · 행동 선택'
+        drawing.text(small, 16, 270, self.fit_text(small, heading, 315), GOLD)
+
+        can_choose = not self.bag_open and self.can_choose()
+        guarding = self.enemy_direction is not None
+        for index, (bounds, direction) in enumerate(zip(BUTTONS, DIRECTIONS)):
+            left, top, right, bottom = bounds
+            highlighted = ((can_choose and self.hovered(bounds))
+                           or ((self.attack_elapsed is not None or self.enemy_elapsed is not None)
+                               and self.selected == index))
+            if highlighted:
+                drawing.rectangle(bounds, GOLD)
+            color = ivory if can_choose else muted
+            if guarding and self.enemy_forecast is not None:
+                centered(small, (left + right) / 2, top + 10, f'{direction} 방어', color)
+                centered(small, (left + right) / 2, top + 22,
+                         f'{self.enemy_forecast[index]:.1%}', GOLD)
+            else:
+                centered(small, (left + right) / 2, (top + bottom) / 2,
+                         f'{direction} 공격', color)
+        if can_choose and not guarding and self.hovered(ITEM_BUTTON):
+            drawing.rectangle(ITEM_BUTTON, GOLD)
+        centered(small, 293, 293, '아이템', ivory if can_choose and not guarding else muted)
+
+        base = self.player.base_attack
+        strength = self.player.stat_value('strength')
+        luck = self.player.stat_value('luck')
+        agility = self.player.stat_value('agility')
+        middle = apply_strength(base, strength) if base else 0
+        damage = f'{max(0, middle - 2)}~{middle + 2}' if base else '0'
+        critical = min(200, max(0, 4 + luck)) / 2 if base else 0
+        dodge = min(250, max(0, 5 * agility + luck)) / 10
+        drawing.text(small, 20, 326, '용병', ivory)
+        drawing.text(small, 20, 340, f'HP {self.player.hp}/{self.player.max_hp}', ivory)
+        drawing.text(small, 116, 326, f'공격력 {damage}', ivory)
+        drawing.text(small, 116, 340, f'치명타 {critical:.1f}%', ivory)
+        drawing.text(small, 230, 326, f'회피 {dodge:.1f}%', ivory)
+        drawing.text(small, 230, 340, f'{self.player_slot + 1}번 칸 · ← → 이동', muted)
+
+        actor = self.inspected_enemy
+        if actor is None or actor not in self.enemy_slots:
+            actor = self.enemy_slots[0]
+            self.inspected_enemy = actor
+        drawing.text(small, 352, 270, '선택한 몬스터', GOLD)
+        if actor is None:
+            drawing.text(small, 353, 286, '선택한 몬스터 없음', muted)
+            return
+        slot = self.enemy_slots.index(actor)
+        centered(small, 489, 285, f'{actor.melee_name} · {slot + 1}번 칸', ivory)
+        target_label = ('기본 공격 대상' if slot == 0 else
+                        '정보 확인 중 · 기본 공격 대상 아님')
+        drawing.text(small, 358, 300, target_label, ivory if slot == 0 else (222, 174, 145))
+        drawing.text(small, 352, 317, 'HP', ivory)
+        if actor.hp > 0:
+            drawing.rectangle((377, 313, 377 + 244 * actor.hp / actor.max_hp, 319),
+                              (156, 54, 70), filled=True)
+        centered(small, 500, 316, f'{actor.hp}/{actor.max_hp}', ivory)
+        for cx, name, attribute in ((382, '힘', 'strength'), (451, '민첩', 'agility'),
+                                    (520, '지능', 'intelligence'), (589, '운', 'luck')):
+            value = getattr(actor, attribute, '—')
+            centered(small, cx, 331, f'{name} {value}', ivory)
+        drawing.text(small, 353, 345, '상태·버프', GOLD)
+        drawing.text(small, 422, 345, self.fit_text(small, self.enemy_status(actor), 128),
+                     (168, 211, 169))
 
     def draw(self):
         width, height = NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE
@@ -871,18 +1011,22 @@ class MeleeScene:
                              round(width * zoom), round(height * zoom))
         draw_battle_flames(self.field.assets, self.idle_elapsed,
                            zoom=zoom, transform=self.zoom_point)
-        self.draw_slots(zoom)
         impact = ((zoom - 1) / SLASH_ZOOM_FACTOR if self.enemy_elapsed is not None
                   else self.slash_impact_strength())
         if impact:
             drawing.black_overlay(.38 * impact)
+        self.hud.draw(320 * SCALE, (NATIVE_HEIGHT - 300) * SCALE,
+                      NATIVE_WIDTH * SCALE, 120 * SCALE)
+        self.draw_slots(zoom)
         if self.attack_elapsed is not None:
             self.draw_enemies(zoom)
             self.draw_mercenary(zoom)
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
-        self.draw_enemy_hp(zoom)
+        self.draw_selection(zoom)
+        self.draw_combat_hud()
+        self.draw_enemy_hp()
         if self.hit_stop_left > 0:
             # Stepped highlight at the point of contact, on the logical pixel grid.
             x, y = ((self.player_x + 9, FLOOR - 51) if self.player_in_hit_stop()
@@ -913,52 +1057,7 @@ class MeleeScene:
                   GOLD if highlighted else (76, 75, 86))
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
-        centered(small, 320, 29, '근접 전투')
         count = sum(actor is not None for actor in self.enemy_slots)
-        drawing.text(small, 470, 29, f'{self.enemy_name} HP {self.enemy.hp}/{self.enemy.max_hp} ({count})')
-
-        line = (76, 75, 86)
-        panel((17, 264, 258, 348), (23, 24, 32), line)
-        drawing.text(normal, 29, 277, '전투 로그', GOLD)
-        if len(self.log) > LOG_ROWS:
-            drawing.text(small, 180, 277, 'PgUp / PgDn', (163, 161, 173))
-        drawing.rectangle((28, 288, 247, 288), line, filled=True)
-        end = len(self.log) - self.log_offset
-        for row, entry in enumerate(self.log[max(0, end - LOG_ROWS):end]):
-            drawing.text(small, 29, 299 + row * 16, entry, (228, 216, 187))
-        if self.attack_elapsed is not None:
-            instruction = '공격 진행 중'
-        elif self.move_elapsed is not None:
-            instruction = '이동 진행 중'
-        elif self.enemy_motions:
-            instruction = '몬스터 이동 중'
-        elif self.enemy_elapsed is not None:
-            instruction = f'{self.active_enemy.melee_name} 공격 진행 중'
-        elif self.player.hp == 0:
-            instruction = '전투 패배  /  ESC 메인'
-        elif self.enemy_direction is not None:
-            instruction = '상대 턴  /  방어 방향 선택'
-        elif self.enemy.hp == 0:
-            instruction = '전투 승리  /  ESC 메인'
-        else:
-            instruction = '내 턴 / 공격 선택 · ← → 이동'
-        centered(small, 339, 263, instruction)
-        can_choose = not self.bag_open and self.can_choose()
-        action = '방어' if self.enemy_direction is not None else '공격'
-        for index, (bounds, label) in enumerate(zip(BUTTONS, DIRECTIONS)):
-            left, top, right, bottom = bounds
-            active = can_choose and self.hovered(bounds)
-            panel(bounds, (67, 48, 35) if active else (30, 33, 44), GOLD if active else line)
-            drawing.text(small, left + 11, top + 10, str(index + 1),
-                         GOLD if active else (172, 174, 184))
-            caption = f'{label} {action}'
-            if can_choose and self.enemy_forecast is not None:
-                caption += f'  {self.enemy_forecast[index]:.1%}'
-            centered(small, (left + right) / 2 + 5, (top + bottom) / 2, caption)
-
-        item_hover = can_choose and self.hovered(ITEM_BUTTON)
-        panel(ITEM_BUTTON, (67, 48, 35) if item_hover else (31, 34, 45),
-              GOLD if item_hover else line)
-        centered(normal, 537, 310, '아이템')
+        centered(small, 568, 29, f'적 {count}마리 · 앞칸 {self.enemy_name}')
         if self.bag_open:
             self.draw_bag()
