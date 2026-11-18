@@ -23,6 +23,7 @@ BUTTONS = ((16, 278, 91, 309), (96, 278, 171, 309), (176, 278, 251, 309))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
+HUD_TOP = FLOOR + 1
 HOME_X = 215
 PLAYER_SLOTS = (125, 170, HOME_X)
 ENEMY_SLOTS = (425, 485, 545)
@@ -1015,8 +1016,8 @@ class MeleeScene:
                   else self.slash_impact_strength())
         if impact:
             drawing.black_overlay(.38 * impact)
-        self.hud.draw(320 * SCALE, (NATIVE_HEIGHT - 300) * SCALE,
-                      NATIVE_WIDTH * SCALE, 120 * SCALE)
+        self.hud.draw(320 * SCALE, round((NATIVE_HEIGHT - HUD_TOP - self.hud.h / 2) * SCALE),
+                      NATIVE_WIDTH * SCALE, self.hud.h * SCALE)
         self.draw_slots(zoom)
         if self.attack_elapsed is not None:
             self.draw_enemies(zoom)
