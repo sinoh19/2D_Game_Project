@@ -152,17 +152,17 @@ class FieldInventory:
         drawing.text(resources.normal, 375, 77, '장비', GOLD)
         for slot, label, bounds in GEAR_ROWS:
             item = getattr(self.field.player, slot)
-            if item is None:
-                continue
             panel(bounds, (32, 33, 44), (66, 65, 77))
             left, top, _, _ = bounds
             panel((left + 6, top + 6, left + 36, top + 36),
                   (23, 24, 32), (98, 83, 64))
-            self.field.chests.icons[item.id].draw(
-                (left + 21) * SCALE, WINDOW_HEIGHT - (top + 21) * SCALE,
-                28 * SCALE, 28 * SCALE)
+            if item is not None:
+                self.field.chests.icons[item.id].draw(
+                    (left + 21) * SCALE, WINDOW_HEIGHT - (top + 21) * SCALE,
+                    28 * SCALE, 28 * SCALE)
             drawing.text(resources.small, left + 44, top + 14, label, GOLD)
-            drawing.text(resources.small, left + 44, top + 31, item.name)
+            drawing.text(resources.small, left + 44, top + 31,
+                         item.name if item is not None else '빈 슬롯')
         panel(PANEL, (25, 25, 34), (92, 80, 68))
         drawing.text(resources.normal, 124, 77, '가방', GOLD)
         drawing.text(resources.small, 279, 77, 'I / ESC')
