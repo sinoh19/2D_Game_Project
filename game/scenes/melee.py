@@ -1085,5 +1085,3 @@ class MeleeScene:
                   GOLD if highlighted else (76, 75, 86))
             centered(small, (left + right) / 2, (top + bottom) / 2, f'x{speed}')
         draw_hp_bar(small, 20, 22, self.player.hp, self.player.max_hp)
-        count = sum(actor is not None for actor in self.enemy_slots)
-        centered(small, 568, 29, f'적 {count}마리 · 앞칸 {self.enemy_name}')
