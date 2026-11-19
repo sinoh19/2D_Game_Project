@@ -998,6 +998,7 @@ class MeleeScene:
             self.inspected_enemy = actor
         if actor is None:
             return
+        centered(small, 489, 285, actor.melee_name, ivory)
         drawing.text(small, 352, 317, 'HP', ivory)
         if actor.hp > 0:
             drawing.rectangle((377, 313, 377 + 244 * actor.hp / actor.max_hp, 319),

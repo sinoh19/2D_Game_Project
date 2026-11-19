@@ -49,6 +49,11 @@ class FieldInventory:
         if event.button == p2d.SDL_BUTTON_RIGHT:
             self.cancel_drag()
             self.menu = None
+            quick_index = next((index for index, bounds in enumerate(QUICK_SLOTS)
+                                if hit_quick_slot(bounds, x, y)), None)
+            if quick_index is not None:
+                _, self.message = self.field.chests.return_quick_slot(quick_index)
+                return
             for index, bounds in enumerate(BAG_SLOTS):
                 if self.bag[index] is not None and drawing.contains(bounds, x, y):
                     item = ITEMS[self.bag[index]]
@@ -104,7 +109,7 @@ class FieldInventory:
         item_id = self.bag[bag_index]
         if not isinstance(ITEMS.get(item_id), Item):
             self.message = '사용 아이템만 단축 슬롯에 등록할 수 있습니다.'
-        elif self.field.chests.register_quick_slot(quick_index, item_id):
+        elif self.field.chests.register_quick_slot(quick_index, item_id, bag_index):
             self.message = f'{quick_index + 1}번 등록  ·  {ITEMS[item_id].name}'
 
     def cancel_drag(self):
@@ -233,6 +238,13 @@ class FieldInventory:
         elif self.menu is None and hovered is not None and self.pointer is not None:
             draw_item_tooltip(resources, ITEMS[self.bag[hovered]], self.pointer)
         elif self.menu is None and self.pointer is not None:
+            quick_index = next((index for index, bounds in enumerate(QUICK_SLOTS)
+                                if hit_quick_slot(bounds, *self.pointer)), None)
+            if quick_index is not None:
+                item_id = self.field.chests.quick_slots[quick_index]
+                if item_id is not None:
+                    draw_item_tooltip(resources, ITEMS[item_id], self.pointer)
+                return
             slot = self.gear_at(*self.pointer)
             equipped = getattr(self.field.player, slot) if slot else None
             if equipped is not None:

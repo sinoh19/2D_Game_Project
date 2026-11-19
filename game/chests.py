@@ -55,8 +55,15 @@ class TreasureChests:
         saved_slots = data.get('quick_slots', [])
         saved_slots = saved_slots if isinstance(saved_slots, list) else []
         self.quick_slots = [item if isinstance(item, str) and isinstance(ITEMS.get(item), Item)
-                            and item in self.bag else None for item in saved_slots[:3]]
+                            else None for item in saved_slots[:3]]
         self.quick_slots.extend([None] * (3 - len(self.quick_slots)))
+        if data.get('quick_slot_storage') != 1:
+            # Legacy slots referenced bag items; transfer each owned copy once.
+            for index, item_id in enumerate(self.quick_slots):
+                if item_id is not None and item_id in self.bag:
+                    self.bag[self.bag.index(item_id)] = None
+                else:
+                    self.quick_slots[index] = None
         raw_contents = data.get('contents', {}) if data.get('scene') == self.map_id else {}
         if not isinstance(raw_contents, dict):
             raw_contents = {}
@@ -240,30 +247,42 @@ class TreasureChests:
             if chest.elapsed is not None:
                 chest.elapsed = min(OPEN_TIME, chest.elapsed + dt)
 
-    def register_quick_slot(self, index, item_id):
+    def register_quick_slot(self, index, item_id, bag_index=None):
         if not 0 <= index < 3 or not isinstance(ITEMS.get(item_id), Item) or item_id not in self.bag:
             return False
-        for slot, registered in enumerate(self.quick_slots):
-            if registered == item_id:
-                self.quick_slots[slot] = None
+        if bag_index is None:
+            bag_index = self.bag.index(item_id)
+        if not 0 <= bag_index < len(self.bag) or self.bag[bag_index] != item_id:
+            return False
+        self.bag[bag_index] = self.quick_slots[index]
         self.quick_slots[index] = item_id
         self.save()
         return True
 
+    def return_quick_slot(self, index):
+        item_id = self.quick_slots[index]
+        if item_id is None:
+            return False, '주머니가 비어 있습니다.'
+        if None not in self.bag:
+            return False, '가방에 빈 슬롯이 없습니다.'
+        self.bag[self.bag.index(None)] = item_id
+        self.quick_slots[index] = None
+        self.save()
+        return True, f'{ITEMS[item_id].name}을(를) 가방에 옮겼습니다.'
+
     def sync_quick_slots(self):
         for index, item_id in enumerate(self.quick_slots):
-            if item_id is not None and item_id not in self.bag:
+            if item_id is not None and not isinstance(ITEMS.get(item_id), Item):
                 self.quick_slots[index] = None
 
     def use_quick_slot(self, index, *, persist=True):
         item_id = self.quick_slots[index]
-        if item_id is None or item_id not in self.bag:
+        if not isinstance(ITEMS.get(item_id), Item):
             self.sync_quick_slots()
             return False, '등록된 아이템이 없습니다.'
         consumed, message = ITEMS[item_id].use(self.field.player)
         if consumed:
-            self.bag[self.bag.index(item_id)] = None
-            self.sync_quick_slots()
+            self.quick_slots[index] = None
             if persist:
                 self.save()
         return consumed, message
@@ -275,6 +294,7 @@ class TreasureChests:
         self.field.app.storage.write('chests.json', {
             'scene': self.map_id, 'opened': opened, 'looted': looted, 'bag': self.bag,
             'quick_slots': self.quick_slots,
+            'quick_slot_storage': 1,
             'contents': self.contents, 'starterChestPrepared': self.starter_chest_prepared,
             'accessory': self.field.player.accessory.id if self.field.player.accessory else None,
             'weapon': self.field.player.weapon.id if self.field.player.weapon else None,
