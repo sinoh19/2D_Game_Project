@@ -14,11 +14,12 @@ from game.enemies import Lich, LichImpact, Slime, SlimeArt
 from game.items import ITEMS
 from game.loot_ui import panel
 from game.pixel_style import simplify
+from game.quick_slot_ui import draw_bag_quick_slots
 
 DIRECTIONS = ('상단', '중단', '하단')
 COMBAT_POPUP_SECONDS = .85
 DODGE_FADE_SECONDS = .24
-BUTTONS = ((16, 278, 91, 309), (96, 278, 171, 309), (176, 278, 251, 309))
+BUTTONS = ((170, 275, 205, 310), (211, 275, 246, 310), (252, 275, 287, 310))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
@@ -50,7 +51,7 @@ IMPACT_HIT_STOP = .075
 SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
-ITEM_BUTTON = (256, 278, 330, 309)
+ITEM_BUTTON = (295, 275, 330, 310)
 SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
 SLIME_LAND_TIME = .62
@@ -145,6 +146,7 @@ class MeleeScene:
         self.selected = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         self.hud = p2d.load_image(str(ASSETS / 'ui' / 'pixellab-melee-hud.png'))
+        self.switch_icon = p2d.load_image(str(ASSETS / 'ui' / 'battle-switch.png'))
         character_art = ASSETS / 'dungeon' / 'character'
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
@@ -863,53 +865,82 @@ class MeleeScene:
             centered(small, x + 1, y + 1, label, (30, 17, 23))
             centered(small, x, y, label, (250, 240, 223))
 
+    def attack_hit_chance(self):
+        if self.player.base_attack == 0:
+            return 0.0
+        if self.debug_critical_pending:
+            return 1.0
+        dodge = (0.0 if self.is_lich else
+                 min(250, 5 * self.enemy.agility + self.enemy.luck) / 1000)
+        return (2 / 3) * (1 - dodge)
+
+    def action_preview(self):
+        hovered_index = next((index for index, bounds in enumerate(BUTTONS)
+                              if self.hovered(bounds)), None)
+        index = hovered_index if hovered_index is not None else self.selected
+        if self.player.hp == 0:
+            return '전투 패배', 'ESC를 눌러 메인으로 이동', ''
+        if self.enemy_direction is not None:
+            probability = (self.enemy_forecast[index] if self.enemy_forecast else 1 / 3)
+            return f'{DIRECTIONS[index]} 방어', f'예측 확률 {probability:.1%}', '상대 공격 방향 선택'
+        if self.enemy_motions:
+            return '몬스터 이동 중', '이동이 끝나면 행동 선택', ''
+        if self.attack_elapsed is not None:
+            return f'{DIRECTIONS[self.selected]} 공격', '공격 진행 중', ''
+        if self.hovered(ITEM_BUTTON) and self.can_act():
+            return ('공격으로 전환' if self.item_page else '아이템으로 전환',
+                    '선택 화면을 바꿉니다', '')
+        if self.item_page:
+            if hovered_index is None:
+                index = next((slot for slot, item in enumerate(self.field.chests.quick_slots)
+                              if item is not None), 0)
+            item_id = self.field.chests.quick_slots[index]
+            if item_id is None:
+                return '아이템 선택', self.item_message or '등록된 아이템이 없습니다', '가방에서 1·2·3번에 등록'
+            item = ITEMS[item_id]
+            return item.name, self.item_message or item.description, '내 턴에 사용'
+        target = self.enemy_name if self.enemy_slots[0] is not None else '대상 없음'
+        return (f'{DIRECTIONS[index]} 공격', f'적중 확률 {self.attack_hit_chance():.1%}',
+                f'앞칸 {target} 대상')
+
     def draw_combat_hud(self):
         small = self.app.resources.small
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
-
-        if self.player.hp == 0:
-            heading = '전투 패배 · ESC 메인'
-        elif self.enemy_direction is not None and self.active_enemy in self.enemy_slots:
-            slot = self.enemy_slots.index(self.active_enemy) + 1
-            heading = f'공격 중: {slot}번 칸 {self.active_enemy.melee_name} · 방어 방향 선택'
-        elif self.enemy_motions:
-            heading = '몬스터 이동 중'
-        elif self.attack_elapsed is not None:
-            heading = '내 턴 · 공격 진행 중'
-        else:
-            heading = (self.item_message or '내 턴 · 아이템 선택') if self.item_page else '내 턴 · 행동 선택'
-        drawing.text(small, 16, 270, self.fit_text(small, heading, 315), GOLD)
+        drawing.rectangle((16, 275, 330, 315), (29, 29, 41), filled=True)
+        title, detail, note = self.action_preview()
+        drawing.text(small, 16, 270, self.fit_text(small, title, 140), GOLD)
+        drawing.text(small, 16, 291, self.fit_text(small, detail, 140), ivory)
+        if note:
+            drawing.text(small, 16, 305, self.fit_text(small, note, 140), muted)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
+        displayed_items = (self.field.chests.quick_slots if self.item_page and not guarding
+                           else (None, None, None))
+        hover_index = next((index for index, bounds in enumerate(BUTTONS)
+                            if can_choose and self.hovered(bounds)), None)
+        draw_bag_quick_slots(self.field.field_quick_hud, self.field.inventory.quick_badges,
+                             BUTTONS, self.field.chests.icons, displayed_items, hovered=hover_index)
         for index, (bounds, direction) in enumerate(zip(BUTTONS, DIRECTIONS)):
             left, top, right, bottom = bounds
-            highlighted = ((can_choose and self.hovered(bounds))
-                           or ((self.attack_elapsed is not None or self.enemy_elapsed is not None)
-                               and self.selected == index))
-            if highlighted:
+            if ((self.attack_elapsed is not None or self.enemy_elapsed is not None)
+                    and self.selected == index):
                 drawing.rectangle(bounds, GOLD)
             color = ivory if can_choose else muted
             if self.item_page and not guarding:
-                item_id = self.field.chests.quick_slots[index]
-                if item_id is not None:
-                    self.field.chests.icons[item_id].draw((left + 18) * SCALE,
-                        (NATIVE_HEIGHT - (top + 15)) * SCALE, 22 * SCALE, 22 * SCALE)
-                label = ITEMS[item_id].name if item_id else '비어 있음'
-                drawing.text(small, left + 31, top + 19, self.fit_text(small, label, 42), color)
-                drawing.text(small, left + 5, top + 19, str(index + 1), GOLD)
-            elif guarding and self.enemy_forecast is not None:
-                centered(small, (left + right) / 2, top + 10, f'{direction} 방어', color)
+                continue
+            if guarding and self.enemy_forecast is not None:
+                centered(small, (left + right) / 2, top + 11, direction, color)
                 centered(small, (left + right) / 2, top + 22,
                          f'{self.enemy_forecast[index]:.1%}', GOLD)
             else:
-                centered(small, (left + right) / 2, (top + bottom) / 2,
-                         f'{direction} 공격', color)
-        if can_choose and not guarding and self.hovered(ITEM_BUTTON):
-            drawing.rectangle(ITEM_BUTTON, GOLD)
-        centered(small, 293, 293, '공격' if self.item_page else '아이템',
-                 ivory if can_choose and not guarding else muted)
+                centered(small, (left + right) / 2, top + 17, direction, color)
+        panel(ITEM_BUTTON, (21, 23, 33),
+              GOLD if can_choose and not guarding and self.hovered(ITEM_BUTTON) else (76, 75, 86))
+        self.switch_icon.draw(round((ITEM_BUTTON[0] + ITEM_BUTTON[2]) / 2 * SCALE),
+                              round((NATIVE_HEIGHT - (ITEM_BUTTON[1] + ITEM_BUTTON[3]) / 2) * SCALE),
+                              24 * SCALE, 24 * SCALE)
 
         base = self.player.base_attack
         strength = self.player.stat_value('strength')

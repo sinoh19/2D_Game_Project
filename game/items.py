@@ -24,6 +24,7 @@ class Item:
     name: str
     icon: str
     use: Callable[[object], tuple[bool, str]]
+    description: str = ''
 
 
 @dataclass(frozen=True)
@@ -90,7 +91,7 @@ def heal(player):
     return True, f'회복 포션 사용  ·  HP +{amount}'
 
 
-ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal), SWORD: STARTER_SWORD,
+ITEMS = {POTION: Item('회복 포션', 'health-potion.png', heal, 'HP를 최대 10 회복'), SWORD: STARTER_SWORD,
          LEATHER_ARMOR: STARTER_ARMOR, **STARTING_RINGS}
 
 
