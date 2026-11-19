@@ -700,6 +700,17 @@ class MeleeScene:
     def player_in_hit_stop(self):
         return self.enemy_elapsed is not None and self.hit_stop_left > 0
 
+    def player_draw_x(self):
+        elapsed = self.attack_elapsed
+        if elapsed is None:
+            return self.player_x
+        if elapsed < WALK_SECONDS:
+            return self.player_x + (STRIKE_X - self.player_x) * elapsed / WALK_SECONDS
+        if elapsed < WALK_SECONDS + self.attack_duration:
+            return STRIKE_X
+        progress = min(1.0, (elapsed - WALK_SECONDS - self.attack_duration) / WALK_SECONDS)
+        return STRIKE_X + (self.player_x - STRIKE_X) * progress
+
     def draw_mercenary(self, zoom=1.0):
         if (self.enemy_elapsed is not None and self.enemy_elapsed >= self.enemy_impact_time
                 and not self.enemy_attack_evaded):
@@ -712,21 +723,20 @@ class MeleeScene:
                                                      actor_scale=2 * zoom, guarded=guarded)
                 return
         elapsed = self.attack_elapsed
+        x = self.player_draw_x()
         if elapsed is None:
             if self.move_elapsed is not None:
-                clip, time, x = 'walk', self.move_elapsed, self.player_x
+                clip, time = 'walk', self.move_elapsed
                 facing = 1 if self.move_to > self.move_from else -1
             else:
-                clip, time, x, facing = 'idle', self.idle_elapsed, self.player_x, 1
+                clip, time, facing = 'idle', self.idle_elapsed, 1
         elif elapsed < WALK_SECONDS:
             clip, time, facing = 'walk', elapsed, 1
-            x = self.player_x + (STRIKE_X - self.player_x) * elapsed / WALK_SECONDS
         elif elapsed < WALK_SECONDS + self.attack_duration:
             clip = 'attack'
-            time, x, facing = self.slash_attack_time(elapsed - WALK_SECONDS), STRIKE_X, 1
+            time, facing = self.slash_attack_time(elapsed - WALK_SECONDS), 1
         else:
             clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
-            x = STRIKE_X - (STRIKE_X - self.player_x) * time / WALK_SECONDS
         x, y = self.zoom_point(x, FLOOR, zoom)
         if time is None:
             if self.selected != UPPER_ATTACK:
@@ -991,7 +1001,7 @@ class MeleeScene:
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
-        lights = [(self.player_x, FLOOR - 55, 180, 148)]
+        lights = [(self.player_draw_x(), FLOOR - 55, 180, 148)]
         lights.extend((self.actor_x(actor), FLOOR - 45, 155, 148)
                       for actor in self.enemy_slots if actor is not None)
         sources = []
