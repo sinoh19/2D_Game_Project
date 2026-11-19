@@ -1,6 +1,4 @@
 import json
-import os
-from pathlib import Path
 import pico2d as p2d
 from game.pixel_font import PixelFont
 from game.config import (ASSETS, NATIVE_WIDTH, NATIVE_HEIGHT, WINDOW_WIDTH,
@@ -24,15 +22,11 @@ class Resources:
             raise ValueError("배경 애니메이션 시트 크기가 올바르지 않습니다. assets/title을 확인하세요.")
         if len(self.menu_images) != len(MENU_BUTTONS):
             raise ValueError("메뉴 이미지와 클릭 영역 개수가 일치하지 않습니다.")
-        font_candidates = [ASSETS / "fonts" / "NotoSansKR-Regular.ttf",
-                           Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts" / "malgun.ttf",
-                           Path(os.environ["PICO2D_DATA_PATH"]) / "ConsolaMalgun.TTF"]
-        font_path = next((p for p in font_candidates if p.is_file()), None)
-        if font_path is None:
-            raise FileNotFoundError("한글 폰트를 찾지 못했습니다. assets/fonts에 NotoSansKR-Regular.ttf를 넣어주세요.")
-        self.small = PixelFont(font_path, 10)
-        self.normal = PixelFont(font_path, 15)
-        self.heading = PixelFont(font_path, 20)
+        font_path = ASSETS / 'fonts' / 'Galmuri11.ttf'
+        # Galmuri11's native pixel grid is 12px; use whole multiples of it.
+        self.small = PixelFont(font_path, 12)
+        self.normal = PixelFont(font_path, 12)
+        self.heading = PixelFont(font_path, 24)
         self.dialogue = PixelFont(font_path, DIALOGUE_FONT_SIZE)
 
     def draw_title(self, frame, zoom=1.0, camera=None):

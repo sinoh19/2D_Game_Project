@@ -32,7 +32,7 @@ DIALOGUE_CHARACTERS_PER_SECOND = 22.0
 OPENING_DIALOGUE_DELAY = 0.35
 
 # 대화 본문 폰트 크기 (640×360 기준 픽셀, 표시 시 SCALE배).
-DIALOGUE_FONT_SIZE = 18
+DIALOGUE_FONT_SIZE = 24
 
 # 대화 뒤 책 장면: 나타나는 시간 / 닫힌 상태 유지 시간.
 BOOK_FADE_IN_SECONDS = 0.45
