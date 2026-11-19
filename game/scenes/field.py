@@ -16,6 +16,7 @@ from game.spike_trap import SpikeTrap
 from game.pixel_style import simplify
 from game.terrain import slope_surfaces, inside_slope
 from game.lighting import WorldDarkness
+from game.tutorial_bird import TutorialBird
 
 FIELD_QUICK_SLOTS = tuple((8 + index * 41, 281, 43 + index * 41, 316)
                           for index in range(3))
@@ -47,6 +48,7 @@ class FieldScene:
         if position is None or not self.valid_position(position):
             position = self.layout['spawn']
         self.player = Knight(self, position)
+        self.tutorial_bird = TutorialBird(self)
         self.dropped_items = []
         self.chests = TreasureChests(self, restore=not new_game)
         self.field_quick_hud = p2d.load_image(str(ASSETS / 'ui' / 'field-quick-hud.png'))
@@ -144,6 +146,7 @@ class FieldScene:
         player.coyote = 0.08 if player.grounded else 0.0
         player.jump_buffer = 0.0
         player.moving = False
+        self.tutorial_bird.reset()
         self.keys.clear()
         self.pickup_target = None
         self.trap_hit_time = 0.0
@@ -296,6 +299,7 @@ class FieldScene:
             self.lich_impacts[:] = [impact for impact in self.lich_impacts
                                    if impact.update(dt/steps)]
             self.player.step(dt/steps, direction)
+            self.tutorial_bird.update(dt/steps)
             if self.passages.reached_exit():
                 from game.scenes.stage_end import StageEndScene
                 self.app.scene = StageEndScene(self.app)
@@ -339,6 +343,7 @@ class FieldScene:
         for projectile in self.lich_projectiles:
             self.assets.lich_art.draw_projectile(
                 projectile, self.camera_x, self.assets.scale, self.view_width)
+        self.tutorial_bird.draw(self.camera_x)
         if hit_by is not None:
             facing = self.player.facing if hit_by.x == self.x else (1 if hit_by.x > self.x else -1)
             self.assets.draw_field_hit(self.x, self.y, facing, self.camera_x, hit_elapsed)
