@@ -815,16 +815,6 @@ class MeleeScene:
             else:
                 self.draw_slime(self.field.assets.slime_art, zoom, actor, slot)
 
-    def draw_slots(self, zoom):
-        for slot, x in enumerate(PLAYER_SLOTS):
-            left, top = self.zoom_point(x - 22, FLOOR - 8, zoom)
-            drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
-                              GOLD if slot == self.player_slot else (91, 91, 105), filled=True)
-        for slot, x in enumerate(ENEMY_SLOTS):
-            left, top = self.zoom_point(x - 22, FLOOR - 8, zoom)
-            drawing.rectangle((left, top, left + 44 * zoom, top + 2 * zoom),
-                              (91, 91, 105), filled=True)
-
     def draw_selection(self, zoom):
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
@@ -1011,7 +1001,6 @@ class MeleeScene:
         self.darkness.draw_sources(0, sources, ambient=158)
         self.hud.draw(320 * SCALE, round((NATIVE_HEIGHT - HUD_TOP - self.hud.h / 2) * SCALE),
                       NATIVE_WIDTH * SCALE, self.hud.h * SCALE)
-        self.draw_slots(zoom)
         self.draw_selection(zoom)
         self.draw_combat_hud()
         self.draw_enemy_hp()
