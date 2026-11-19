@@ -10,13 +10,18 @@ from game.storage import Storage
 from game.config import DEFAULT_TILED_MAP
 from game import drawing
 from game.config import DEBUG_SKIP_ENABLED, DEBUG_SKIP_BOUNDS
+from game.config import RESOLUTIONS
 
 
 class App:
     def __init__(self, data_directory=None, hidden=False, map_path=None):
         os.environ["SDL_RENDER_SCALE_QUALITY"] = "0"
         p2d.SDL_SetHint(b"SDL_RENDER_SCALE_QUALITY", b"0")
-        p2d.open_canvas(WINDOW_WIDTH, WINDOW_HEIGHT, sync=True)
+        self.storage = Storage(Path(data_directory) if data_directory else ROOT / "user_data")
+        self.resolution = self.storage.resolution()
+        p2d.open_canvas(*self.resolution, sync=True)
+        # Scene rendering uses a fixed virtual canvas; only presentation changes size.
+        backend.canvas_width, backend.canvas_height = WINDOW_WIDTH, WINDOW_HEIGHT
         self.closed = False
         if hidden:
             p2d.SDL_HideWindow(backend.window)
@@ -27,7 +32,6 @@ class App:
             p2d.close_canvas()
             raise RuntimeError("640×360 렌더 타깃 생성 실패")
         self.begin_native_frame()
-        self.storage = Storage(Path(data_directory) if data_directory else ROOT / "user_data")
         selected_map = Path(map_path) if map_path else DEFAULT_TILED_MAP
         self.map_path = selected_map.resolve() if selected_map.is_absolute() else (ROOT/selected_map).resolve()
         self.animation = self.storage.animation_enabled()
@@ -52,9 +56,29 @@ class App:
         """640×360에서 완성된 화면만 최근접 정수 배율로 확대합니다."""
         p2d.SDL_SetRenderTarget(backend.renderer, None)
         p2d.SDL_RenderSetScale(backend.renderer, 1.0, 1.0)
+        p2d.SDL_RenderSetViewport(backend.renderer, None)
         p2d.SDL_RenderCopy(backend.renderer, self.native_target, None, None)
         p2d.SDL_RenderPresent(backend.renderer)
         self.begin_native_frame()
+
+    def set_resolution(self, resolution):
+        resolution = tuple(resolution)
+        if resolution not in RESOLUTIONS:
+            return
+        p2d.SDL_SetWindowSize(backend.window, *resolution)
+        self.resolution = resolution
+        self.storage.save_settings(self.animation, resolution)
+
+    def pause(self):
+        from game.scenes.pause import PauseScene
+        field = getattr(self.scene, 'field', self.scene)
+        if hasattr(field, 'keys'):
+            field.keys.clear()
+            field.inventory.cancel_drag()
+            field.chests.cancel_drag()
+        if hasattr(self.scene, 'pointer'):
+            self.scene.pointer = None
+        self.scene = PauseScene(self, self.scene)
 
     def show_title(self):
         from game.scenes.title import TitleScene
@@ -157,6 +181,23 @@ class App:
                          DEBUG_SKIP_BOUNDS[1]+15, '디버그: 인게임', (224, 216, 190))
 
     def handle_event(self, event):
+        if (event.type in (p2d.SDL_MOUSEMOTION, p2d.SDL_MOUSEBUTTONDOWN, p2d.SDL_MOUSEBUTTONUP)
+                and getattr(event, 'x', None) is not None and getattr(event, 'y', None) is not None):
+            import ctypes
+            width, height = ctypes.c_int(), ctypes.c_int()
+            p2d.SDL_GetWindowSize(backend.window, ctypes.byref(width), ctypes.byref(height))
+            event.x = event.x * WINDOW_WIDTH / max(1, width.value)
+            event.y = event.y * WINDOW_HEIGHT / max(1, height.value)
+        if event.type == p2d.SDL_KEYDOWN and event.key == p2d.SDLK_ESCAPE:
+            from game.scenes.field import FieldScene
+            from game.scenes.melee import MeleeScene
+            from game.scenes.stage_end import StageEndScene
+            from game.scenes.melee_transition import MeleeTransitionScene
+            from game.scenes.melee_exit import MeleeExitScene
+            if isinstance(self.scene, (FieldScene, MeleeScene, StageEndScene,
+                                       MeleeTransitionScene, MeleeExitScene)):
+                self.pause()
+                return
         if (self.can_skip_intro() and event.type in (p2d.SDL_MOUSEMOTION, p2d.SDL_MOUSEBUTTONDOWN)
                 and getattr(event, 'x', None) is not None and getattr(event, 'y', None) is not None):
             self.debug_skip_hovered = drawing.contains(DEBUG_SKIP_BOUNDS, event.x/SCALE, event.y/SCALE)

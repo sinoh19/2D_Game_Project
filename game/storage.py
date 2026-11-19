@@ -46,5 +46,15 @@ class Storage:
     def animation_enabled(self):
         return self.read("settings.json", {}).get("animation", True) is not False
 
-    def save_settings(self, animation):
-        self.write("settings.json", {"animation": bool(animation)})
+    def resolution(self):
+        from game.config import RESOLUTIONS, WINDOW_WIDTH, WINDOW_HEIGHT
+        value = self.read('settings.json', {}).get('resolution')
+        return next((size for size in RESOLUTIONS if list(size) == value),
+                    (WINDOW_WIDTH, WINDOW_HEIGHT))
+
+    def save_settings(self, animation, resolution=None):
+        data = self.read('settings.json', {})
+        data['animation'] = bool(animation)
+        if resolution is not None:
+            data['resolution'] = list(resolution)
+        self.write('settings.json', data)
