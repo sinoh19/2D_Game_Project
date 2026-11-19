@@ -20,7 +20,7 @@ from game.lighting import WorldDarkness
 DIRECTIONS = ('상단', '중단', '하단')
 COMBAT_POPUP_SECONDS = .85
 DODGE_FADE_SECONDS = .24
-BUTTONS = ((170, 263, 205, 298), (211, 263, 246, 298), (252, 263, 287, 298))
+BUTTONS = ((170, 255, 205, 290), (211, 255, 246, 290), (252, 255, 287, 290))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
@@ -56,7 +56,7 @@ IMPACT_HIT_STOP = .075
 SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
-ITEM_BUTTON = (295, 263, 330, 298)
+ITEM_BUTTON = (295, 255, 330, 290)
 SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
 SLIME_LAND_TIME = .62
@@ -945,12 +945,12 @@ class MeleeScene:
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
         # Match the left frame to the current layout instead of the baked two-row skin.
-        panel((8, 258, 336, 355), (29, 29, 41), (174, 134, 81))
-        drawing.rectangle((10, 260, 334, 353), (76, 70, 77))
-        drawing.rectangle((16, 263, 330, 315), (29, 29, 41), filled=True)
+        panel((8, 250, 336, 355), (29, 29, 41), (174, 134, 81))
+        drawing.rectangle((10, 252, 334, 353), (76, 70, 77))
+        drawing.rectangle((16, 255, 330, 315), (29, 29, 41), filled=True)
         title, detail = self.action_preview()
-        self.hud_text(88, 279, title, 140, GOLD, center=True)
-        self.hud_text(88, 297, detail, 140, ivory, center=True)
+        self.hud_text(88, 271, title, 140, GOLD, center=True)
+        self.hud_text(88, 289, detail, 140, ivory, center=True)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
@@ -1005,7 +1005,7 @@ class MeleeScene:
         self.hud_text(20, 328, '용병', 82, ivory, compact=True)
         self.hud_text(20, 342, f'HP {self.player.hp}/{self.player.max_hp}', 82, ivory, compact=True)
         # One taller panel replaces the two baked stat boxes and their divider.
-        panel((110, 310, 330, 352), (20, 20, 29), (82, 78, 90))
+        panel((110, 300, 330, 352), (20, 20, 29), (82, 78, 90))
         rows = (
             ('공격력', damage),
             ('방어력', f'물리 {self.player.physical_defense} · 마법 {self.player.magic_defense}'),
@@ -1013,11 +1013,10 @@ class MeleeScene:
             ('회피', f'{dodge:.1f}%'),
         )
         for row, (label, value) in enumerate(rows):
-            y = 316 + row * 10
-            self.hud_text(116, y, label, 48, ivory, compact=True, height=10)
-            text_width, text_height = self.app.resources.compact.measure(value)
-            factor = min(1.0, 150 / text_width, 10 / text_height)
-            self.hud_text(324 - text_width * factor, y, value, 150, ivory, compact=True, height=10)
+            y = 307 + row * 12
+            self.hud_text(116, y, label, 48, ivory, compact=True)
+            text_width = self.app.resources.compact.measure(value)[0]
+            self.hud_text(324 - min(150, text_width), y, value, 150, ivory, compact=True)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
