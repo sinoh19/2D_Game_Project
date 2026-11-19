@@ -15,7 +15,7 @@ from game.items import ITEMS, Equipment
 from game.loot_ui import panel, slots
 from game.scenes.melee import (BUTTONS, COMBAT_POPUP_SECONDS, GOLD, ITEM_BUTTON,
                                KEYS, LOG_ROWS, SPEED_BUTTONS, USE_BUTTON, centered,
-                               draw_battle_flames)
+                               draw_battle_background)
 
 RANGED_DIRECTIONS = ('왼쪽', '중앙', '오른쪽')
 FLOOR = 245
@@ -343,9 +343,7 @@ class RangedScene:
             centered(self.app.resources.normal, x, y, label, color)
 
     def draw(self):
-        self.background.draw(NATIVE_WIDTH * SCALE / 2, NATIVE_HEIGHT * SCALE / 2,
-                             NATIVE_WIDTH * SCALE, NATIVE_HEIGHT * SCALE)
-        draw_battle_flames(self.field.assets, self.idle_elapsed)
+        draw_battle_background(self.background)
         self.draw_actors()
         small, normal = self.app.resources.small, self.app.resources.normal
         for speed, bounds in SPEED_BUTTONS:
