@@ -35,7 +35,8 @@ JOIN_SPEED = 240
 RETREAT_HEAL = 4
 REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
-WALK_SECONDS = .55
+DASH_APPROACH_SECONDS = .28
+RETURN_SECONDS = .55
 UPPER_ATTACK = 0
 MIDDLE_ATTACK = 1
 LOWER_ATTACK = 2
@@ -301,7 +302,7 @@ class MeleeScene:
         self.attack_frames = self.field.assets.animations['clips']['attack']['frames']
         self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
         self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
-        self.impact_time = WALK_SECONDS + self.slash_prep_duration
+        self.impact_time = DASH_APPROACH_SECONDS + self.slash_prep_duration
         self.attack_elapsed = 0.0
         self.hit_stop_left = 0.0
         self.pointer = None
@@ -526,7 +527,7 @@ class MeleeScene:
                 self.hit_stop_left = IMPACT_HIT_STOP
             return
 
-        if self.attack_elapsed >= 2 * WALK_SECONDS + self.attack_duration:
+        if self.attack_elapsed >= DASH_APPROACH_SECONDS + self.attack_duration + RETURN_SECONDS:
             self.attack_elapsed = None
             if self.enemy.hp == 0:
                 self.record(f'{self.enemy_name}를 쓰러뜨렸다!')
@@ -704,11 +705,13 @@ class MeleeScene:
         elapsed = self.attack_elapsed
         if elapsed is None:
             return self.player_x
-        if elapsed < WALK_SECONDS:
-            return self.player_x + (STRIKE_X - self.player_x) * elapsed / WALK_SECONDS
-        if elapsed < WALK_SECONDS + self.attack_duration:
+        if elapsed < DASH_APPROACH_SECONDS:
+            progress = elapsed / DASH_APPROACH_SECONDS
+            progress = 1 - (1 - progress) ** 2
+            return self.player_x + (STRIKE_X - self.player_x) * progress
+        if elapsed < DASH_APPROACH_SECONDS + self.attack_duration:
             return STRIKE_X
-        progress = min(1.0, (elapsed - WALK_SECONDS - self.attack_duration) / WALK_SECONDS)
+        progress = min(1.0, (elapsed - DASH_APPROACH_SECONDS - self.attack_duration) / RETURN_SECONDS)
         return STRIKE_X + (self.player_x - STRIKE_X) * progress
 
     def draw_mercenary(self, zoom=1.0):
@@ -730,13 +733,15 @@ class MeleeScene:
                 facing = 1 if self.move_to > self.move_from else -1
             else:
                 clip, time, facing = 'idle', self.idle_elapsed, 1
-        elif elapsed < WALK_SECONDS:
-            clip, time, facing = 'walk', elapsed, 1
-        elif elapsed < WALK_SECONDS + self.attack_duration:
+        elif elapsed < DASH_APPROACH_SECONDS:
+            clip, facing = 'dash', 1
+            time = (self.field.assets.animations['clips']['dash']['duration']
+                    * elapsed / DASH_APPROACH_SECONDS)
+        elif elapsed < DASH_APPROACH_SECONDS + self.attack_duration:
             clip = 'attack'
-            time, facing = self.slash_attack_time(elapsed - WALK_SECONDS), 1
+            time, facing = self.slash_attack_time(elapsed - DASH_APPROACH_SECONDS), 1
         else:
-            clip, time, facing = 'walk', elapsed - WALK_SECONDS - self.attack_duration, -1
+            clip, time, facing = 'walk', elapsed - DASH_APPROACH_SECONDS - self.attack_duration, -1
         x, y = self.zoom_point(x, FLOOR, zoom)
         if time is None:
             if self.selected != UPPER_ATTACK:
