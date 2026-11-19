@@ -10,7 +10,7 @@ from game.pixel_style import simplify
 class TutorialBird:
     FRAME_SIZE = 64
     FRAME_COUNT = 9
-    FPS = 18
+    FPS = 24
     DRAW_SCALE = .5
     PIXEL_BLOCK = 2
     FOLLOW_DISTANCE = 30
