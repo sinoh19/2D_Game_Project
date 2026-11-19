@@ -19,7 +19,7 @@ class PixelFont:
             raise RuntimeError('글씨 크기 계산 실패')
         return width.value, height.value
 
-    def draw(self,x,y,message,color=(240,231,207)):
+    def draw(self,x,y,message,color=(240,231,207), *, max_width=None):
         if not message:
             return
         surface=p2d.TTF_RenderUTF8_Blended(self.font,message.encode('utf-8'),p2d.SDL_Color(*color[:3],255))
@@ -34,7 +34,9 @@ class PixelFont:
         image=p2d.Image(texture)
         if len(color) == 4:
             p2d.SDL_SetTextureAlphaMod(texture, color[3])
-        image.draw(x+image.w*SCALE/2,y,image.w*SCALE,image.h*SCALE)
+        factor = min(1.0, max_width / image.w) if max_width is not None else 1.0
+        width, height = image.w * SCALE * factor, image.h * SCALE * factor
+        image.draw(x + width / 2, y, width, height)
 
     def close(self):
         if self.font:

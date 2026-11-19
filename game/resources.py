@@ -25,6 +25,7 @@ class Resources:
         font_path = ASSETS / 'fonts' / 'Galmuri11.ttf'
         # Galmuri11's native pixel grid is 12px; use whole multiples of it.
         self.small = PixelFont(font_path, 12)
+        self.compact = PixelFont(ASSETS / 'fonts' / 'Galmuri9.ttf', 10)
         self.normal = PixelFont(font_path, 12)
         self.heading = PixelFont(font_path, 24)
         self.dialogue = PixelFont(font_path, DIALOGUE_FONT_SIZE)
@@ -67,11 +68,11 @@ class Resources:
                                   WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     def close(self):
-        for name in ("small", "normal", "heading", "dialogue"):
+        for name in ("small", "compact", "normal", "heading", "dialogue"):
             font = getattr(self, name, None)
             if font is not None:
                 font.close()
-        self.background_sheet = self.small = self.normal = self.heading = self.dialogue = None
+        self.background_sheet = self.small = self.compact = self.normal = self.heading = self.dialogue = None
         self.menu_images.clear()
         self.dungeon = None
         self.book_sheet = None

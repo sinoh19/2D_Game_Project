@@ -289,6 +289,17 @@ class MeleeScene:
             label = label[:-1]
         return label + '…'
 
+    def hud_text(self, x, y, label, width, color, *, center=False, compact=False):
+        resources = self.app.resources
+        font = resources.compact if compact else resources.small
+        if font.measure(label)[0] > width:
+            font = resources.compact
+        measured = min(width, font.measure(label)[0])
+        if center:
+            x -= measured / 2
+        font.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE), label, color,
+                  max_width=width)
+
     def can_choose(self):
         return (self.attack_elapsed is None and self.enemy_elapsed is None
                 and self.move_elapsed is None and self.death_elapsed is None
@@ -869,7 +880,6 @@ class MeleeScene:
                                   GOLD, filled=True)
 
     def draw_enemy_hp(self):
-        small = self.app.resources.small
         for actor in self.enemy_slots:
             if actor is None:
                 continue
@@ -891,8 +901,8 @@ class MeleeScene:
                                    x - half + 2 + fill, bottom - 2),
                                   (179, 57, 72), filled=True)
             label = f'{actor.hp}/{actor.max_hp}'
-            centered(small, x + 1, y + 1, label, (30, 17, 23))
-            centered(small, x, y, label, (250, 240, 223))
+            self.hud_text(x + 1, y + 1, label, 48, (30, 17, 23), center=True, compact=True)
+            self.hud_text(x, y, label, 48, (250, 240, 223), center=True, compact=True)
 
     def attack_hit_chance(self):
         if self.player.base_attack == 0:
@@ -927,13 +937,12 @@ class MeleeScene:
         return f'{DIRECTIONS[index]} 공격', f'적중 확률 {self.attack_hit_chance():.1%}'
 
     def draw_combat_hud(self):
-        small = self.app.resources.small
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
         drawing.rectangle((16, 275, 330, 315), (29, 29, 41), filled=True)
         title, detail = self.action_preview()
-        centered(small, 88, 285, self.fit_text(small, title, 140), GOLD)
-        centered(small, 88, 303, self.fit_text(small, detail, 140), ivory)
+        self.hud_text(88, 285, title, 140, GOLD, center=True)
+        self.hud_text(88, 303, detail, 140, ivory, center=True)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
@@ -952,11 +961,14 @@ class MeleeScene:
             if self.item_page and not guarding:
                 continue
             if guarding and self.enemy_forecast is not None:
-                centered(small, (left + right) / 2, top + 11, direction, color)
-                centered(small, (left + right) / 2, top + 22,
-                         f'{self.enemy_forecast[index]:.1%}', GOLD)
+                self.hud_text((left + right) / 2, top + 10, direction,
+                              right - left - 6, color, center=True, compact=True)
+                self.hud_text((left + right) / 2, top + 21,
+                              f'{self.enemy_forecast[index]:.1%}', right - left - 6,
+                              GOLD, center=True, compact=True)
             else:
-                centered(small, (left + right) / 2, top + 17, direction, color)
+                self.hud_text((left + right) / 2, top + 17, direction,
+                              right - left - 6, color, center=True)
         # Reuse the slot artwork edges without its numbered badge.
         left, top, right, bottom = ITEM_BUTTON
         sheet = self.field.field_quick_hud
@@ -981,12 +993,12 @@ class MeleeScene:
         damage = f'{max(0, middle - 2)}~{middle + 2}' if base else '0'
         critical = min(200, max(0, 4 + luck)) / 2 if base else 0
         dodge = min(250, max(0, 5 * agility + luck)) / 10
-        drawing.text(small, 20, 326, '용병', ivory)
-        drawing.text(small, 20, 340, f'HP {self.player.hp}/{self.player.max_hp}', ivory)
-        drawing.text(small, 116, 326, f'공격력 {damage}', ivory)
-        drawing.text(small, 116, 340, f'치명타 {critical:.1f}%', ivory)
-        drawing.text(small, 230, 326, f'회피 {dodge:.1f}%', ivory)
-        drawing.text(small, 230, 340, f'{self.player_slot + 1}번 칸 · ← → 이동', muted)
+        self.hud_text(20, 328, '용병', 82, ivory, compact=True)
+        self.hud_text(20, 342, f'HP {self.player.hp}/{self.player.max_hp}', 82, ivory, compact=True)
+        self.hud_text(116, 328, f'공격력 {damage}', 102, ivory, compact=True)
+        self.hud_text(116, 342, f'치명타 {critical:.1f}%', 102, ivory, compact=True)
+        self.hud_text(230, 328, f'회피 {dodge:.1f}%', 94, ivory, compact=True)
+        self.hud_text(230, 342, f'{self.player_slot + 1}번 칸 · ← → 이동', 94, muted, compact=True)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
@@ -994,19 +1006,18 @@ class MeleeScene:
             self.inspected_enemy = actor
         if actor is None:
             return
-        centered(small, 489, 285, actor.melee_name, ivory)
-        drawing.text(small, 352, 317, 'HP', ivory)
+        self.hud_text(489, 285, actor.melee_name, 260, ivory, center=True)
+        self.hud_text(352, 317, 'HP', 22, ivory, compact=True)
         if actor.hp > 0:
             drawing.rectangle((377, 313, 377 + 244 * actor.hp / actor.max_hp, 319),
                               (156, 54, 70), filled=True)
-        centered(small, 500, 316, f'{actor.hp}/{actor.max_hp}', ivory)
+        self.hud_text(500, 316, f'{actor.hp}/{actor.max_hp}', 236, ivory, center=True, compact=True)
         for cx, name, attribute in ((382, '힘', 'strength'), (451, '민첩', 'agility'),
                                     (520, '지능', 'intelligence'), (589, '운', 'luck')):
             value = getattr(actor, attribute, '—')
-            centered(small, cx, 331, f'{name} {value}', ivory)
-        drawing.text(small, 353, 345, '상태·버프', GOLD)
-        drawing.text(small, 422, 345, self.fit_text(small, self.enemy_status(actor), 128),
-                     (168, 211, 169))
+            self.hud_text(cx, 331, f'{name} {value}', 60, ivory, center=True, compact=True)
+        self.hud_text(353, 345, '상태·버프', 64, GOLD, compact=True)
+        self.hud_text(422, 345, self.enemy_status(actor), 128, (168, 211, 169), compact=True)
 
     def draw(self):
         zoom = self.impact_zoom()
