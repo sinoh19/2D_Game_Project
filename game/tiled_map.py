@@ -290,13 +290,16 @@ def load_map(map_path,base_layout,asset_root):
                     if rotation or gid&(H|V|D):raise ValueError('통로는 회전하지 말고 좌/우 통로 타일을 선택하세요.')
                     top=y-h if gid else y;left=round(x);right=round(x+w);bottom=round(top+h)
                     side=props.get('side','left');opening=round(props.get('openingHeight',104));gw=round(props.get('gateWidth',24))
-                    if side not in ('left','right') or (right-left)%32 or gw<=0 or gw>right-left or opening<=32 or opening>h-32:
+                    if side not in ('left','right','center') or (right-left)%32 or gw<=0 or gw>right-left or opening<=32 or opening>h-32:
                         raise ValueError('통로 너비는 32의 배수, 위쪽 암벽은 32 이상, 입구 높이는 32보다 크게 지정하세요.')
+                    if side=='center' and right-left<64:
+                        raise ValueError('중앙 차단문의 너비는 양쪽 마감을 위해 최소 64px로 지정하세요.')
                     identity=props.get('gateId') or f'gate-{obj["id"]}'
                     if identity in passage_ids:raise ValueError(f'철문 gateId가 중복됩니다: {identity}')
                     passage_ids.add(identity)
                     layout['sidePassages'].append({'id':identity,'side':side,'left':left,'right':right,'top':round(top),
-                        'openingTop':bottom-opening,'bottom':bottom,'gateX':left if side=='left' else right-gw,'gateWidth':gw,
+                        'openingTop':bottom-opening,'bottom':bottom,
+                        'gateX':round((left+right-gw)/2) if side=='center' else left if side=='left' else right-gw,'gateWidth':gw,
                         'isExit':bool(props.get('isExit',identity=='exit' and side=='right'))})
                     continue
                 if gid and shown:

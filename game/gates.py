@@ -108,8 +108,8 @@ class SidePassages:
             cap_top=s['openingTop']-32
             for x in range(s['left'],s['right'],32):
                 edge=None
-                if s['side']=='left' and x==s['right']-32:edge='right'
-                if s['side']=='right' and x==s['left']:edge='left'
+                if s['side'] in ('left','center') and x==s['right']-32:edge='right'
+                if s['side'] in ('right','center') and x==s['left']:edge='left'
                 for y in range(s.get('top',0),cap_top,32):
                     key='passage_wall_'+edge if edge else 'Fill'
                     assets.tile(key,x,y,32,min(32,cap_top-y),camera)

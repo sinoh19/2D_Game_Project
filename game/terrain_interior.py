@@ -127,8 +127,8 @@ def passage_items(layout):
         cap=passage['openingTop']-32
         for x in range(passage['left'],passage['right'],32):
             edge=None
-            if passage['side']=='left' and x==passage['right']-32:edge='right'
-            if passage['side']=='right' and x==passage['left']:edge='left'
+            if passage['side'] in ('left','center') and x==passage['right']-32:edge='right'
+            if passage['side'] in ('right','center') and x==passage['left']:edge='left'
             for y in range(passage.get('top',0),cap,32):
                 name='passage_wall_'+edge if edge else 'Fill'
                 items.append(legacy_item(layout,name,x,y,32,min(32,cap-y)))
