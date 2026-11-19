@@ -411,6 +411,7 @@ class LichArt:
             block=32, palette=self.PROJECTILE_PALETTE)
 
     def draw(self, lich, camera, world_scale, view_width, *, hit_elapsed=None):
+        import pico2d as p2d
         from game.config import WINDOW_HEIGHT
 
         if lich.x + self.CAST_WIDTH < camera or lich.x - self.CAST_WIDTH > camera + view_width:
