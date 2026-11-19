@@ -928,7 +928,7 @@ class MeleeScene:
             return '전투 패배', 'ESC를 눌러 메인으로 이동'
         if self.enemy_direction is not None:
             probability = (self.enemy_forecast[index] if self.enemy_forecast else 1 / 3)
-            return f'{DIRECTIONS[index]} 방어', f'예측 확률 {probability:.1%}'
+            return f'{DIRECTIONS[index]} 방어', f'방어 확률 {probability:.1%}'
         if self.enemy_motions:
             return '몬스터 이동 중', '이동이 끝나면 행동 선택'
         if self.attack_elapsed is not None:
