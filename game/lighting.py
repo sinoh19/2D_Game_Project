@@ -91,14 +91,16 @@ class WorldDarkness:
         self.image = p2d.Image(texture)
 
     def draw(self, camera, time, player_x, player_y):
-        import ctypes
-        import pico2d as p2d
-        from game.config import WINDOW_WIDTH, WINDOW_HEIGHT
-        ambient = 158
-        pixels = bytearray(bytes((0, 0, 0, ambient)) * (self.width * self.height))
         sources = [(player_x, player_y - 22, 90, 138)]
         sources.extend((x, y, radius * flicker(time, x * .17 + y * .11), 135 * strength)
                        for x, y, radius, strength in self.fire_lights.sources)
+        self.draw_sources(camera, sources)
+
+    def draw_sources(self, camera, sources, ambient=158):
+        import ctypes
+        import pico2d as p2d
+        from game.config import WINDOW_WIDTH, WINDOW_HEIGHT
+        pixels = bytearray(bytes((0, 0, 0, ambient)) * (self.width * self.height))
         for x, y, radius, clearing in sources:
             x = (x - camera) / self.STEP
             y /= self.STEP

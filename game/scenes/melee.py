@@ -15,6 +15,7 @@ from game.items import ITEMS
 from game.loot_ui import panel
 from game.pixel_style import simplify
 from game.quick_slot_ui import draw_bag_quick_slots
+from game.lighting import WorldDarkness
 
 DIRECTIONS = ('상단', '중단', '하단')
 COMBAT_POPUP_SECONDS = .85
@@ -71,7 +72,7 @@ def centered(font, x, y, label, color=(240, 231, 207)):
     drawing.text(font, x - width.value / 2, y, label, color)
 
 
-def draw_battle_flames(assets, time, *, zoom=1.0, transform=None):
+def draw_battle_flames(assets, time, *, zoom=1.0, transform=None, torch_scale=None):
     animation = assets.layout['torchAnimation']
     for x, phase in ((47, 0.0), (593, 0.3)):
         moment = (time + phase) % animation['duration']
@@ -81,9 +82,30 @@ def draw_battle_flames(assets, time, *, zoom=1.0, transform=None):
                 break
             frame = candidate
         image = assets.images[frame['sprite']]
-        flame_x, flame_y = (transform(x, 195, zoom) if transform is not None else (x, 195))
+        if torch_scale is not None:
+            spec = assets.layout['unitySprites']['torch_body']
+            body = assets.images[spec['image']]
+            sw, sh = spec['rect'][2:]
+            px, py = spec['pivot']
+            cx, cy = x + sw * (.5 - px) * torch_scale, FLOOR - sh * (.5 - py) * torch_scale
+            if transform is not None:
+                cx, cy = transform(cx, cy, zoom)
+            body.draw(round(cx * SCALE), round((NATIVE_HEIGHT - cy) * SCALE),
+                      round(sw * torch_scale * zoom * SCALE), round(sh * torch_scale * zoom * SCALE))
+            flame_spec = assets.layout['unitySprites'][frame['sprite']]
+            ox, oy = animation['offset']
+            units = torch_scale * spec['ppu']
+            fw, fh = flame_spec['rect'][2:]
+            fx, fy = flame_spec['pivot']
+            flame_scale = units / flame_spec['ppu']
+            flame_x = x + ox * units + fw * (.5 - fx) * flame_scale
+            flame_y = FLOOR - oy * units - fh * (.5 - fy) * flame_scale
+        else:
+            flame_x, flame_y, flame_scale = x, 195, 1.0
+        if transform is not None:
+            flame_x, flame_y = transform(flame_x, flame_y, zoom)
         image.draw(round(flame_x * SCALE), round((NATIVE_HEIGHT - flame_y) * SCALE),
-                   round(image.w * zoom * SCALE), round(image.h * zoom * SCALE))
+                   round(image.w * flame_scale * zoom * SCALE), round(image.h * flame_scale * zoom * SCALE))
 
 
 class MeleeScene:
@@ -146,6 +168,10 @@ class MeleeScene:
         self.selected = 1
         self.preview_index = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
+        self.darkness = WorldDarkness(None)
+        torch = next((prop for prop in self.field.layout['props'] if prop['kind'] == 'torch'), None)
+        units = torch['unitScale'] if torch is not None else 24
+        self.torch_scale = units / self.field.layout['unitySprites']['torch_body']['ppu'] * 2 / self.field.assets.character_scale
         self.hud = p2d.load_image(str(ASSETS / 'ui' / 'pixellab-melee-hud.png'))
         self.switch_icon = p2d.load_image(str(ASSETS / 'ui' / 'battle-switch.png'))
         character_art = ASSETS / 'dungeon' / 'character'
@@ -991,14 +1017,18 @@ class MeleeScene:
         x, y = self.zoom_point(NATIVE_WIDTH / 2, NATIVE_HEIGHT / 2, zoom)
         self.background.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
                              round(width * zoom), round(height * zoom))
+        # Cover the small baked candle silhouettes before drawing the full-size props.
+        for source_x, target_x in ((65, 47), (562, 593)):
+            cx, cy = self.zoom_point(target_x, 216, zoom)
+            self.background.clip_draw(source_x, self.background.h - 246, 16, 62,
+                                      round(cx * SCALE), round((NATIVE_HEIGHT - cy) * SCALE),
+                                      round(16 * zoom * SCALE), round(62 * zoom * SCALE))
         draw_battle_flames(self.field.assets, self.idle_elapsed,
-                           zoom=zoom, transform=self.zoom_point)
+                           zoom=zoom, transform=self.zoom_point, torch_scale=self.torch_scale)
         impact = ((zoom - 1) / SLASH_ZOOM_FACTOR if self.enemy_elapsed is not None
                   else self.slash_impact_strength())
         if impact:
             drawing.black_overlay(.38 * impact)
-        self.hud.draw(320 * SCALE, round((NATIVE_HEIGHT - HUD_TOP - self.hud.h / 2) * SCALE),
-                      NATIVE_WIDTH * SCALE, self.hud.h * SCALE)
         self.draw_slots(zoom)
         if self.attack_elapsed is not None:
             self.draw_enemies(zoom)
@@ -1006,6 +1036,16 @@ class MeleeScene:
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
+        lights = [(self.player_x, FLOOR - 55, 180, 148)]
+        lights.extend((self.actor_x(actor), FLOOR - 45, 155, 148)
+                      for actor in self.enemy_slots if actor is not None)
+        sources = []
+        for lx, ly, radius, clearing in lights:
+            lx, ly = self.zoom_point(lx, ly, zoom)
+            sources.append((lx, ly, radius * zoom, clearing))
+        self.darkness.draw_sources(0, sources, ambient=158)
+        self.hud.draw(320 * SCALE, round((NATIVE_HEIGHT - HUD_TOP - self.hud.h / 2) * SCALE),
+                      NATIVE_WIDTH * SCALE, self.hud.h * SCALE)
         self.draw_selection(zoom)
         self.draw_combat_hud()
         self.draw_enemy_hp()
