@@ -194,6 +194,15 @@ class App:
             from game.scenes.stage_end import StageEndScene
             from game.scenes.melee_transition import MeleeTransitionScene
             from game.scenes.melee_exit import MeleeExitScene
+            # Let the current window consume ESC before opening the pause menu.
+            if (isinstance(self.scene, FieldScene)
+                    and (self.scene.status.is_open or self.scene.inventory.is_open
+                         or self.scene.chests.active is not None)):
+                self.scene.handle_event(event)
+                return
+            if isinstance(self.scene, MeleeScene) and self.scene.item_page:
+                self.scene.handle_event(event)
+                return
             if isinstance(self.scene, (FieldScene, MeleeScene, StageEndScene,
                                        MeleeTransitionScene, MeleeExitScene)):
                 self.pause()
