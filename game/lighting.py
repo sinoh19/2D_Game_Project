@@ -70,3 +70,51 @@ class FireLights:
                     WINDOW_HEIGHT-round(y)*self.scale,round(radius*2*self.scale),round(radius*2*self.scale))
         finally:
             p2d.SDL_SetTextureAlphaMod(self.image.texture,255)
+
+
+class WorldDarkness:
+    """Darken the world with soft clear areas around the player and flames."""
+    STEP = 4
+
+    def __init__(self, fire_lights):
+        import pico2d as p2d
+        from pico2d import pico2d as backend
+        from game.config import NATIVE_WIDTH, NATIVE_HEIGHT
+        self.fire_lights = fire_lights
+        self.width = NATIVE_WIDTH // self.STEP
+        self.height = NATIVE_HEIGHT // self.STEP
+        texture = p2d.SDL_CreateTexture(backend.renderer, p2d.SDL_PIXELFORMAT_RGBA32,
+                                       p2d.SDL_TEXTUREACCESS_STREAMING, self.width, self.height)
+        if not texture:
+            raise RuntimeError('World darkness texture creation failed')
+        p2d.SDL_SetTextureBlendMode(texture, p2d.SDL_BLENDMODE_BLEND)
+        self.image = p2d.Image(texture)
+
+    def draw(self, camera, time, player_x, player_y):
+        import ctypes
+        import pico2d as p2d
+        from game.config import WINDOW_WIDTH, WINDOW_HEIGHT
+        ambient = 158
+        pixels = bytearray(bytes((0, 0, 0, ambient)) * (self.width * self.height))
+        sources = [(player_x, player_y - 22, 90, 138)]
+        sources.extend((x, y, radius * flicker(time, x * .17 + y * .11), 135 * strength)
+                       for x, y, radius, strength in self.fire_lights.sources)
+        for x, y, radius, clearing in sources:
+            x = (x - camera) / self.STEP
+            y /= self.STEP
+            radius /= self.STEP
+            if x + radius < 0 or x - radius >= self.width:
+                continue
+            for row in range(max(0, int(y - radius)), min(self.height, math.ceil(y + radius))):
+                dy = ((row + .5 - y) / radius) ** 2
+                for col in range(max(0, int(x - radius)), min(self.width, math.ceil(x + radius))):
+                    distance = dy + ((col + .5 - x) / radius) ** 2
+                    if distance >= 1:
+                        continue
+                    alpha = round(ambient - clearing * (1 - distance) ** 2)
+                    offset = (row * self.width + col) * 4 + 3
+                    pixels[offset] = min(pixels[offset], max(0, alpha))
+        data = (ctypes.c_ubyte * len(pixels)).from_buffer(pixels)
+        if p2d.SDL_UpdateTexture(self.image.texture, None, data, self.width * 4) != 0:
+            raise RuntimeError('World darkness upload failed')
+        self.image.draw(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, WINDOW_WIDTH, WINDOW_HEIGHT)

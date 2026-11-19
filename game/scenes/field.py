@@ -15,6 +15,7 @@ from game.items import ITEMS, DroppedItem, Equipment
 from game.spike_trap import SpikeTrap
 from game.pixel_style import simplify
 from game.terrain import slope_surfaces, inside_slope
+from game.lighting import WorldDarkness
 
 FIELD_QUICK_SLOTS = tuple((8 + index * 41, 281, 43 + index * 41, 316)
                           for index in range(3))
@@ -24,6 +25,7 @@ class FieldScene:
     def __init__(self, app, position=None, *, new_game=False):
         self.app = app
         self.assets = get_assets(app.resources)
+        self.darkness = WorldDarkness(self.assets.fire_lights)
         self.layout = self.assets.layout
         self.width = self.layout['width']
         self.view_width = self.assets.view_width
@@ -346,8 +348,8 @@ class FieldScene:
                 impact, self.camera_x, self.assets.scale, self.view_width)
         for item in self.dropped_items:
             item.draw(self.chests.icons[item.item_id], self.camera_x, self.scenery_time)
-        # Dim the dungeon world while keeping its local fire and player light visible.
-        drawing.black_overlay(.20)
+        # Keep the player and flames readable inside the darker dungeon.
+        self.darkness.draw(self.camera_x, self.scenery_time, self.x, self.y)
         self.assets.fire_lights.draw(self.camera_x,self.scenery_time)
         if not self.chests.draw_hint(self.camera_x):
             self.passages.draw_hint()

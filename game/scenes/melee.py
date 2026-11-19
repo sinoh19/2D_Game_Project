@@ -935,7 +935,18 @@ class MeleeScene:
                          f'{self.enemy_forecast[index]:.1%}', GOLD)
             else:
                 centered(small, (left + right) / 2, top + 17, direction, color)
-        panel(ITEM_BUTTON, (21, 23, 33), GOLD)
+        # Reuse the slot artwork edges without its numbered badge.
+        left, top, right, bottom = ITEM_BUTTON
+        sheet = self.field.field_quick_hud
+        drawing.rectangle(ITEM_BUTTON, (17, 21, 32), filled=True)
+        for sx, sy, sw, sh, x, y, width, height in (
+                (14, 33, 47, 4, left + 17.5, top + 1.5, 35, 3),
+                (14, 37, 4, 36, left + 1.5, top + 18, 3, 29),
+                (57, 37, 4, 36, right - 1.5, top + 18, 3, 29),
+                (18, 77, 10, 3, left + 17.5, bottom - 1, 35, 2)):
+            sheet.clip_draw(sx, sheet.h - sy - sh, sw, sh,
+                            round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE),
+                            width * SCALE, height * SCALE)
         self.switch_icon.draw(round((ITEM_BUTTON[0] + ITEM_BUTTON[2]) / 2 * SCALE),
                               round((NATIVE_HEIGHT - (ITEM_BUTTON[1] + ITEM_BUTTON[3]) / 2) * SCALE),
                               24 * SCALE, 24 * SCALE)
