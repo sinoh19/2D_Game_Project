@@ -879,40 +879,36 @@ class MeleeScene:
                               if self.hovered(bounds)), None)
         index = hovered_index if hovered_index is not None else self.selected
         if self.player.hp == 0:
-            return '전투 패배', 'ESC를 눌러 메인으로 이동', ''
+            return '전투 패배', 'ESC를 눌러 메인으로 이동'
         if self.enemy_direction is not None:
             probability = (self.enemy_forecast[index] if self.enemy_forecast else 1 / 3)
-            return f'{DIRECTIONS[index]} 방어', f'예측 확률 {probability:.1%}', '상대 공격 방향 선택'
+            return f'{DIRECTIONS[index]} 방어', f'예측 확률 {probability:.1%}'
         if self.enemy_motions:
-            return '몬스터 이동 중', '이동이 끝나면 행동 선택', ''
+            return '몬스터 이동 중', '이동이 끝나면 행동 선택'
         if self.attack_elapsed is not None:
-            return f'{DIRECTIONS[self.selected]} 공격', '공격 진행 중', ''
+            return f'{DIRECTIONS[self.selected]} 공격', '공격 진행 중'
         if self.hovered(ITEM_BUTTON) and self.can_act():
             return ('공격으로 전환' if self.item_page else '아이템으로 전환',
-                    '선택 화면을 바꿉니다', '')
+                    '선택 화면을 바꿉니다')
         if self.item_page:
             if hovered_index is None:
                 index = next((slot for slot, item in enumerate(self.field.chests.quick_slots)
                               if item is not None), 0)
             item_id = self.field.chests.quick_slots[index]
             if item_id is None:
-                return '아이템 선택', self.item_message or '등록된 아이템이 없습니다', '가방에서 1·2·3번에 등록'
+                return '아이템 선택', self.item_message or '등록된 아이템이 없습니다'
             item = ITEMS[item_id]
-            return item.name, self.item_message or item.description, '내 턴에 사용'
-        target = self.enemy_name if self.enemy_slots[0] is not None else '대상 없음'
-        return (f'{DIRECTIONS[index]} 공격', f'적중 확률 {self.attack_hit_chance():.1%}',
-                f'앞칸 {target} 대상')
+            return item.name, self.item_message or item.description
+        return f'{DIRECTIONS[index]} 공격', f'적중 확률 {self.attack_hit_chance():.1%}'
 
     def draw_combat_hud(self):
         small = self.app.resources.small
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
         drawing.rectangle((16, 275, 330, 315), (29, 29, 41), filled=True)
-        title, detail, note = self.action_preview()
+        title, detail = self.action_preview()
         drawing.text(small, 16, 270, self.fit_text(small, title, 140), GOLD)
         drawing.text(small, 16, 291, self.fit_text(small, detail, 140), ivory)
-        if note:
-            drawing.text(small, 16, 305, self.fit_text(small, note, 140), muted)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
