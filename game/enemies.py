@@ -410,7 +410,7 @@ class LichArt:
             p2d.load_image(str(folder / 'impact-concept.png')),
             block=32, palette=self.PROJECTILE_PALETTE)
 
-    def draw(self, lich, camera, world_scale, view_width):
+    def draw(self, lich, camera, world_scale, view_width, *, hit_elapsed=None):
         from game.config import WINDOW_HEIGHT
 
         if lich.x + self.CAST_WIDTH < camera or lich.x - self.CAST_WIDTH > camera + view_width:
@@ -424,12 +424,19 @@ class LichArt:
         width = self.CAST_WIDTH if casting else self.FRAME_WIDTH
         image = self.cast_image if casting else self.image
         center_x = lich.x + 12 * lich.facing if casting else lich.x
-        image.clip_composite_draw(
-            frame * width, 0, width, self.FRAME_HEIGHT,
-            0, 'h' if lich.facing > 0 else '',
-            round((center_x - camera) * world_scale),
-            round((WINDOW_HEIGHT - center_y * world_scale)),
-            round(width * world_scale), round(lich.height * world_scale))
+        tinted = hit_elapsed is not None and 0 <= hit_elapsed < .18
+        if tinted:
+            p2d.SDL_SetTextureColorMod(image.texture, 255, 64, 55)
+        try:
+            image.clip_composite_draw(
+                frame * width, 0, width, self.FRAME_HEIGHT,
+                0, 'h' if lich.facing > 0 else '',
+                round((center_x - camera) * world_scale),
+                round((WINDOW_HEIGHT - center_y * world_scale)),
+                round(width * world_scale), round(lich.height * world_scale))
+        finally:
+            if tinted:
+                p2d.SDL_SetTextureColorMod(image.texture, 255, 255, 255)
 
     def draw_projectile(self, projectile, camera, world_scale, view_width, *,
                         melee_detail=False, size_scale=1.0):

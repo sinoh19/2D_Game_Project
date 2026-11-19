@@ -18,7 +18,7 @@ class MeleeTransitionScene:
         self.battle_phase = battle_phase
         self.elapsed = 0.0
         self.finished = False
-        self.slime_hit = destination.cause == 'player_attack'
+        self.enemy_hit = destination.cause == 'player_attack'
         self.hold_seconds = FREEZE_SECONDS
         self.cover_end = self.hold_seconds + COVER_SECONDS
         self.reveal_start = self.cover_end + BLACK_SECONDS
@@ -75,7 +75,7 @@ class MeleeTransitionScene:
         if phase in ('freeze','cover'):
             if self.battle_phase:
                 self.source.draw()
-            elif self.slime_hit:
+            elif self.enemy_hit:
                 self.source.draw(hit_enemy=self.destination.enemy,
                                  hit_elapsed=max(0.0, self.elapsed - self.hold_seconds))
             else:

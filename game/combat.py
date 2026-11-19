@@ -40,6 +40,9 @@ def overlaps(a, b):
 
 
 def enemy_bounds(enemy):
+    if not hasattr(enemy, 'motion'):
+        return (enemy.x - enemy.width / 2, enemy.y - enemy.height,
+                enemy.x + enemy.width / 2, enemy.y)
     frame = enemy.motion['frames'][enemy.frame]
     foot = enemy.y+(frame['footY']-enemy.motion['pivot'][1])*enemy.scale
     half = frame['bodyWidth']*enemy.scale/2
@@ -87,15 +90,17 @@ def attack_connects(scene, enemy):
     return False
 
 
-def resolve_encounter(scene):
+def resolve_encounter(scene, *, player_attack_only=False):
     """Choose exactly one opening hit, then hand the same actors to battle."""
     if scene.encounter is not None:
         return False
-    living = [enemy for enemy in scene.enemies if enemy.hp > 0]
+    living = [enemy for enemy in (*scene.enemies, *getattr(scene, 'liches', ())) if enemy.hp > 0]
     # A valid sword hit wins over simultaneous body contact.
     attacked = [enemy for enemy in living if attack_connects(scene,enemy)]
-    touched = [enemy for enemy in living
-               if overlaps(player_bounds(scene.player),enemy_bounds(enemy))]
+    if player_attack_only and not attacked:
+        return False
+    touched = [enemy for enemy in scene.enemies
+               if enemy.hp > 0 and overlaps(player_bounds(scene.player),enemy_bounds(enemy))]
     targets = attacked or touched
     if not targets:
         return False

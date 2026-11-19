@@ -306,6 +306,9 @@ class FieldScene:
             self.update_pickup(dt/steps)
             for enemy in self.enemies:
                 enemy.update(dt/steps, self)
+            # Resolve a landed sword strike before a simultaneous incoming projectile.
+            if resolve_encounter(self, player_attack_only=True):
+                return
             self.lich_projectiles[:] = [projectile for projectile in self.lich_projectiles
                                        if projectile.update(dt/steps, self)]
             if self.app.scene is not self:
@@ -331,7 +334,8 @@ class FieldScene:
             else:
                 self.assets.slime_art.draw(enemy, self.camera_x, self.assets.scale, self.view_width)
         for lich in self.liches:
-            self.assets.lich_art.draw(lich, self.camera_x, self.assets.scale, self.view_width)
+            self.assets.lich_art.draw(lich, self.camera_x, self.assets.scale, self.view_width,
+                                     hit_elapsed=hit_elapsed if lich is hit_enemy else None)
         for projectile in self.lich_projectiles:
             self.assets.lich_art.draw_projectile(
                 projectile, self.camera_x, self.assets.scale, self.view_width)
