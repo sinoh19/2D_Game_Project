@@ -144,6 +144,7 @@ class MeleeScene:
         self.item_page = False
         self.item_message = ''
         self.selected = 1
+        self.preview_index = 1
         self.background = p2d.load_image(str(ASSETS / 'dungeon' / 'melee-chamber.png'))
         self.hud = p2d.load_image(str(ASSETS / 'ui' / 'pixellab-melee-hud.png'))
         self.switch_icon = p2d.load_image(str(ASSETS / 'ui' / 'battle-switch.png'))
@@ -294,6 +295,7 @@ class MeleeScene:
         if not self.can_act():
             return
         self.selected = index
+        self.preview_index = index
         self.attack_frames = self.field.assets.animations['clips']['attack']['frames']
         self.slash_prep_duration = self.attack_frames[SLASH_PREP_FRAMES]['time']
         self.attack_duration = 2 * self.slash_prep_duration + SLASH_HIGHLIGHT_SECONDS
@@ -408,6 +410,7 @@ class MeleeScene:
                 self.start_attack(index)
         elif self.enemy_elapsed is None:
             self.selected = index
+            self.preview_index = index
             self.enemy_elapsed = 0.0
             self.enemy_attack_evaded = False
             self.pointer = None
@@ -750,6 +753,7 @@ class MeleeScene:
     def use_item(self, index):
         if not self.can_act():
             return
+        self.preview_index = index
         consumed, message = self.field.chests.use_quick_slot(index, persist=self.cause != 'debug')
         self.item_message = message
         if consumed:
@@ -790,6 +794,9 @@ class MeleeScene:
             if drawing.contains(ITEM_BUTTON, x, y) and self.can_act():
                 self.item_page = not self.item_page
                 self.item_message = ''
+                if self.item_page:
+                    self.preview_index = next((slot for slot, item in enumerate(self.field.chests.quick_slots)
+                                               if item is not None), self.preview_index)
             else:
                 for index, bounds in enumerate(BUTTONS):
                     if drawing.contains(bounds, x, y):
@@ -877,7 +884,9 @@ class MeleeScene:
     def action_preview(self):
         hovered_index = next((index for index, bounds in enumerate(BUTTONS)
                               if self.hovered(bounds)), None)
-        index = hovered_index if hovered_index is not None else self.selected
+        if hovered_index is not None and self.can_choose():
+            self.preview_index = hovered_index
+        index = self.preview_index
         if self.player.hp == 0:
             return '전투 패배', 'ESC를 눌러 메인으로 이동'
         if self.enemy_direction is not None:
@@ -887,13 +896,7 @@ class MeleeScene:
             return '몬스터 이동 중', '이동이 끝나면 행동 선택'
         if self.attack_elapsed is not None:
             return f'{DIRECTIONS[self.selected]} 공격', '공격 진행 중'
-        if self.hovered(ITEM_BUTTON) and self.can_act():
-            return ('공격으로 전환' if self.item_page else '아이템으로 전환',
-                    '선택 화면을 바꿉니다')
         if self.item_page:
-            if hovered_index is None:
-                index = next((slot for slot, item in enumerate(self.field.chests.quick_slots)
-                              if item is not None), 0)
             item_id = self.field.chests.quick_slots[index]
             if item_id is None:
                 return '아이템 선택', self.item_message or '등록된 아이템이 없습니다'
@@ -907,8 +910,8 @@ class MeleeScene:
         muted = (181, 174, 169)
         drawing.rectangle((16, 275, 330, 315), (29, 29, 41), filled=True)
         title, detail = self.action_preview()
-        drawing.text(small, 16, 270, self.fit_text(small, title, 140), GOLD)
-        drawing.text(small, 16, 291, self.fit_text(small, detail, 140), ivory)
+        centered(small, 88, 285, self.fit_text(small, title, 140), GOLD)
+        centered(small, 88, 303, self.fit_text(small, detail, 140), ivory)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
@@ -932,8 +935,7 @@ class MeleeScene:
                          f'{self.enemy_forecast[index]:.1%}', GOLD)
             else:
                 centered(small, (left + right) / 2, top + 17, direction, color)
-        panel(ITEM_BUTTON, (21, 23, 33),
-              GOLD if can_choose and not guarding and self.hovered(ITEM_BUTTON) else (76, 75, 86))
+        panel(ITEM_BUTTON, (21, 23, 33), GOLD)
         self.switch_icon.draw(round((ITEM_BUTTON[0] + ITEM_BUTTON[2]) / 2 * SCALE),
                               round((NATIVE_HEIGHT - (ITEM_BUTTON[1] + ITEM_BUTTON[3]) / 2) * SCALE),
                               24 * SCALE, 24 * SCALE)
