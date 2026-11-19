@@ -20,7 +20,7 @@ from game.lighting import WorldDarkness
 DIRECTIONS = ('상단', '중단', '하단')
 COMBAT_POPUP_SECONDS = .85
 DODGE_FADE_SECONDS = .24
-BUTTONS = ((170, 275, 205, 310), (211, 275, 246, 310), (252, 275, 287, 310))
+BUTTONS = ((170, 263, 205, 298), (211, 263, 246, 298), (252, 263, 287, 298))
 SPEED_BUTTONS = ((1, (20, 5, 49, 19)), (2, (54, 5, 83, 19)))
 KEYS = (p2d.SDLK_1, p2d.SDLK_2, p2d.SDLK_3)
 FLOOR = 245
@@ -56,7 +56,7 @@ IMPACT_HIT_STOP = .075
 SLASH_RECOIL_SECONDS = .24
 SLASH_RECOIL_PIXELS = 12
 GOLD = (190, 145, 82)
-ITEM_BUTTON = (295, 275, 330, 310)
+ITEM_BUTTON = (295, 263, 330, 298)
 SLIME_LAUNCH_TIME = .08
 SLIME_IMPACT_TIME = .42
 SLIME_LAND_TIME = .62
@@ -940,10 +940,10 @@ class MeleeScene:
     def draw_combat_hud(self):
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
-        drawing.rectangle((16, 275, 330, 315), (29, 29, 41), filled=True)
+        drawing.rectangle((16, 263, 330, 315), (29, 29, 41), filled=True)
         title, detail = self.action_preview()
-        self.hud_text(88, 285, title, 140, GOLD, center=True)
-        self.hud_text(88, 303, detail, 140, ivory, center=True)
+        self.hud_text(88, 279, title, 140, GOLD, center=True)
+        self.hud_text(88, 297, detail, 140, ivory, center=True)
 
         can_choose = self.can_choose()
         guarding = self.enemy_direction is not None
@@ -996,9 +996,19 @@ class MeleeScene:
         dodge = min(250, max(0, 5 * agility + luck)) / 10
         self.hud_text(20, 328, '용병', 82, ivory, compact=True)
         self.hud_text(20, 342, f'HP {self.player.hp}/{self.player.max_hp}', 82, ivory, compact=True)
-        self.hud_text(116, 328, f'공격력 {damage}', 102, ivory, compact=True)
-        self.hud_text(116, 342, f'치명타 {critical:.1f}%', 102, ivory, compact=True)
-        self.hud_text(230, 328, f'회피 {dodge:.1f}%', 94, ivory, compact=True)
+        # One taller panel replaces the two baked stat boxes and their divider.
+        panel((110, 310, 330, 355), (20, 20, 29), (82, 78, 90))
+        rows = (
+            ('공격력', damage),
+            ('방어력', f'물리 {self.player.physical_defense} · 마법 {self.player.magic_defense}'),
+            ('치명타', f'{critical:.1f}%'),
+            ('회피', f'{dodge:.1f}%'),
+        )
+        for row, (label, value) in enumerate(rows):
+            y = 317 + row * 10
+            self.hud_text(116, y, label, 48, ivory, compact=True)
+            width = min(150, self.app.resources.compact.measure(value)[0])
+            self.hud_text(324 - width, y, value, 150, ivory, compact=True)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
