@@ -4,6 +4,7 @@ import math
 import pico2d as p2d
 
 from game.config import ASSETS, WINDOW_HEIGHT
+from game.pixel_style import simplify
 
 
 class TutorialBird:
@@ -11,13 +12,16 @@ class TutorialBird:
     FRAME_COUNT = 9
     FPS = 12
     DRAW_SCALE = .5
+    PIXEL_BLOCK = 4
     FOLLOW_DISTANCE = 30
     FOLLOW_HEIGHT = 58
     FOLLOW_RATE = 7
 
     def __init__(self, field):
         self.field = field
-        self.sheet = p2d.load_image(str(ASSETS / 'dungeon' / 'companions' / 'skeleton-bird-idle.png'))
+        source = p2d.load_image(str(ASSETS / 'dungeon' / 'companions' / 'skeleton-bird-idle.png'))
+        # At half size, a four-source-pixel block matches the field's 2px clusters.
+        self.sheet = simplify(source, block=self.PIXEL_BLOCK)
         self.elapsed = 0.0
         self.reset()
 
