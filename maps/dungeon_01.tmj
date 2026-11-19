@@ -202,30 +202,6 @@
                 {
                  "gid":31,
                  "height":55.8333,
-                 "id":143,
-                 "name":"",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"flameAnimation",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"warmLight",
-                         "type":"bool",
-                         "value":false
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":29.3333,
-                 "x":640,
-                 "y":0.166650000000004
-                }, 
-                {
-                 "gid":31,
-                 "height":55.8333,
                  "id":144,
                  "name":"",
                  "opacity":1,
@@ -258,19 +234,6 @@
                  "visible":true,
                  "width":32,
                  "x":672,
-                 "y":55.6667
-                }, 
-                {
-                 "gid":28,
-                 "height":16,
-                 "id":146,
-                 "name":"",
-                 "opacity":1,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":32,
-                 "x":704,
                  "y":55.6667
                 }, 
                 {
@@ -926,15 +889,32 @@
          "y":0
         }, 
         {
-         "id":16,
-         "name":"내부 차단문",
-         "type":"objectgroup",
          "draworder":"index",
+         "id":16,
+         "name":"\ub0b4\ubd80 \ucc28\ub2e8\ubb38",
+         "objects":[
+                {
+                 "gid":56,
+                 "height":288,
+                 "id":160,
+                 "name":"stage1-middle-gate",
+                 "opacity":1,
+                 "properties":[
+                        {"name":"gateId","type":"string","value":"stage1-middle-gate"},
+                        {"name":"side","type":"string","value":"center"},
+                        {"name":"isExit","type":"bool","value":false}],
+                 "rotation":0,
+                 "type":"InternalGate",
+                 "visible":true,
+                 "width":96,
+                 "x":672,
+                 "y":288
+                }],
          "opacity":1,
+         "type":"objectgroup",
          "visible":true,
          "x":0,
-         "y":0,
-         "objects":[]
+         "y":0
         },
         {
          "color":"#f5d178",
@@ -981,12 +961,12 @@
                         {
                          "name":"patrolLeft",
                          "type":"float",
-                         "value":640
+                         "value":832
                         }, 
                         {
                          "name":"patrolRight",
                          "type":"float",
-                         "value":800
+                         "value":992
                         }, 
                         {
                          "name":"speed",
@@ -997,14 +977,14 @@
                  "type":"Slime",
                  "visible":true,
                  "width":32,
-                 "x":672,
+                 "x":896,
                  "y":288
                 },
                 {
                  "gid":51,
                  "height":32,
                  "id":158,
-                 "name":"튜토리얼 슬라임 2",
+                 "name":"\ud29c\ud1a0\ub9ac\uc5bc \uc2ac\ub77c\uc784 2",
                  "opacity":1,
                  "properties":[
                         {
@@ -1038,7 +1018,7 @@
                  "gid":51,
                  "height":32,
                  "id":159,
-                 "name":"튜토리얼 슬라임 3",
+                 "name":"\ud29c\ud1a0\ub9ac\uc5bc \uc2ac\ub77c\uc784 3",
                  "opacity":1,
                  "properties":[
                         {
@@ -1072,7 +1052,7 @@
                  "gid":54,
                  "height":64,
                  "id":157,
-                 "name":"튜토리얼 리치",
+                 "name":"\ud29c\ud1a0\ub9ac\uc5bc \ub9ac\uce58",
                  "opacity":1,
                  "properties":[
                         {
@@ -1109,7 +1089,7 @@
          "y":0
         }],
  "nextlayerid":17,
- "nextobjectid":160,
+ "nextobjectid":161,
  "orientation":"orthogonal",
  "properties":[
         {
@@ -1185,7 +1165,7 @@
         },
         {
          "firstgid":55,
-         "source":"tilesets/internal-gates.tsj"
+         "source":"tilesets\/internal-gates.tsj"
         }],
  "tilewidth":32,
  "type":"map",
