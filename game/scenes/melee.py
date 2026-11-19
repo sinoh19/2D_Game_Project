@@ -289,16 +289,20 @@ class MeleeScene:
             label = label[:-1]
         return label + '…'
 
-    def hud_text(self, x, y, label, width, color, *, center=False, compact=False):
+    def hud_text(self, x, y, label, width, color, *, center=False, compact=False, height=None):
         resources = self.app.resources
         font = resources.compact if compact else resources.small
         if font.measure(label)[0] > width:
             font = resources.compact
-        measured = min(width, font.measure(label)[0])
+        text_width, text_height = font.measure(label)
+        factor = min(1.0, width / text_width) if text_width else 1.0
+        if height is not None and text_height:
+            factor = min(factor, height / text_height)
+        measured = text_width * factor
         if center:
             x -= measured / 2
         font.draw(round(x * SCALE), round((NATIVE_HEIGHT - y) * SCALE), label, color,
-                  max_width=width)
+                  max_width=width, max_height=height)
 
     def can_choose(self):
         return (self.attack_elapsed is None and self.enemy_elapsed is None
@@ -940,6 +944,9 @@ class MeleeScene:
     def draw_combat_hud(self):
         ivory = (240, 231, 207)
         muted = (181, 174, 169)
+        # Match the left frame to the current layout instead of the baked two-row skin.
+        panel((8, 258, 336, 355), (29, 29, 41), (174, 134, 81))
+        drawing.rectangle((10, 260, 334, 353), (76, 70, 77))
         drawing.rectangle((16, 263, 330, 315), (29, 29, 41), filled=True)
         title, detail = self.action_preview()
         self.hud_text(88, 279, title, 140, GOLD, center=True)
@@ -994,10 +1001,11 @@ class MeleeScene:
         damage = f'{max(0, middle - 2)}~{middle + 2}' if base else '0'
         critical = min(200, max(0, 4 + luck)) / 2 if base else 0
         dodge = min(250, max(0, 5 * agility + luck)) / 10
+        panel((14, 320, 104, 350), (20, 20, 29), (82, 78, 90))
         self.hud_text(20, 328, '용병', 82, ivory, compact=True)
         self.hud_text(20, 342, f'HP {self.player.hp}/{self.player.max_hp}', 82, ivory, compact=True)
         # One taller panel replaces the two baked stat boxes and their divider.
-        panel((110, 310, 330, 355), (20, 20, 29), (82, 78, 90))
+        panel((110, 310, 330, 352), (20, 20, 29), (82, 78, 90))
         rows = (
             ('공격력', damage),
             ('방어력', f'물리 {self.player.physical_defense} · 마법 {self.player.magic_defense}'),
@@ -1005,10 +1013,11 @@ class MeleeScene:
             ('회피', f'{dodge:.1f}%'),
         )
         for row, (label, value) in enumerate(rows):
-            y = 317 + row * 10
-            self.hud_text(116, y, label, 48, ivory, compact=True)
-            width = min(150, self.app.resources.compact.measure(value)[0])
-            self.hud_text(324 - width, y, value, 150, ivory, compact=True)
+            y = 316 + row * 10
+            self.hud_text(116, y, label, 48, ivory, compact=True, height=10)
+            text_width, text_height = self.app.resources.compact.measure(value)
+            factor = min(1.0, 150 / text_width, 10 / text_height)
+            self.hud_text(324 - text_width * factor, y, value, 150, ivory, compact=True, height=10)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
