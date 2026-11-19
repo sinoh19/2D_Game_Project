@@ -1,5 +1,6 @@
 """Directional attack and guard turns in the melee arena."""
 import ctypes
+import math
 from random import randrange
 from types import SimpleNamespace
 
@@ -36,7 +37,10 @@ RETREAT_HEAL = 4
 REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
 DASH_APPROACH_SECONDS = .28
-RETURN_SECONDS = .55
+RETURN_SECONDS = .36
+BACKHOP_FRAME_SIZE = 56
+BACKHOP_FRAME_COUNT = 9
+BACKHOP_HEIGHT = 10
 UPPER_ATTACK = 0
 MIDDLE_ATTACK = 1
 LOWER_ATTACK = 2
@@ -152,6 +156,7 @@ class MeleeScene:
         self.hud = p2d.load_image(str(ASSETS / 'ui' / 'pixellab-melee-hud.png'))
         self.switch_icon = p2d.load_image(str(ASSETS / 'ui' / 'battle-switch.png'))
         character_art = ASSETS / 'dungeon' / 'character'
+        self.backhop = p2d.load_image(str(character_art / 'melee-backhop.png'))
         self.slash_highlights = {
             direction: (simplify(p2d.load_image(str(character_art / filename)), block=1, preserve_white=True),
                         pivot)
@@ -712,7 +717,17 @@ class MeleeScene:
         if elapsed < DASH_APPROACH_SECONDS + self.attack_duration:
             return STRIKE_X
         progress = min(1.0, (elapsed - DASH_APPROACH_SECONDS - self.attack_duration) / RETURN_SECONDS)
+        progress = progress * progress * (3 - 2 * progress)
         return STRIKE_X + (self.player_x - STRIKE_X) * progress
+
+    def player_draw_feet(self):
+        if self.attack_elapsed is None:
+            return FLOOR
+        elapsed = self.attack_elapsed - DASH_APPROACH_SECONDS - self.attack_duration
+        if elapsed <= 0:
+            return FLOOR
+        progress = min(1.0, elapsed / RETURN_SECONDS)
+        return FLOOR - BACKHOP_HEIGHT * math.sin(math.pi * progress)
 
     def draw_mercenary(self, zoom=1.0):
         if (self.enemy_elapsed is not None and self.enemy_elapsed >= self.enemy_impact_time
@@ -741,7 +756,17 @@ class MeleeScene:
             clip = 'attack'
             time, facing = self.slash_attack_time(elapsed - DASH_APPROACH_SECONDS), 1
         else:
-            clip, time, facing = 'walk', elapsed - DASH_APPROACH_SECONDS - self.attack_duration, -1
+            time = elapsed - DASH_APPROACH_SECONDS - self.attack_duration
+            frame = min(BACKHOP_FRAME_COUNT - 1, int(time / RETURN_SECONDS * BACKHOP_FRAME_COUNT))
+            x, y = self.zoom_point(x, self.player_draw_feet(), zoom)
+            scale = 2 * zoom
+            # Same 56px canvas and foot pivot (28, 3) as the original idle.
+            self.backhop.clip_draw(frame * BACKHOP_FRAME_SIZE, 0, BACKHOP_FRAME_SIZE, BACKHOP_FRAME_SIZE,
+                                   round(x * SCALE),
+                                   round((NATIVE_HEIGHT - y + 25 * scale) * SCALE),
+                                   round(BACKHOP_FRAME_SIZE * scale * SCALE),
+                                   round(BACKHOP_FRAME_SIZE * scale * SCALE))
+            return
         x, y = self.zoom_point(x, FLOOR, zoom)
         if time is None:
             if self.selected != UPPER_ATTACK:
@@ -1006,7 +1031,7 @@ class MeleeScene:
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
-        lights = [(self.player_draw_x(), FLOOR - 55, 180, 148)]
+        lights = [(self.player_draw_x(), self.player_draw_feet() - 55, 180, 148)]
         lights.extend((self.actor_x(actor), FLOOR - 45, 155, 148)
                       for actor in self.enemy_slots if actor is not None)
         sources = []
