@@ -1,6 +1,5 @@
 """Directional attack and guard turns in the melee arena."""
 import ctypes
-import math
 from random import randrange
 from types import SimpleNamespace
 
@@ -37,10 +36,10 @@ RETREAT_HEAL = 4
 REINFORCEMENT_RANGE = 224
 STRIKE_X = 350
 DASH_APPROACH_SECONDS = .28
-RETURN_SECONDS = .36
+RETURN_SECONDS = .28
 BACKHOP_FRAME_SIZE = 56
 BACKHOP_FRAME_COUNT = 9
-BACKHOP_HEIGHT = 10
+BACKHOP_FEET = (53, 53, 53, 53, 52, 53, 52, 53, 53)
 UPPER_ATTACK = 0
 MIDDLE_ATTACK = 1
 LOWER_ATTACK = 2
@@ -717,17 +716,8 @@ class MeleeScene:
         if elapsed < DASH_APPROACH_SECONDS + self.attack_duration:
             return STRIKE_X
         progress = min(1.0, (elapsed - DASH_APPROACH_SECONDS - self.attack_duration) / RETURN_SECONDS)
-        progress = progress * progress * (3 - 2 * progress)
+        progress = 1 - (1 - progress) ** 2
         return STRIKE_X + (self.player_x - STRIKE_X) * progress
-
-    def player_draw_feet(self):
-        if self.attack_elapsed is None:
-            return FLOOR
-        elapsed = self.attack_elapsed - DASH_APPROACH_SECONDS - self.attack_duration
-        if elapsed <= 0:
-            return FLOOR
-        progress = min(1.0, elapsed / RETURN_SECONDS)
-        return FLOOR - BACKHOP_HEIGHT * math.sin(math.pi * progress)
 
     def draw_mercenary(self, zoom=1.0):
         if (self.enemy_elapsed is not None and self.enemy_elapsed >= self.enemy_impact_time
@@ -758,12 +748,12 @@ class MeleeScene:
         else:
             time = elapsed - DASH_APPROACH_SECONDS - self.attack_duration
             frame = min(BACKHOP_FRAME_COUNT - 1, int(time / RETURN_SECONDS * BACKHOP_FRAME_COUNT))
-            x, y = self.zoom_point(x, self.player_draw_feet(), zoom)
+            x, y = self.zoom_point(x, FLOOR, zoom)
             scale = 2 * zoom
-            # Same 56px canvas and foot pivot (28, 3) as the original idle.
+            # Keep facing the enemy and anchor each frame's feet to the floor.
             self.backhop.clip_draw(frame * BACKHOP_FRAME_SIZE, 0, BACKHOP_FRAME_SIZE, BACKHOP_FRAME_SIZE,
                                    round(x * SCALE),
-                                   round((NATIVE_HEIGHT - y + 25 * scale) * SCALE),
+                                   round((NATIVE_HEIGHT - y + (BACKHOP_FEET[frame] - 28) * scale) * SCALE),
                                    round(BACKHOP_FRAME_SIZE * scale * SCALE),
                                    round(BACKHOP_FRAME_SIZE * scale * SCALE))
             return
@@ -1031,7 +1021,7 @@ class MeleeScene:
         else:
             self.draw_mercenary(zoom)
             self.draw_enemies(zoom)
-        lights = [(self.player_draw_x(), self.player_draw_feet() - 55, 180, 148)]
+        lights = [(self.player_draw_x(), FLOOR - 55, 180, 148)]
         lights.extend((self.actor_x(actor), FLOOR - 45, 155, 148)
                       for actor in self.enemy_slots if actor is not None)
         sources = []
