@@ -193,7 +193,7 @@ class DungeonAssets:
         from game.pixel_style import simplify
 
         clips = self.animations['clips']
-        names = dict.fromkeys(clips[clip]['sheet'] for clip in ('idle', 'walk', 'attack'))
+        names = dict.fromkeys(clips[clip]['sheet'] for clip in ('idle', 'walk', 'dash', 'attack'))
         return {
             name: simplify(p2d.load_image(str(ASSETS / 'dungeon' / self.animations['sheets'][name])), block=1)
             for name in names
