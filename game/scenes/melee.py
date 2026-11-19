@@ -1001,11 +1001,8 @@ class MeleeScene:
         damage = f'{max(0, middle - 2)}~{middle + 2}' if base else '0'
         critical = min(200, max(0, 4 + luck)) / 2 if base else 0
         dodge = min(250, max(0, 5 * agility + luck)) / 10
-        panel((14, 320, 104, 350), (20, 20, 29), (82, 78, 90))
-        self.hud_text(20, 328, '용병', 82, ivory, compact=True)
-        self.hud_text(20, 342, f'HP {self.player.hp}/{self.player.max_hp}', 82, ivory, compact=True)
-        # One taller panel replaces the two baked stat boxes and their divider.
-        panel((110, 300, 330, 352), (20, 20, 29), (82, 78, 90))
+        # Use the whole lower-left area for the four combat stats.
+        panel((14, 300, 330, 352), (20, 20, 29), (82, 78, 90))
         rows = (
             ('공격력', damage),
             ('방어력', f'물리 {self.player.physical_defense} · 마법 {self.player.magic_defense}'),
@@ -1014,9 +1011,9 @@ class MeleeScene:
         )
         for row, (label, value) in enumerate(rows):
             y = 307 + row * 12
-            self.hud_text(116, y, label, 48, ivory, compact=True)
+            self.hud_text(20, y, label, 90, ivory, compact=True)
             text_width = self.app.resources.compact.measure(value)[0]
-            self.hud_text(324 - min(150, text_width), y, value, 150, ivory, compact=True)
+            self.hud_text(324 - min(208, text_width), y, value, 208, ivory, compact=True)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
