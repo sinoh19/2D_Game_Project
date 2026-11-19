@@ -999,7 +999,6 @@ class MeleeScene:
         self.hud_text(116, 328, f'공격력 {damage}', 102, ivory, compact=True)
         self.hud_text(116, 342, f'치명타 {critical:.1f}%', 102, ivory, compact=True)
         self.hud_text(230, 328, f'회피 {dodge:.1f}%', 94, ivory, compact=True)
-        self.hud_text(230, 342, f'{self.player_slot + 1}번 칸 · ← → 이동', 94, muted, compact=True)
 
         actor = self.inspected_enemy
         if actor is None or actor not in self.enemy_slots:
