@@ -1,4 +1,4 @@
-"""Side passages with persistent, mechanically rising lift gates."""
+"""Stage exits and internal passages with persistent rising lift gates."""
 import math
 from game import drawing
 from game.config import SCALE, WINDOW_HEIGHT
@@ -71,9 +71,11 @@ class SidePassages:
     def reached_exit(self):
         player = self.scene.player
         return any(
-            gate.spec['id'] == 'exit' and gate.spec['side'] == 'right'
+            gate.spec.get('isExit', gate.spec['id'] == 'exit' and gate.spec['side'] == 'right')
             and gate.state == 'open'
-            and player.x >= gate.spec['gateX'] + gate.spec['gateWidth'] / 2
+            and (player.x >= gate.spec['gateX'] + gate.spec['gateWidth'] / 2
+                 if gate.spec['side'] == 'right'
+                 else player.x <= gate.spec['gateX'] + gate.spec['gateWidth'] / 2)
             and gate.spec['openingTop'] + player.HEIGHT <= player.y <= gate.spec['bottom'] + 16
             for gate in self.gates
         )

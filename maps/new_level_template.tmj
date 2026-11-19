@@ -9,7 +9,7 @@
   "height": 12,
   "tilewidth": 32,
   "tileheight": 32,
-  "nextlayerid": 16,
+  "nextlayerid": 17,
   "nextobjectid": 36,
   "properties": [
     {
@@ -68,6 +68,10 @@
     {
       "firstgid": 6014,
       "source": "tilesets/monsters.tsj"
+    },
+    {
+      "firstgid": 6015,
+      "source": "tilesets/internal-gates.tsj"
     }
   ],
   "layers": [
@@ -3143,6 +3147,17 @@
     {
       "id": 9,
       "name": "좌우 철문 통로",
+      "type": "objectgroup",
+      "opacity": 1,
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "draworder": "index",
+      "objects": []
+    },
+    {
+      "id": 16,
+      "name": "내부 차단문",
       "type": "objectgroup",
       "opacity": 1,
       "visible": true,

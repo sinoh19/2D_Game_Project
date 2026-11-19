@@ -926,6 +926,17 @@
          "y":0
         }, 
         {
+         "id":16,
+         "name":"내부 차단문",
+         "type":"objectgroup",
+         "draworder":"index",
+         "opacity":1,
+         "visible":true,
+         "x":0,
+         "y":0,
+         "objects":[]
+        },
+        {
          "color":"#f5d178",
          "draworder":"topdown",
          "id":10,
@@ -1097,7 +1108,7 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":16,
+ "nextlayerid":17,
  "nextobjectid":160,
  "orientation":"orthogonal",
  "properties":[
@@ -1171,6 +1182,10 @@
         {
          "firstgid":54,
          "source":"tilesets\/lich.tsj"
+        },
+        {
+         "firstgid":55,
+         "source":"tilesets/internal-gates.tsj"
         }],
  "tilewidth":32,
  "type":"map",

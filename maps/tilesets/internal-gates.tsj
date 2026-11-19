@@ -1,0 +1,41 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "tiledversion": "1.12.2",
+  "name": "내부 차단문",
+  "tilewidth": 64,
+  "tileheight": 288,
+  "columns": 0,
+  "tilecount": 2,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "class": "Passage",
+      "image": "images/passage-left.png",
+      "imagewidth": 64,
+      "imageheight": 288,
+      "properties": [
+        {"name": "label", "type": "string", "value": "내부 차단문 · 철문 왼쪽"},
+        {"name": "side", "type": "string", "value": "left"},
+        {"name": "openingHeight", "type": "int", "value": 104},
+        {"name": "gateWidth", "type": "int", "value": 24},
+        {"name": "isExit", "type": "bool", "value": false}
+      ]
+    },
+    {
+      "id": 1,
+      "class": "Passage",
+      "image": "images/passage-right.png",
+      "imagewidth": 64,
+      "imageheight": 288,
+      "properties": [
+        {"name": "label", "type": "string", "value": "내부 차단문 · 철문 오른쪽"},
+        {"name": "side", "type": "string", "value": "right"},
+        {"name": "openingHeight", "type": "int", "value": 104},
+        {"name": "gateWidth", "type": "int", "value": 24},
+        {"name": "isExit", "type": "bool", "value": false}
+      ]
+    }
+  ]
+}

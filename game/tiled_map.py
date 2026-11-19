@@ -296,7 +296,8 @@ def load_map(map_path,base_layout,asset_root):
                     if identity in passage_ids:raise ValueError(f'철문 gateId가 중복됩니다: {identity}')
                     passage_ids.add(identity)
                     layout['sidePassages'].append({'id':identity,'side':side,'left':left,'right':right,'top':round(top),
-                        'openingTop':bottom-opening,'bottom':bottom,'gateX':left if side=='left' else right-gw,'gateWidth':gw})
+                        'openingTop':bottom-opening,'bottom':bottom,'gateX':left if side=='left' else right-gw,'gateWidth':gw,
+                        'isExit':bool(props.get('isExit',identity=='exit' and side=='right'))})
                     continue
                 if gid and shown:
                     visual(gid,x,y-h,w,h,rotation,alpha)
