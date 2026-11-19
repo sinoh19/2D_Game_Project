@@ -970,15 +970,8 @@ class MeleeScene:
         if actor is None or actor not in self.enemy_slots:
             actor = self.enemy_slots[0]
             self.inspected_enemy = actor
-        drawing.text(small, 352, 270, '선택한 몬스터', GOLD)
         if actor is None:
-            drawing.text(small, 353, 286, '선택한 몬스터 없음', muted)
             return
-        slot = self.enemy_slots.index(actor)
-        centered(small, 489, 285, f'{actor.melee_name} · {slot + 1}번 칸', ivory)
-        target_label = ('기본 공격 대상' if slot == 0 else
-                        '정보 확인 중 · 기본 공격 대상 아님')
-        drawing.text(small, 358, 300, target_label, ivory if slot == 0 else (222, 174, 145))
         drawing.text(small, 352, 317, 'HP', ivory)
         if actor.hp > 0:
             drawing.rectangle((377, 313, 377 + 244 * actor.hp / actor.max_hp, 319),
