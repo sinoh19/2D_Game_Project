@@ -88,6 +88,20 @@
         "tile"
       ],
       "members": []
+    },
+    {
+      "id": 8,
+      "name": "InternalGate",
+      "type": "class",
+      "color": "#ffd6ae60",
+      "drawFill": true,
+      "useAs": ["object", "tile"],
+      "members": [
+        {"name": "side", "type": "string", "value": "center"},
+        {"name": "isExit", "type": "bool", "value": false},
+        {"name": "openingHeight", "type": "int", "value": 104},
+        {"name": "gateWidth", "type": "int", "value": 24}
+      ]
     }
   ]
 }

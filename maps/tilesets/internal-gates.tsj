@@ -11,7 +11,7 @@
   "tiles": [
     {
       "id": 0,
-      "class": "Passage",
+      "class": "InternalGate",
       "image": "images/passage-center-64.png",
       "imagewidth": 64,
       "imageheight": 288,
@@ -25,7 +25,7 @@
     },
     {
       "id": 1,
-      "class": "Passage",
+      "class": "InternalGate",
       "image": "images/passage-center-96.png",
       "imagewidth": 96,
       "imageheight": 288,
