@@ -12,7 +12,7 @@ class TutorialBird:
     FRAME_COUNT = 9
     FPS = 18
     DRAW_SCALE = .5
-    PIXEL_BLOCK = 4
+    PIXEL_BLOCK = 2
     FOLLOW_DISTANCE = 30
     FOLLOW_HEIGHT = 58
     FOLLOW_RATE = 7
@@ -20,7 +20,7 @@ class TutorialBird:
     def __init__(self, field):
         self.field = field
         source = p2d.load_image(str(ASSETS / 'dungeon' / 'companions' / 'skeleton-bird-idle.png'))
-        # At half size, a four-source-pixel block matches the field's 2px clusters.
+        # Use a lighter block treatment to keep the small bird's shape readable.
         self.sheet = simplify(source, block=self.PIXEL_BLOCK)
         self.elapsed = 0.0
         self.reset()
