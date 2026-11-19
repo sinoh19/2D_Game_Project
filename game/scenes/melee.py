@@ -662,7 +662,8 @@ class MeleeScene:
                        if front and self.attack_elapsed is not None else -1)
         recoil = (12 * max(0.0, 1 - hit_elapsed / .24) ** 2
                   if hit_elapsed >= 0 and self.player_attack_landed else 0)
-        casting = self.enemy_elapsed is not None and actor is self.active_enemy and death_elapsed is None
+        attacking = self.enemy_elapsed is not None and actor is self.active_enemy and death_elapsed is None
+        casting = attacking and self.enemy_elapsed < LICH_PROJECTILE_LAUNCH_TIME
         if death_elapsed is not None:
             frame = min(art.DEATH_FRAME_COUNT - 1, int(death_elapsed * art.DEATH_FPS))
             sprite = art.melee_death_frames[frame]
@@ -693,7 +694,7 @@ class MeleeScene:
         finally:
             if blue_guard or red_hit:
                 p2d.SDL_SetTextureColorMod(sprite.texture, 255, 255, 255)
-        if not casting:
+        if not attacking:
             return
         core_x = home_x - 35
         core_y = FLOOR - 88

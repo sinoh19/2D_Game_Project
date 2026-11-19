@@ -295,7 +295,11 @@ class RangedScene:
                                x + self.cell_width / 2 - 2, FLOOR + 8),
                               (117, 123, 132))
         art = self.field.assets.lich_art
-        casting = self.resolving == 'ranged'
+        attacking = self.resolving == 'ranged'
+        core_x = lich_x - RANGED_STAFF_CORE_X_OFFSET
+        target_x = player_x + 12
+        launch_time = max(.16, self.contact_time - (core_x - target_x) / RANGED_PROJECTILE_SPEED)
+        casting = attacking and self.action_elapsed < launch_time
         frame = (min(Lich.CAST_FRAMES - 3, int(self.action_elapsed * Lich.CAST_FPS))
                  if casting else int(self.idle_elapsed * 10) % art.FRAME_COUNT)
         width = art.CAST_WIDTH if casting else art.FRAME_WIDTH
@@ -306,16 +310,13 @@ class RangedScene:
             round(center_x * SCALE),
             round((NATIVE_HEIGHT - (FLOOR - 40)) * SCALE),
             round(width * SCALE), round(art.FRAME_HEIGHT * SCALE))
-        core_x = lich_x - RANGED_STAFF_CORE_X_OFFSET
-        target_x = player_x + 12
-        launch_time = max(.16, self.contact_time - (core_x - target_x) / RANGED_PROJECTILE_SPEED)
-        if casting and launch_time <= self.action_elapsed < self.contact_time:
+        if attacking and launch_time <= self.action_elapsed < self.contact_time:
             progress = (self.action_elapsed - launch_time) / (self.contact_time - launch_time)
             orb = SimpleNamespace(x=core_x + (target_x - core_x) * progress,
                                   y=RANGED_STAFF_CORE_Y, age=self.action_elapsed,
                                   facing=-1, draw_angle=0)
             art.draw_projectile(orb, 0, SCALE, NATIVE_WIDTH)
-        if casting and self.hit:
+        if attacking and self.hit:
             elapsed = self.action_elapsed - self.contact_time
             if elapsed < .3:
                 self.field.assets.draw_mercenary_hit(
@@ -328,7 +329,7 @@ class RangedScene:
                                                 elapsed=elapsed, DURATION=LichImpact.DURATION),
                                 0, SCALE, NATIVE_WIDTH)
         else:
-            alpha = 110 if casting and self.popup is not None and self.popup[0] == 'MISS' else 255
+            alpha = 110 if attacking and self.popup is not None and self.popup[0] == 'MISS' else 255
             clip = 'dash' if dash_progress is not None else 'idle'
             time = (self.field.assets.animations['clips']['dash']['duration'] * dash_progress
                     if dash_progress is not None else self.idle_elapsed)
